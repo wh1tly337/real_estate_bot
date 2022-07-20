@@ -72,10 +72,10 @@ def telegram_bot():
 
     @bot.message_handler(commands=['start'])
     def start_message(message):
-        markup = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
-        btn1 = telebot.types.KeyboardButton("За работу")
-        btn2 = telebot.types.KeyboardButton("/help")
-        markup.add(btn1, btn2)
+        markup_start = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
+        btn1_start = telebot.types.KeyboardButton("За работу")
+        btn2_start = telebot.types.KeyboardButton("/help")
+        markup_start.add(btn1_start, btn2_start)
         bot.send_message(message.chat.id,
                          '{0.first_name}, добро пожаловать в бот помощник по недвижимости!\
             \nЯ в любое время могу собирать информацию о необходимых тебе объектах.\
@@ -83,7 +83,7 @@ def telegram_bot():
             \nСобирать всю эту информацию в удобном тебе виде и обновлять ее по твоему желанию.\
             \nВо время использования моего функционала, пользуйтесь кнопками снизу клавиатуры, Вам так будет намного удобнее.\
             \n\nДля того чтобы узнать все мои команды нажмите на кнопку /help на клавиатуре.'.format(
-                             message.from_user, bot.get_me()), reply_markup=markup, parse_mode='html')
+                             message.from_user, bot.get_me()), reply_markup=markup_start, parse_mode='html')
 
     @bot.message_handler(commands=['help'])
     def help_message(message):
@@ -109,21 +109,23 @@ def telegram_bot():
         start_connection()
         if counter == 0:
             main_site_start()
-        markup_new = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
-        btn1_new = telebot.types.KeyboardButton("УПН")
-        btn2_new = telebot.types.KeyboardButton("ЦИАН")
-        btn3_new = telebot.types.KeyboardButton("Яндекс Недвижимость")
-        btn4_new = telebot.types.KeyboardButton("Авито")
-        btn5_new = telebot.types.KeyboardButton("Завершить работу")
-        markup_new.add(btn1_new, btn2_new), markup_new.add(btn3_new, btn4_new), markup_new.add(btn5_new)
-        bot.send_message(message.chat.id, text="С какого сайта Вы хотите получить информацию?", reply_markup=markup_new, parse_mode="Markdown")
+        markup_site_question = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
+        btn1_site_question = telebot.types.KeyboardButton("УПН")
+        btn2_site_question = telebot.types.KeyboardButton("ЦИАН")
+        btn3_site_question = telebot.types.KeyboardButton("Яндекс Недвижимость")
+        btn4_site_question = telebot.types.KeyboardButton("Авито")
+        btn5_site_question = telebot.types.KeyboardButton("Завершить работу")
+        markup_site_question.add(btn1_site_question, btn2_site_question)
+        markup_site_question.add(btn3_site_question, btn4_site_question)
+        markup_site_question.add(btn5_site_question)
+        bot.send_message(message.chat.id, text="С какого сайта Вы хотите получить информацию?", reply_markup=markup_site_question, parse_mode="Markdown")
 
     @bot.message_handler(commands=['update_table'])
     def update_table(message):
-        markup_new = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
-        btn1_new = telebot.types.KeyboardButton("Завершить работу")
-        markup_new.add(btn1_new)
-        bot.send_message(message.chat.id, text="Отправьте мне файл, информацию в котором Вы хотите обновить", reply_markup=markup_new, parse_mode="Markdown")
+        markup_quit = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
+        btn1_quit = telebot.types.KeyboardButton("Завершить работу")
+        markup_quit.add(btn1_quit)
+        bot.send_message(message.chat.id, text="Отправьте мне файл, информацию в котором Вы хотите обновить", reply_markup=markup_quit, parse_mode="Markdown")
 
     @bot.message_handler(content_types=['document'])
     def handle_docs(message):
@@ -148,10 +150,10 @@ def telegram_bot():
         with open(src, 'wb') as new_file:
             new_file.write(downloaded_file)
 
-        markup_new = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
-        btn1_new = telebot.types.KeyboardButton("Завершить работу")
-        markup_new.add(btn1_new)
-        bot.send_message(message.chat.id, text="Отлично! Я начал обновлять информацию, это может занять некоторое время", reply_markup=markup_new,
+        markup_quit = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
+        btn1_quit = telebot.types.KeyboardButton("Завершить работу")
+        markup_quit.add(btn1_quit)
+        bot.send_message(message.chat.id, text="Отлично! Я начал обновлять информацию, это может занять некоторое время", reply_markup=markup_quit,
                          parse_mode="Markdown")
         bot.send_message(message.chat.id, text="Чем больше объявлений в файле, тем дольше я буду работать")
 
@@ -196,20 +198,20 @@ def telegram_bot():
             main_site_main(req_site=4, url_upn=None, url_cian=None, url_yandex=None, url_avito=user_response, message=message)
         elif user_response == 'Завершить работу':
             point = 1
-            markup_quit = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
-            btn1_quit = telebot.types.KeyboardButton("Да, уверен")
-            btn2_quit = telebot.types.KeyboardButton("Нет, давай продолжим")
-            markup_quit.add(btn1_quit, btn2_quit)
-            bot.send_message(message.chat.id, text="Вы уверены?", reply_markup=markup_quit)
+            markup_sure = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
+            btn1_sure = telebot.types.KeyboardButton("Да, уверен")
+            btn2_sure = telebot.types.KeyboardButton("Нет, давай продолжим")
+            markup_sure.add(btn1_sure, btn2_sure)
+            bot.send_message(message.chat.id, text="Вы уверены?", reply_markup=markup_sure)
         else:
             point = 1
             getting_site_link(message, ID_link='error')
         if point == 0:
-            markup_q = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
-            btn1_q = telebot.types.KeyboardButton("Да")
-            btn2_q = telebot.types.KeyboardButton("Нет")
-            markup_q.add(btn1_q, btn2_q)
-            bot.send_message(message.chat.id, text="С этим сайтом я закончил, хотите добавить еще сайт для поиска?", reply_markup=markup_q, parse_mode="Markdown")
+            markup_continue_question = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
+            btn1_continue_question = telebot.types.KeyboardButton("Да")
+            btn2_continue_question = telebot.types.KeyboardButton("Нет")
+            markup_continue_question.add(btn1_continue_question, btn2_continue_question)
+            bot.send_message(message.chat.id, text="С этим сайтом я закончил, хотите добавить еще сайт для поиска?", reply_markup=markup_continue_question, parse_mode="Markdown")
 
     def getting_site_link(message, ID_link):
         markup_quit = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
