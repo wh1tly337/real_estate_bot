@@ -29,8 +29,6 @@ password = '13579001Ivan+'
 db_name = 'postgres'
 
 token = '5432400118:AAFgz1QNbckgmQ7X1jbEu87S2ZdhV6vU1m0'
-
-global bot
 bot = telebot.TeleBot(token)
 
 
@@ -211,7 +209,8 @@ def telegram_bot():
             btn1_continue_question = telebot.types.KeyboardButton("Да")
             btn2_continue_question = telebot.types.KeyboardButton("Нет")
             markup_continue_question.add(btn1_continue_question, btn2_continue_question)
-            bot.send_message(message.chat.id, text="С этим сайтом я закончил, хотите добавить еще сайт для поиска?", reply_markup=markup_continue_question, parse_mode="Markdown")
+            bot.send_message(message.chat.id, text="С этим сайтом я закончил, хотите добавить еще сайт для поиска?", reply_markup=markup_continue_question,
+                             parse_mode="Markdown")
 
     def getting_site_link(message, ID_link):
         markup_quit = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -254,7 +253,7 @@ def telegram_bot():
         btn1_start = telebot.types.KeyboardButton("За работу")
         btn2_start = telebot.types.KeyboardButton("/help")
         markup_start.add(btn1_start, btn2_start)
-        
+
         markup_first_question = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
         btn1_first_question = telebot.types.KeyboardButton("Собрать новую информацию")
         btn2_first_question = telebot.types.KeyboardButton("Обновить старую информацию")
@@ -273,7 +272,7 @@ def telegram_bot():
         btn1_save_file = telebot.types.KeyboardButton("Да, хочу")
         btn2_save_file = telebot.types.KeyboardButton("Нет, не хочу")
         markup_save_file.add(btn1_save_file, btn2_save_file)
-        
+
         markup_result = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
         btn1_result = telebot.types.KeyboardButton(".csv")
         btn2_result = telebot.types.KeyboardButton(".xlsx")
@@ -325,7 +324,7 @@ def telegram_bot():
                 # Нужно останавливать парсинг таблицы
         elif message.text == "Нет, давай продолжим":
             bot.send_message(message.chat.id, text="Хорошо", reply_markup=markup_quit)
-            
+
         elif message.text == "Да, хочу":
             if task == 'site':
                 bot.send_message(message.chat.id, text="Отлично! В каком формате вы хотите получить результат?", reply_markup=markup_result)
@@ -345,12 +344,12 @@ def telegram_bot():
             elif task == 'table':
                 pass
                 # Нужно удалять таблицу в бд и скорее всего еще что-то
-            
+
         elif message.text == "Да":
             new_table(message, counter=1)
         elif message.text == "Нет":
             bot.send_message(message.chat.id, text="Отлично! В каком формате вы хотите получить результат?", reply_markup=markup_result)
-        
+
         elif message.text == ".csv":
             if task == 'site':
                 main_site_finish(req_res='csv')
