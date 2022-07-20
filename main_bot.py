@@ -104,6 +104,9 @@ def telegram_bot():
 
     @bot.message_handler(commands=['new_table'])
     def new_table(message, counter=0):
+        global task
+        task = 'site'
+        start_connection()
         if counter == 0:
             main_site_start()
         markup_new = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -280,9 +283,6 @@ def telegram_bot():
         if message.text == "За работу":
             bot.send_message(message.chat.id, text="Что вы хотите сделать?", reply_markup=markup_start)
         elif message.text == "Собрать новую информацию":
-            global task
-            task = 'site'
-            start_connection()
             new_table(message, counter=0)
         elif message.text == "Обновить старую информацию":
             update_table(message)
@@ -416,7 +416,7 @@ if __name__ == '__main__':
 #
 # 2) Настроить или поменять работу функции "Завершить работу" для обновления таблицы
 #
-#
+# 3) Сделать так, чтобы если вдруг появлялась ошибка, то бот не останавливался, а продолжал работать и пользователю приходило сообщение об ошибке
 #
 #
 #
