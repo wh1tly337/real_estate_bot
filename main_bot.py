@@ -248,44 +248,44 @@ def telegram_bot():
 
     @bot.message_handler(content_types=['text'])
     def text(message):
-
-        markup_res = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
-        btn1_res = telebot.types.KeyboardButton(".csv")
-        btn2_res = telebot.types.KeyboardButton(".xlsx")
-        btn3_res = telebot.types.KeyboardButton(".txt")
-        btn4_res = telebot.types.KeyboardButton("Все форматы")
-        markup_res.add(btn1_res, btn2_res, btn3_res, btn4_res)
-
-        markup = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
-        btn1 = telebot.types.KeyboardButton("За работу")
-        btn2 = telebot.types.KeyboardButton("/help")
-        markup.add(btn1, btn2)
-
-        markup_second_quit = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
-        btn1_second_quit = telebot.types.KeyboardButton("Да, уверен")
-        btn2_second_quit = telebot.types.KeyboardButton("Нет, давай продолжим")
-        markup_second_quit.add(btn1_second_quit, btn2_second_quit)
-
-        markup_quit_q = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
-        btn1_quit_q = telebot.types.KeyboardButton("Да, хочу")
-        btn2_quit_q = telebot.types.KeyboardButton("Нет, не хочу")
-        markup_quit_q.add(btn1_quit_q, btn2_quit_q)
-
         markup_start = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
-        btn1_start = telebot.types.KeyboardButton("Собрать новую информацию")
-        btn2_start = telebot.types.KeyboardButton("Обновить старую информацию")
+        btn1_start = telebot.types.KeyboardButton("За работу")
+        btn2_start = telebot.types.KeyboardButton("/help")
         markup_start.add(btn1_start, btn2_start)
+        
+        markup_first_question = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
+        btn1_first_question = telebot.types.KeyboardButton("Собрать новую информацию")
+        btn2_first_question = telebot.types.KeyboardButton("Обновить старую информацию")
+        markup_first_question.add(btn1_first_question, btn2_first_question)
 
-        markup_first_quit = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
-        btn1_first_quit = telebot.types.KeyboardButton("Завершить работу")
-        markup_first_quit.add(btn1_first_quit)
+        markup_quit = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
+        btn1_quit = telebot.types.KeyboardButton("Завершить работу")
+        markup_quit.add(btn1_quit)
+
+        markup_sure = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
+        btn1_sure = telebot.types.KeyboardButton("Да, уверен")
+        btn2_sure = telebot.types.KeyboardButton("Нет, давай продолжим")
+        markup_sure.add(btn1_sure, btn2_sure)
+
+        markup_save_file = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
+        btn1_save_file = telebot.types.KeyboardButton("Да, хочу")
+        btn2_save_file = telebot.types.KeyboardButton("Нет, не хочу")
+        markup_save_file.add(btn1_save_file, btn2_save_file)
+        
+        markup_result = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
+        btn1_result = telebot.types.KeyboardButton(".csv")
+        btn2_result = telebot.types.KeyboardButton(".xlsx")
+        btn3_result = telebot.types.KeyboardButton(".txt")
+        btn4_result = telebot.types.KeyboardButton("Все форматы")
+        markup_result.add(btn1_result, btn2_result, btn3_result, btn4_result)
 
         if message.text == "За работу":
-            bot.send_message(message.chat.id, text="Что вы хотите сделать?", reply_markup=markup_start)
+            bot.send_message(message.chat.id, text="Что вы хотите сделать?", reply_markup=markup_first_question)
         elif message.text == "Собрать новую информацию":
             new_table(message, counter=0)
         elif message.text == "Обновить старую информацию":
             update_table(message)
+
         elif message.text == "УПН":
             getting_site_link(message, ID_link='upn')
         elif message.text == "ЦИАН":
@@ -295,48 +295,64 @@ def telegram_bot():
         elif message.text == "Авито":
             getting_site_link(message, ID_link='avito')
         elif message.text == "Завершить работу":
-            bot.send_message(message.chat.id, text="Вы уверены?", reply_markup=markup_second_quit)
+            bot.send_message(message.chat.id, text="Вы уверены?", reply_markup=markup_sure)
+
         elif message.text == "Да, уверен":
-            connection_quit = psycopg2.connect(host=host, user=user, password=password, database=db_name)
-            connection_quit.autocommit = True
-            cursor_quit = connection_quit.cursor()
-            cursor_quit.execute("""SELECT count(*) FROM advertisement;""")
-            check = cursor_quit.fetchall()[0][0]
-            if int(check) != 0:
-                bot.send_message(message.chat.id, text="Хотите получить объявления которые я успел найти?", reply_markup=markup_quit_q)
-            else:
-                bot.send_message(message.chat.id, text="Хорошо", reply_markup=markup)
+            if task == 'site':
+                connection_quit = psycopg2.connect(host=host, user=user, password=password, database=db_name)
+                connection_quit.autocommit = True
+                cursor_quit = connection_quit.cursor()
+                cursor_quit.execute("""SELECT count(*) FROM advertisement;""")
+                check = cursor_quit.fetchall()[0][0]
+                if int(check) != 0:
+                    bot.send_message(message.chat.id, text="Хотите получить объявления которые я успел найти?", reply_markup=markup_save_file)
+                else:
+                    bot.send_message(message.chat.id, text="Хорошо", reply_markup=markup_start)
+                    main_site_finish(req_res='error')
+                    renamer()
+                    remover()
+                    try:
+                        close_connection()
+                    except:
+                        pass
+                if connection_quit:
+                    cursor_quit.close()
+                    connection_quit.close()
+            elif task == 'table':
+                pass
+                # Нужно останавливать парсинг таблицы
+        elif message.text == "Нет, давай продолжим":
+            bot.send_message(message.chat.id, text="Хорошо", reply_markup=markup_quit)
+            
+        elif message.text == "Да, хочу":
+            if task == 'site':
+                bot.send_message(message.chat.id, text="Отлично! В каком формате вы хотите получить результат?", reply_markup=markup_result)
+            elif task == 'table':
+                pass
+                # Нужно показать до какой строки таблицы дошла программа и отправить недопаршеный файл
+        elif message.text == "Нет, не хочу":
+            if task == 'site':
                 main_site_finish(req_res='error')
                 renamer()
                 remover()
+                bot.send_message(message.chat.id, text="Хорошо", reply_markup=markup_start)
                 try:
                     close_connection()
                 except:
                     pass
-            if connection_quit:
-                cursor_quit.close()
-                connection_quit.close()
-        elif message.text == "Да, хочу":
-            bot.send_message(message.chat.id, text="Отлично! В каком формате вы хотите получить результат?", reply_markup=markup_res)
-        elif message.text == "Нет, не хочу":
-            main_site_finish(req_res='error')
-            renamer()
-            remover()
-            bot.send_message(message.chat.id, text="Хорошо", reply_markup=markup)
-            try:
-                close_connection()
-            except:
+            elif task == 'table':
                 pass
-        elif message.text == "Нет, давай продолжим":
-            bot.send_message(message.chat.id, text="Хорошо", reply_markup=markup_first_quit)
+                # Нужно удалять таблицу в бд и скорее всего еще что-то
+            
         elif message.text == "Да":
             new_table(message, counter=1)
         elif message.text == "Нет":
-            bot.send_message(message.chat.id, text="Отлично! В каком формате вы хотите получить результат?", reply_markup=markup_res)
+            bot.send_message(message.chat.id, text="Отлично! В каком формате вы хотите получить результат?", reply_markup=markup_result)
+        
         elif message.text == ".csv":
             if task == 'site':
                 main_site_finish(req_res='csv')
-                bot.send_message(message.chat.id, text="Ваш .csv файл", reply_markup=markup)
+                bot.send_message(message.chat.id, text="Ваш .csv файл", reply_markup=markup_start)
                 bot.send_document(message.chat.id, open(f"{file_name}.csv", "rb"))
                 remover()
                 try:
@@ -344,13 +360,13 @@ def telegram_bot():
                 except:
                     pass
             elif task == 'table':
-                bot.send_message(message.chat.id, text="Ваш .csv файл", reply_markup=markup)
+                bot.send_message(message.chat.id, text="Ваш .csv файл", reply_markup=markup_start)
                 bot.send_document(message.chat.id, open(f"{new_table_name}.csv", "rb"))
                 table_file_remover()
         elif message.text == ".xlsx":
             if task == 'site':
                 main_site_finish(req_res='xlsx')
-                bot.send_message(message.chat.id, text="Ваш .xlsx файл", reply_markup=markup)
+                bot.send_message(message.chat.id, text="Ваш .xlsx файл", reply_markup=markup_start)
                 bot.send_document(message.chat.id, open(f"{file_name}.xlsx", "rb"))
                 remover()
                 try:
@@ -359,13 +375,13 @@ def telegram_bot():
                     pass
             elif task == 'table':
                 convert_table_csv_to_xlsx()
-                bot.send_message(message.chat.id, text="Ваш .xlsx файл", reply_markup=markup)
+                bot.send_message(message.chat.id, text="Ваш .xlsx файл", reply_markup=markup_start)
                 bot.send_document(message.chat.id, open(f"{new_table_name}.xlsx", "rb"))
                 table_file_remover()
         elif message.text == ".txt":
             if task == 'site':
                 main_site_finish(req_res='txt')
-                bot.send_message(message.chat.id, text="Ваш .txt файл", reply_markup=markup)
+                bot.send_message(message.chat.id, text="Ваш .txt файл", reply_markup=markup_start)
                 bot.send_document(message.chat.id, open(f"{file_name}.txt", "rb"))
                 remover()
                 try:
@@ -374,13 +390,13 @@ def telegram_bot():
                     pass
             elif task == 'table':
                 convert_table_csv_to_txt()
-                bot.send_message(message.chat.id, text="Ваш .txt файл", reply_markup=markup)
+                bot.send_message(message.chat.id, text="Ваш .txt файл", reply_markup=markup_start)
                 bot.send_document(message.chat.id, open(f"{new_table_name}.txt", "rb"))
                 table_file_remover()
         elif message.text == "Все форматы":
             if task == 'site':
                 main_site_finish(req_res='all')
-                bot.send_message(message.chat.id, text="Ваши файлы", reply_markup=markup)
+                bot.send_message(message.chat.id, text="Ваши файлы", reply_markup=markup_start)
                 bot.send_document(message.chat.id, open(f"{file_name}.csv", "rb"))
                 bot.send_document(message.chat.id, open(f"{file_name}.xlsx", "rb"))
                 bot.send_document(message.chat.id, open(f"{file_name}.txt", "rb"))
@@ -393,7 +409,7 @@ def telegram_bot():
                 convert_table_csv_to_xlsx()
                 convert_table_csv_to_txt()
                 os.rename(f"{new_table_name}.csv", f"{new_table_name}.csv")
-                bot.send_message(message.chat.id, text="Ваши файлы", reply_markup=markup)
+                bot.send_message(message.chat.id, text="Ваши файлы", reply_markup=markup_start)
                 bot.send_document(message.chat.id, open(f"{new_table_name}.csv", "rb"))
                 bot.send_document(message.chat.id, open(f"{new_table_name}.xlsx", "rb"))
                 bot.send_document(message.chat.id, open(f"{new_table_name}.txt", "rb"))
@@ -403,7 +419,7 @@ def telegram_bot():
                 main_site_finish(req_res='error')
             except:
                 pass
-            bot.send_message(message.chat.id, text="Таких команд я не знаю 😔\nПопробуй воспользоваться /help", reply_markup=markup)
+            bot.send_message(message.chat.id, text="Таких команд я не знаю 😔\nПопробуй воспользоваться /help", reply_markup=markup_start)
 
     bot.polling(none_stop=True)
 
@@ -421,3 +437,14 @@ if __name__ == '__main__':
 # 4) Написать описание бота, то как все работает. Чтобы у пользователя не возникало вопросов о том как все работает
 #
 # 5) Сделать прогресс бар в боте
+#
+# 6) Нужно немного переделать парсер сайта. Чтобы он начинал парсить с той страницы, которую ему скинули, а не всегда с 1
+#
+#
+#
+#
+#
+#
+#
+#
+#

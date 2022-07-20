@@ -63,23 +63,28 @@ def reformer():
 
 def table_file_remover():
     try:
-        os.remove(f"/Users/user/PycharmProjects/Parser/{new_table_name}")
+        # os.remove(f"/Users/user/PycharmProjects/Parser/{new_table_name}")
+        os.remove(f"{new_table_name}")
     except:
         pass
     try:
-        os.remove(f"/Users/user/PycharmProjects/Parser/{table_name[:-4]}.txt")
+        # os.remove(f"/Users/user/PycharmProjects/Parser/{table_name[:-4]}.txt")
+        os.remove(f"{table_name[:-4]}.txt")
     except:
         pass
     try:
-        os.remove(f"/Users/user/PycharmProjects/Parser/{table_name[:-5]}.xlsx")
+        # os.remove(f"/Users/user/PycharmProjects/Parser/{table_name[:-5]}.xlsx")
+        os.remove(f"{table_name[:-5]}.xlsx")
     except:
         pass
     try:
-        os.remove(f"/Users/user/PycharmProjects/Parser/{new_table_name[:-4]}.txt")
+        # os.remove(f"/Users/user/PycharmProjects/Parser/{new_table_name[:-4]}.txt")
+        os.remove(f"{new_table_name[:-4]}.txt")
     except:
         pass
     try:
-        os.remove(f"/Users/user/PycharmProjects/Parser/{new_table_name[:-4]}.xlsx")
+        # os.remove(f"/Users/user/PycharmProjects/Parser/{new_table_name[:-4]}.xlsx")
+        os.remove(f"{new_table_name[:-4]}.xlsx")
     except:
         pass
 
@@ -90,6 +95,7 @@ def add_to_table():
     cursor_add = connection_add.cursor()
 
     cursor_add.execute(f"""COPY update_ad FROM '/Users/user/PycharmProjects/Parser/{new_table_name}' DELIMITER ';' CSV HEADER;""")
+    # Скорее всего это не будет работать на сервере, нужно будет менять директорию на серверную
 
     if connection_add:
         cursor_add.close()

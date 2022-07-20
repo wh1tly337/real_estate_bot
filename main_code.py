@@ -134,17 +134,20 @@ def renamer():
 def remover():
     flag = 0
     try:
-        os.remove(f"/Users/user/PycharmProjects/Parser/{file_name}.csv")
+        # os.remove(f"/Users/user/PycharmProjects/Parser/{file_name}.csv")
+        os.remove(f"{file_name}.csv")
         flag = 1
     except:
         pass
     try:
-        os.remove(f"/Users/user/PycharmProjects/Parser/{file_name}.xlsx")
+        # os.remove(f"/Users/user/PycharmProjects/Parser/{file_name}.xlsx")
+        os.remove(f"{file_name}.xlsx")
         flag = 1
     except:
         pass
     try:
-        os.remove(f"/Users/user/PycharmProjects/Parser/{file_name}.txt")
+        # os.remove(f"/Users/user/PycharmProjects/Parser/{file_name}.txt")
+        os.remove(f"{file_name}.txt")
         flag = 1
     except:
         pass
@@ -177,6 +180,7 @@ def main_site_finish(req_res):
         glob.cursor.execute(
             """COPY advertisement TO '/Users/user/PycharmProjects/Parser/pars_site.csv' (FORMAT CSV, HEADER TRUE, DELIMITER ';', ENCODING 'UTF8');"""
         )
+    # Скорее всего это не будет работать на сервере, нужно будет менять директорию на серверную
 
     delete_new_site_table()
 
@@ -194,17 +198,6 @@ def main_site_finish(req_res):
         renamer()
     elif req_res == 'error':
         pass
-
-
-# def main_table_finish(req_res):
-#     if req_res == 'csv':
-#         pass
-#     elif req_res == 'xlsx':
-#         pass
-#     elif req_res == 'txt':
-#         pass
-#     elif req_res == 'all':
-#         pass
 
 
 def close_connection():
