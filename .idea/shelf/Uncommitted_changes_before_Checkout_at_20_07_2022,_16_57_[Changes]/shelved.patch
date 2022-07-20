@@ -1,0 +1,226 @@
+Index: storage.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>from bs4 import BeautifulSoup as BS\nfrom selenium import webdriver\nfrom datetime import datetime\nfrom bs2json import bs2json\nfrom req_data import *\nimport openpyxl as op\nimport html_to_json\nimport psycopg2\nimport requests\nimport pyexcel\nimport telebot\n# import lxml\nimport time\nimport math\nimport sys\nimport re\nimport os
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/storage.py b/storage.py
+--- a/storage.py	(revision b96c2544b1e4c156efdd93caccb4993ffb07b3dc)
++++ b/storage.py	(date 1658317537607)
+@@ -1,17 +1,113 @@
+ from bs4 import BeautifulSoup as BS
+ from selenium import webdriver
+-from datetime import datetime
+ from bs2json import bs2json
+-from req_data import *
+-import openpyxl as op
+ import html_to_json
+-import psycopg2
+ import requests
+-import pyexcel
+ import telebot
+ # import lxml
+-import time
+ import math
+-import sys
++import time
+ import re
+-import os
+\ No newline at end of file
++
++headers = {
++    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.5 Safari/605.1.15',
++    'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'
++}
++
++url_cian = 'https://ekb.cian.ru/cat.php?deal_type=sale&engine_version=2&foot_min=10&kitchen_stove=electric&offer_type=flat&only_foot=2&region=4743&room2=1'
++
++
++def cian_parser():
++    print("[INFO] - Start parsing Cian")
++    url = url_cian
++    try:
++        driver = webdriver.Safari()
++        time.sleep(1)
++        driver.get(url=url)
++        full_page = html_to_json.convert(driver.page_source)['html'][0]['body'][0]
++        for i in range(20):
++            try:
++                num_of_pages = math.ceil(int("".join(re.findall(r'\d+', full_page['div'][0]['div'][0]['div'][i]['div'][0]['div'][0]['h5'][0]['_value']))) / 28)
++                break
++            except:
++                continue
++        url_next_page = 1
++        for i in range(20):
++            try:
++                url_next_page = full_page['div'][0]['div'][0]['div'][i]['div'][0]['ul'][0]['li'][1]['a'][0]['_attributes']['href']
++                break
++            except:
++                continue
++        url_next_page_tec = url_next_page
++        if url_next_page == 1:
++            url_next_page = url
++            url_next_page_tec = url
++        print(url_next_page)
++
++        pos = url.find(f'&p=')
++        if pos == -1:
++            url_cycle = url
++            start_page = 1
++        else:
++            pos = pos + 3
++            url_next_page_tec = url_next_page_tec[pos:]
++            pos2 = url_next_page_tec.find(f'&')
++            start_page = int(url_next_page_tec[:pos2])
++            url_cycle = url_next_page[:pos] + f"{start_page}" + url_next_page[pos + 1:]
++            print(start_page)
++
++        if num_of_pages - int(start_page) > 15:
++            num_of_pages = int(start_page) + 15
++            # bot.send_message(message.chat.id,
++            #                  text="Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только 15 страниц.")
++        for i in range(int(start_page), num_of_pages + 1):
++            if i == int(start_page):
++                pass
++            else:
++                url_cycle = url_next_page[:pos] + f"{start_page + 1}" + url_next_page[pos + 1:]
++            print(url_cycle)
++            driver.get(url=url_cycle)
++            full_page = html_to_json.convert(driver.page_source)['html'][0]['body'][0]
++            for j in range(20):
++                try:
++                    sp = j
++                    num_of_ads = len(full_page['div'][0]['div'][0]['div'][j]['article'])
++                    break
++                except:
++                    continue
++            for j in range(num_of_ads):
++                advertisement = full_page['div'][0]['div'][0]['div'][sp]['article'][j]
++                url_ad = advertisement['div'][0]['div'][1]['div'][0]['div'][0]['a'][0]['_attributes']['href']
++                try:
++                    square = str(advertisement['div'][0]['div'][1]['div'][0]['div'][0]['div'][0]['span'][0]['span'][0]['_value']).split(',')[1].strip()[:3].strip()
++                except:
++                    square = '-'
++                for n in range(10):
++                    for m in range(10):
++                        try:
++                            sp_1 = len(advertisement['div'][0]['div'][1]['div'][0]['div'][0]['div'][m]['div'][n]['a'])
++                            street_address = advertisement['div'][0]['div'][1]['div'][0]['div'][0]['div'][m]['div'][n]['a'][sp_1 - 2]['_value']
++                            number_address = advertisement['div'][0]['div'][1]['div'][0]['div'][0]['div'][m]['div'][n]['a'][sp_1 - 1]['_value']
++                            full_address = f"{street_address} {number_address}"
++                        except:
++                            continue
++                for n in range(10):
++                    try:
++                        price = "".join(re.findall(r'\d+', advertisement['div'][0]['div'][1]['div'][0]['div'][0]['div'][n]['div'][0]['span'][0]['span'][0]['_value']))
++                        break
++                    except:
++                        continue
++                print(full_address, price, square, url_ad)
++                # try:
++                #     data_base(adres=full_address, price=price, square=square, url=url_ad)
++                # except:
++                #     quit()
++    except Exception as ex:
++        print("[ERROR CIAN] - ", ex)
++    finally:
++        driver.quit()
++    print("[INFO] - Finish parsing Cian")
++
++
++if __name__ == '__main__':
++    cian_parser()
+Index: tester.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>url_upn = 'https://upn.ru/kupit/kvartiry/studii-0/oblast-sverdlovskaya-1/tsena-do-3000000'\n# url_upn = 'https://upn.ru/kupit/kvartiry/studii-0/oblast-sverdlovskaya-1/tsena-do-3000000?page=2'\n\nindex = url_upn.find('?page')\nif index == -1:\n    url = url_upn\nelse:\n    url = url_upn[:index]\n# if url_upn[-7:-2] == '?page':\n#     url = url_upn[:-7]\n# elif url_upn[-8:-3] == '?page':\n#     url = url_upn[:-8]\n# elif url_upn[-9:-4] == '?page':\n#     url = url_upn[:-9]\n# elif url_upn[-10:-5] == '?page':\n#     url = url_upn[:-10]\n# else:\n#     url = url_upn\n\nprint(url)
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/tester.py b/tester.py
+--- a/tester.py	(revision b96c2544b1e4c156efdd93caccb4993ffb07b3dc)
++++ b/tester.py	(date 1658316521708)
+@@ -1,20 +1,18 @@
+-url_upn = 'https://upn.ru/kupit/kvartiry/studii-0/oblast-sverdlovskaya-1/tsena-do-3000000'
+-# url_upn = 'https://upn.ru/kupit/kvartiry/studii-0/oblast-sverdlovskaya-1/tsena-do-3000000?page=2'
++import re
++
++# url_cian = 'https://ekb.cian.ru/cat.php?deal_type=sale&engine_version=2&foot_min=10&kitchen_stove=electric&offer_type=flat&only_foot=2&region=4743&room2=1'
++url_cian = 'https://ekb.cian.ru/cat.php?deal_type=sale&engine_version=2&foot_min=10&kitchen_stove=electric&offer_type=flat&only_foot=2&p=2&region=4743&room2=1'
+ 
+-index = url_upn.find('?page')
+-if index == -1:
+-    url = url_upn
++url_next_page = url_cian
++
++pos = url_next_page.find(f'&p=')
++if pos == -1:
++    url_cycle = url_next_page
++    start_page = 1
+ else:
+-    url = url_upn[:index]
+-# if url_upn[-7:-2] == '?page':
+-#     url = url_upn[:-7]
+-# elif url_upn[-8:-3] == '?page':
+-#     url = url_upn[:-8]
+-# elif url_upn[-9:-4] == '?page':
+-#     url = url_upn[:-9]
+-# elif url_upn[-10:-5] == '?page':
+-#     url = url_upn[:-10]
+-# else:
+-#     url = url_upn
++    pos = pos + 3
++    url_next_page = url_next_page[pos:]
++    pos2 = url_next_page.find(f'&')
++    start_page = url_next_page[:pos2]
+ 
+-print(url)
+\ No newline at end of file
++print(start_page)
+Index: site_parser.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>from main_bot import data_base\n\nfrom bs4 import BeautifulSoup as BS\nfrom selenium import webdriver\nfrom bs2json import bs2json\nimport html_to_json\nimport requests\nimport telebot\n# import lxml\nimport math\nimport time\nimport re\n\nheaders = {\n    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.5 Safari/605.1.15',\n    'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'\n}\n\nhost = '127.0.0.1'\nuser = 'user'\npassword = '13579001Ivan+'\ndb_name = 'postgres'\n\ntoken = '5432400118:AAFgz1QNbckgmQ7X1jbEu87S2ZdhV6vU1m0'\nbot = telebot.TeleBot(token)\n\n\ndef upn_parser(message, url_upn):\n    print(\"[INFO] - Start parsing UPN\")\n    pos = url_upn.find('?page')\n    if pos == -1:\n        url = url_upn\n    else:\n        url = url_upn[:pos]\n    request = requests.get(url, headers=headers).text\n    response = BS(request, 'lxml')\n    num_of_pages = math.ceil(int(\"\".join(re.findall(r'\\d+', str(\n        bs2json().convert(response.find())['html']['head']['title']['text']).split('|')[1]))) / 25)\n    if num_of_pages > 15:\n        num_of_pages = 15\n        bot.send_message(message.chat.id,\n                         text=\"Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только 15 страниц.\")\n    for j in range(1, num_of_pages + 1):\n        try:\n            if re.search(r'\\d+', url[-1]):\n                url_cycle = url + f'?page={j}'\n            else:\n                url_cycle = url + f'?page={j}'\n            print(url_cycle)\n            request = requests.get(url_cycle, headers=headers).text\n            response = BS(request, 'lxml')\n            advertisement = bs2json().convert(response.find())['html']['body']['div'][4]['main']['div']['div'][2]['div'][1]['div'][1]['div']\n            num_of_ads = len(advertisement)\n            for i in range(num_of_ads):\n                if len(advertisement[i]) == 1:\n                    continue\n                if len(advertisement[i]['div'][1]['div'][7]['div'][0]['div'][0]['div']) == 3:\n                    price = \"\".join(re.findall(r'\\d+', advertisement[i]['div'][1]['div'][7]['div'][0]['div'][0]['div']['text']))\n                else:\n                    price = \"\".join(re.findall(r'\\d+', advertisement[i]['div'][1]['div'][7]['div'][0]['div'][0]['div'][1]['text']))\n                full_address = \"\".join((advertisement[i]['div'][1]['div'][1]['span']['text']).split(',')[-2:])\n                url_ad = 'https://upn.ru' + advertisement[i]['div'][1]['a']['attributes']['href']\n                square = \"\".join((advertisement[i]['div'][1]['div'][2]['div'][0]['div'][1]['text']).split('/')[0])\n                try:\n                    data_base(adres=full_address, price=price, square=square, url=url_ad)\n                except:\n                    quit()\n        except Exception as ex:\n            print(\"[ERROR UPN] - \", ex)\n    print(\"[INFO] - Finish parsing UPN\")\n\n\ndef cian_parser(message, url_cian):\n    print(\"[INFO] - Start parsing Cian\")\n    url = url_cian\n    try:\n        driver = webdriver.Safari()\n        time.sleep(1)\n        driver.get(url=url)\n        full_page = html_to_json.convert(driver.page_source)['html'][0]['body'][0]\n        for i in range(20):\n            try:\n                num_of_pages = math.ceil(int(\"\".join(re.findall(r'\\d+', full_page['div'][0]['div'][0]['div'][i]['div'][0]['div'][0]['h5'][0]['_value']))) / 28)\n                break\n            except:\n                continue\n        url_next_page = 1\n        for i in range(20):\n            try:\n                url_next_page = full_page['div'][0]['div'][0]['div'][i]['div'][0]['ul'][0]['li'][1]['a'][0]['_attributes']['href']\n                break\n            except:\n                continue\n        if url_next_page == 1:\n            url_next_page = url\n        if num_of_pages > 15:\n            num_of_pages = 15\n            bot.send_message(message.chat.id,\n                             text=\"Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только 15 страниц.\")\n        for i in range(1, num_of_pages + 1):\n            pos = url_next_page.find(f'&p=')\n            if pos == -1:\n                url_cycle = url_next_page\n            else:\n                pos = pos + 3\n                url_cycle = url_next_page[:pos] + f\"{i}\" + url_next_page[pos + 1:]\n            print(url_cycle)\n            driver.get(url=url_cycle)\n            full_page = html_to_json.convert(driver.page_source)['html'][0]['body'][0]\n            for j in range(20):\n                try:\n                    sp = j\n                    num_of_ads = len(full_page['div'][0]['div'][0]['div'][j]['article'])\n                    break\n                except:\n                    continue\n            for j in range(num_of_ads):\n                advertisement = full_page['div'][0]['div'][0]['div'][sp]['article'][j]\n                url_ad = advertisement['div'][0]['div'][1]['div'][0]['div'][0]['a'][0]['_attributes']['href']\n                try:\n                    square = str(advertisement['div'][0]['div'][1]['div'][0]['div'][0]['div'][0]['span'][0]['span'][0]['_value']).split(',')[1].strip()[:3].strip()\n                except:\n                    square = '-'\n                for n in range(10):\n                    for m in range(10):\n                        try:\n                            sp_1 = len(advertisement['div'][0]['div'][1]['div'][0]['div'][0]['div'][m]['div'][n]['a'])\n                            street_address = advertisement['div'][0]['div'][1]['div'][0]['div'][0]['div'][m]['div'][n]['a'][sp_1 - 2]['_value']\n                            number_address = advertisement['div'][0]['div'][1]['div'][0]['div'][0]['div'][m]['div'][n]['a'][sp_1 - 1]['_value']\n                            full_address = f\"{street_address} {number_address}\"\n                        except:\n                            continue\n                for n in range(10):\n                    try:\n                        price = \"\".join(re.findall(r'\\d+', advertisement['div'][0]['div'][1]['div'][0]['div'][0]['div'][n]['div'][0]['span'][0]['span'][0]['_value']))\n                        break\n                    except:\n                        continue\n                try:\n                    data_base(adres=full_address, price=price, square=square, url=url_ad)\n                except:\n                    quit()\n    except Exception as ex:\n        print(\"[ERROR CIAN] - \", ex)\n    finally:\n        driver.quit()\n    print(\"[INFO] - Finish parsing Cian\")\n\n\ndef yandex_parser(message, url_yandex):\n    print(\"[INFO]  - Start parsing Yandex\")\n    url = url_yandex\n    try:\n        driver = webdriver.Safari()\n        time.sleep(1)\n        driver.get(url=url)\n        full_page = html_to_json.convert(driver.page_source)\n        num_of_pages = \\\n            full_page['html'][0]['body'][0]['div'][1]['div'][1]['div'][0]['div'][0]['div'][1]['div'][1]['div'][0]['form'][0]['div'][0]['div'][2]['div'][0]['div'][0]['div'][0][\n                'fieldset']\n        num_of_pages = num_of_pages[len(num_of_pages) - 1]['div'][0]['div'][4]['div'][0]['button'][0]['span'][0]['_value']\n        num_of_pages = math.ceil(int(\"\".join(re.findall(r'\\d+', num_of_pages))) / 20)\n        url_next_page = 1\n        for i in range(20):\n            for j in range(20):\n                try:\n                    url_next_page = \\\n                        full_page['html'][0]['body'][0]['div'][1]['div'][1]['div'][0]['div'][0]['div'][1]['div'][3]['div'][i]['span'][0]['label'][j]['button'][0]['span'][0][\n                            'a'][0]['_attributes']['href']\n                    url_next_page = 'https://realty.yandex.ru' + url_next_page\n                except:\n                    continue\n        if url_next_page == 1:\n            url_next_page = url\n        if num_of_pages > 15:\n            num_of_pages = 15\n            bot.send_message(message.chat.id,\n                             text=\"Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только 15 страниц.\")\n        for j in range(num_of_pages):\n            pos = url_next_page.find(f'&page=')\n            if pos == -1:\n                pos = url_next_page.find(f'?page=')\n                if pos == -1:\n                    url_cycle = url_next_page\n                else:\n                    pos = pos + 6\n                    url_cycle = url_next_page[:pos] + f\"{j}\" + url_next_page[pos + 1:]\n            else:\n                pos = pos + 6\n                url_cycle = url_next_page[:pos] + f\"{j}\" + url_next_page[pos + 1:]\n            print(url_cycle)\n            driver.get(url=url_cycle)\n            full_page = html_to_json.convert(driver.page_source)\n            num_of_ads = len(full_page['html'][0]['body'][0]['div'][1]['div'][1]['div'][0]['div'][0]['div'][1]['div'][3]['ol'][0]['li'])\n            for i in range(num_of_ads):\n                advertisement = full_page['html'][0]['body'][0]['div'][1]['div'][1]['div'][0]['div'][0]['div'][1]['div'][3]['ol'][0]['li'][i]\n                if len(advertisement) == 3:\n                    try:\n                        advertisement = full_page['html'][0]['body'][0]['div'][1]['div'][1]['div'][0]['div'][0]['div'][1]['div'][3]['ol'][0]['li'][i]['div'][0]['div'][0]\n                    except:\n                        continue\n                else:\n                    continue\n                full_address = (\"\".join(str(advertisement['div'][0]['div'][0]['div'][0]['_value']).split(',')[-2:])).strip()\n                price = \"\".join(re.findall(r'\\d+', advertisement['div'][0]['div'][1]['div'][0]['span'][0]['_value']))\n                url_ad = 'https://realty.yandex.ru' + advertisement['div'][0]['div'][0]['a'][0]['_attributes']['href']\n                square = str(advertisement['div'][0]['div'][0]['a'][0]['span'][0]['_value']).split(',')[0][:3].strip()\n                try:\n                    data_base(adres=full_address, price=price, square=square, url=url_ad)\n                except:\n                    quit()\n    except Exception as ex:\n        print(\"[ERROR YANDEX] - \", ex)\n    finally:\n        driver.quit()\n    print(\"[INFO] - Finish parsing Yandex\")\n\n\ndef avito_parser(message, url_avito):\n    print(\"[INFO] - Start parsing Avito\")\n    url = url_avito\n    try:\n        driver = webdriver.Safari()\n        time.sleep(1)\n        driver.get(url=url)\n        full_page = html_to_json.convert(driver.page_source)['html'][0]['body'][0]['div'][0]\n        num_of_pages = math.ceil(int(\"\".join(re.findall(r'\\d+', full_page['div'][2]['div'][1]['div'][0]['span'][0]['_value']))) / 50)\n        if num_of_pages == 1:\n            url_next_page = url\n        else:\n            for i in range(20):\n                try:\n                    url_next_page = full_page['div'][2]['div'][2]['div'][2]['div'][i]['div'][1]['div'][0]['a'][1]['_attributes']['href']\n                    url_next_page = 'https://www.avito.ru' + url_next_page\n                    break\n                except:\n                    continue\n        if num_of_pages > 15:\n            num_of_pages = 15\n            bot.send_message(message.chat.id,\n                             text=\"Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только 15 страниц.\")\n        for i in range(1, num_of_pages + 1):\n            pos = url_next_page.find(f'&p=')\n            if pos == -1:\n                url_cycle = url_next_page\n            else:\n                pos = pos + 3\n                url_cycle = url_next_page[:pos] + f\"{i}\" + url_next_page[pos + 1:]\n            print(url_cycle)\n            driver.get(url=url_cycle)\n            full_page = html_to_json.convert(driver.page_source)['html'][0]['body'][0]['div'][0]\n            for n in range(10):\n                try:\n                    num_of_ads = len(full_page['div'][2]['div'][2]['div'][2]['div'][n]['div'][0]['div'])\n                    sp = n\n                except:\n                    continue\n            for j in range(num_of_ads):\n                advertisement = full_page['div'][2]['div'][2]['div'][2]['div'][sp]['div'][0]['div'][j]\n                if len(advertisement) == 3:\n                    try:\n                        advertisement = full_page['div'][2]['div'][2]['div'][2]['div'][sp]['div'][0]['div'][j]\n                    except:\n                        continue\n                else:\n                    continue\n                for n in range(10):\n                    for m in range(10):\n                        try:\n                            full_address = advertisement['div'][0]['div'][1]['div'][n]['div'][m]['span'][0]['span'][0]['_value']\n                            break\n                        except:\n                            continue\n                helper = full_address.split(',')\n                if len(helper) < 3:\n                    full_address = full_address\n                else:\n                    full_address = helper[-2] + ' ' + helper[-1]\n                try:\n                    try:\n                        price = \"\".join(re.findall(r'\\d+', advertisement['div'][0]['div'][1]['div'][2]['span'][0]['span'][0]['span'][0]['_value']))\n                    except:\n                        price = \"\".join(re.findall(r'\\d+', advertisement['div'][0]['div'][1]['div'][2]['span'][0]['span'][0]['span'][0]['_values'][0]))\n                except:\n                    continue\n                url_ad = 'https://www.avito.ru' + advertisement['div'][0]['div'][0]['a'][0]['_attributes']['href']\n                try:\n                    if url_cycle.find(f\"doma\") == -1:\n                        square = str(advertisement['div'][0]['div'][1]['div'][1]['a'][0]['h3'][0]['_value']).split(',')[1].strip()\n                        if len(square) > 4:\n                            square = square[:-2].strip()\n                        if square.find('>') != -1:\n                            square = square[2:].strip()\n                    else:\n                        square = '-'\n                except:\n                    square = '-'\n                try:\n                    data_base(adres=full_address, price=price, square=square, url=url_ad)\n                except:\n                    quit()\n    except Exception as ex:\n        print(\"[ERROR AVITO] - \", ex)\n    finally:\n        driver.quit()\n    print(\"[INFO] - Finish parsing Avito\")\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/site_parser.py b/site_parser.py
+--- a/site_parser.py	(revision b96c2544b1e4c156efdd93caccb4993ffb07b3dc)
++++ b/site_parser.py	(date 1658318206062)
+@@ -29,23 +29,28 @@
+     print("[INFO] - Start parsing UPN")
+     pos = url_upn.find('?page')
+     if pos == -1:
+-        url = url_upn
++        url = url_upn + '?page=1'
++        start_page = 1
++        len_sp = 1
+     else:
+-        url = url_upn[:pos]
++        url = url_upn
++        start_page = "".join(re.findall(r'\d+', url_upn[pos:]))
++        len_sp = len(start_page)
+     request = requests.get(url, headers=headers).text
+     response = BS(request, 'lxml')
+     num_of_pages = math.ceil(int("".join(re.findall(r'\d+', str(
+         bs2json().convert(response.find())['html']['head']['title']['text']).split('|')[1]))) / 25)
+-    if num_of_pages > 15:
+-        num_of_pages = 15
++    # num_of_pages возможно
++    if num_of_pages - int(start_page) > 15:
++        num_of_pages = int(start_page) + 15
+         bot.send_message(message.chat.id,
+                          text="Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только 15 страниц.")
+-    for j in range(1, num_of_pages + 1):
++    for j in range(int(start_page), num_of_pages + 1):
+         try:
+             if re.search(r'\d+', url[-1]):
+-                url_cycle = url + f'?page={j}'
++                url_cycle = url[:-len_sp] + f'{j}'
+             else:
+-                url_cycle = url + f'?page={j}'
++                url_cycle = url[:-len_sp] + f'{j}'
+             print(url_cycle)
+             request = requests.get(url_cycle, headers=headers).text
+             response = BS(request, 'lxml')
