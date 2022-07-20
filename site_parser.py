@@ -27,16 +27,11 @@ bot = telebot.TeleBot(token)
 
 def upn_parser(message, url_upn):
     print("[INFO] - Start parsing UPN")
-    if url_upn[-7:-2] == '?page':
-        url = url_upn[:-7]
-    elif url_upn[-8:-3] == '?page':
-        url = url_upn[:-8]
-    elif url_upn[-9:-4] == '?page':
-        url = url_upn[:-9]
-    elif url_upn[-10:-5] == '?page':
-        url = url_upn[:-10]
-    else:
+    pos = url_upn.find('?page')
+    if pos == -1:
         url = url_upn
+    else:
+        url = url_upn[:pos]
     request = requests.get(url, headers=headers).text
     response = BS(request, 'lxml')
     num_of_pages = math.ceil(int("".join(re.findall(r'\d+', str(
