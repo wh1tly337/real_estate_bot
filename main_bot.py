@@ -62,6 +62,13 @@ def convert_table_csv_to_txt():
     shutil.copy(f"{new_table_name}.csv", 'garages_table_4txt.csv')
     os.rename('garages_table_4txt.csv', f"{new_table_name}.txt")
 
+    with open(f"{new_table_name}.txt", 'r') as file:
+        df = file.read()
+        df = df.replace(';', ' | ')
+
+    with open(f"{new_table_name}.txt", 'w') as file:
+        file.write(df)
+
     print("[INFO] - Copy .csv to .txt successfully")
 
 

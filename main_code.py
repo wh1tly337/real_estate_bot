@@ -107,6 +107,13 @@ def convert_site_csv_to_txt():
     os.system('cp pars_site.csv garages_table_4txt.csv')
     os.rename('garages_table_4txt.csv', 'pars_site.txt')
 
+    with open('pars_site.txt', 'r') as file:
+        df = file.read()
+        df = df.replace(';', ' | ')
+
+    with open('pars_site.txt', 'w') as file:
+        file.write(df)
+
     print("[INFO] - Copy .csv to .txt successfully")
 
 

@@ -40,6 +40,13 @@ def add_driver():
 def reformer():
     global new_table_name
     if table_name[-3:] == 'txt':
+        with open(f"{table_name}", 'r') as file:
+            df = file.read()
+            df = df.replace(' | ', ';')
+
+        with open(f"{table_name}", 'w') as file:
+            file.write(df)
+
         df = pd.read_csv(f"{table_name}")
         new_table_name = f"{str(table_name)[:-4]}_upd.csv"
         df.to_csv(f"{new_table_name}", index=False, header=True)
