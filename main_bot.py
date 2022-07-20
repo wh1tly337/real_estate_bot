@@ -367,6 +367,7 @@ def telegram_bot():
                 bot.send_message(message.chat.id, text="Хорошо", reply_markup=markup_start)
                 delete_update_ad_table()
                 close_connection()
+                table_file_remover()
 
         elif message.text == "Да":
             new_table(message, counter=1)
