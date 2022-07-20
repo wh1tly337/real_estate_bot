@@ -166,6 +166,10 @@ def delete_new_site_table():
 
 
 def delete_update_ad_table():
+    try:
+        start_connection()
+    except:
+        pass
     # Delete update_ad table
     with glob.connection.cursor() as glob.cursor:
         glob.cursor.execute(

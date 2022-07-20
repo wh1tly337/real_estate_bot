@@ -168,9 +168,15 @@ def telegram_bot():
 
         update_table_parser(message)
 
-        delete_update_ad_table()
-
-        close_connection()
+        # try:
+        #     delete_update_ad_table()
+        # except:
+        #     pass
+        #
+        # try:
+        #     close_connection()
+        # except:
+        #     pass
 
     # except Exception as ex:
     #     print('[ERROR FILE] - ', ex)
@@ -249,6 +255,7 @@ def telegram_bot():
 
     @bot.message_handler(content_types=['text'])
     def text(message):
+        global task
         markup_start = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
         btn1_start = telebot.types.KeyboardButton("За работу")
         btn2_start = telebot.types.KeyboardButton("/help")
@@ -283,8 +290,10 @@ def telegram_bot():
         if message.text == "За работу":
             bot.send_message(message.chat.id, text="Что вы хотите сделать?", reply_markup=markup_first_question)
         elif message.text == "Собрать новую информацию":
+            task = 'fast_quit'
             new_table(message, counter=0)
         elif message.text == "Обновить старую информацию":
+            task = 'fast_quit'
             update_table(message)
 
         elif message.text == "УПН":
@@ -296,7 +305,10 @@ def telegram_bot():
         elif message.text == "Авито":
             getting_site_link(message, ID_link='avito')
         elif message.text == "Завершить работу":
-            bot.send_message(message.chat.id, text="Вы уверены?", reply_markup=markup_sure)
+            if task == 'fast_quit':
+                bot.send_message(message.chat.id, text="Хорошо", reply_markup=markup_start)
+            else:
+                bot.send_message(message.chat.id, text="Вы уверены?", reply_markup=markup_sure)
 
         elif message.text == "Да, уверен":
             if task == 'site':
@@ -320,8 +332,11 @@ def telegram_bot():
                     cursor_quit.close()
                     connection_quit.close()
             elif task == 'table':
-                pass
-                # Нужно останавливать парсинг таблицы
+                bot.send_message(message.chat.id, text="Хотите получить таблицу с не до конца обновленными данными?", reply_markup=markup_save_file)
+                try:
+                    close_connection()
+                except:
+                    pass
         elif message.text == "Нет, давай продолжим":
             bot.send_message(message.chat.id, text="Хорошо", reply_markup=markup_quit)
 
@@ -329,8 +344,11 @@ def telegram_bot():
             if task == 'site':
                 bot.send_message(message.chat.id, text="Отлично! В каком формате вы хотите получить результат?", reply_markup=markup_result)
             elif task == 'table':
-                pass
-                # Нужно показать до какой строки таблицы дошла программа и отправить недопаршеный файл
+                try:
+                    close_driver()
+                except:
+                    pass
+                bot.send_message(message.chat.id, text="Отлично! В каком формате вы хотите получить результат?", reply_markup=markup_result)
         elif message.text == "Нет, не хочу":
             if task == 'site':
                 main_site_finish(req_res='error')
@@ -342,8 +360,13 @@ def telegram_bot():
                 except:
                     pass
             elif task == 'table':
-                pass
-                # Нужно удалять таблицу в бд и скорее всего еще что-то
+                try:
+                    close_driver()
+                except:
+                    pass
+                bot.send_message(message.chat.id, text="Хорошо", reply_markup=markup_start)
+                delete_update_ad_table()
+                close_connection()
 
         elif message.text == "Да":
             new_table(message, counter=1)
@@ -364,6 +387,8 @@ def telegram_bot():
                 bot.send_message(message.chat.id, text="Ваш .csv файл", reply_markup=markup_start)
                 bot.send_document(message.chat.id, open(f"{new_table_name}.csv", "rb"))
                 table_file_remover()
+                delete_update_ad_table()
+                close_connection()
         elif message.text == ".xlsx":
             if task == 'site':
                 main_site_finish(req_res='xlsx')
@@ -379,6 +404,8 @@ def telegram_bot():
                 bot.send_message(message.chat.id, text="Ваш .xlsx файл", reply_markup=markup_start)
                 bot.send_document(message.chat.id, open(f"{new_table_name}.xlsx", "rb"))
                 table_file_remover()
+                delete_update_ad_table()
+                close_connection()
         elif message.text == ".txt":
             if task == 'site':
                 main_site_finish(req_res='txt')
@@ -394,6 +421,8 @@ def telegram_bot():
                 bot.send_message(message.chat.id, text="Ваш .txt файл", reply_markup=markup_start)
                 bot.send_document(message.chat.id, open(f"{new_table_name}.txt", "rb"))
                 table_file_remover()
+                delete_update_ad_table()
+                close_connection()
         elif message.text == "Все форматы":
             if task == 'site':
                 main_site_finish(req_res='all')
@@ -415,6 +444,8 @@ def telegram_bot():
                 bot.send_document(message.chat.id, open(f"{new_table_name}.xlsx", "rb"))
                 bot.send_document(message.chat.id, open(f"{new_table_name}.txt", "rb"))
                 table_file_remover()
+                delete_update_ad_table()
+                close_connection()
         else:
             try:
                 main_site_finish(req_res='error')
@@ -431,7 +462,7 @@ if __name__ == '__main__':
 # 1) Проблема перезапуска бота. После второго прогона парсинга невозможно остановить его принудительно
 # Ее нужно фиксить через перезапуск самого кода в heroku
 #
-# 2) Настроить или поменять работу функции "Завершить работу" для обновления таблицы
+# 2) Привести .txt файл в читабельный вид, чтобы при этом программа работала
 #
 # 3) Сделать так, чтобы если вдруг появлялась ошибка, то бот не останавливался, а продолжал работать и пользователю приходило сообщение об ошибке
 #

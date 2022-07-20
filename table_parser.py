@@ -122,45 +122,49 @@ def update_table_parser(message):
         cursor_max_row.close()
         connection_max_row.close()
 
-    for i in range(max_row):
-        global old_price
-        global url
-        glob.cursor.execute("""SELECT url FROM update_ad;""")
-        url = glob.cursor.fetchall()[i][0]
-        glob.cursor.execute("""SELECT price FROM update_ad;""")
-        old_price = glob.cursor.fetchall()[i][0]
-        if url[:14] == 'https://upn.ru':
-            try:
-                upn_table_parser()
-            except Exception as ex:
-                print('[ERROR UPN] - ', ex)
-        elif url[:19] == 'https://ekb.cian.ru':
-            try:
-                add_driver()
-            except:
-                pass
-            try:
-                cian_table_parser()
-            except Exception as ex:
-                print('[ERROR CIAN] - ', ex)
-        elif url[:24] == 'https://realty.yandex.ru':
-            try:
-                add_driver()
-            except:
-                pass
-            try:
-                yandex_table_parser()
-            except Exception as ex:
-                print('[ERROR YANDEX] - ', ex)
-        elif url[:20] == 'https://www.avito.ru':
-            try:
-                add_driver()
-            except:
-                pass
-            try:
-                avito_table_parser()
-            except Exception as ex:
-                print('[ERROR AVITO] - ', ex)
+    for row in range(max_row):
+        try:
+            global old_price
+            global url
+            glob.cursor.execute("""SELECT url FROM update_ad;""")
+            url = glob.cursor.fetchall()[row][0]
+            glob.cursor.execute("""SELECT price FROM update_ad;""")
+            old_price = glob.cursor.fetchall()[row][0]
+            if url[:14] == 'https://upn.ru':
+                try:
+                    upn_table_parser()
+                except Exception as ex:
+                    print('[ERROR UPN] - ', ex)
+            elif url[:19] == 'https://ekb.cian.ru':
+                try:
+                    add_driver()
+                except:
+                    pass
+                try:
+                    cian_table_parser()
+                except Exception as ex:
+                    print('[ERROR CIAN] - ', ex)
+            elif url[:24] == 'https://realty.yandex.ru':
+                try:
+                    add_driver()
+                except:
+                    pass
+                try:
+                    yandex_table_parser()
+                except Exception as ex:
+                    print('[ERROR YANDEX] - ', ex)
+            elif url[:20] == 'https://www.avito.ru':
+                try:
+                    add_driver()
+                except:
+                    pass
+                try:
+                    avito_table_parser()
+                except Exception as ex:
+                    print('[ERROR AVITO] - ', ex)
+        except Exception as ex:
+            print('[ERROR TABLE] - ', ex)
+            quit()
 
     try:
         close_driver()
@@ -206,7 +210,7 @@ def upn_table_parser():
                 glob.cursor.execute(
                     f""" UPDATE update_ad SET price = '{'↑' + str(new_price)}' WHERE url = '{url}';""")
                 print(f"[INFO] - Price update successfully | {'↑ ' + str(new_price)}")
-    time.sleep(0.5)
+    time.sleep(0.3)
 
 
 def cian_table_parser():
@@ -237,7 +241,7 @@ def cian_table_parser():
                 glob.cursor.execute(
                     f""" UPDATE update_ad SET price = '{'↑' + str(new_price)}' WHERE url = '{url}';""")
                 print(f"[INFO] - Price update successfully | {'↑ ' + str(new_price)}")
-    time.sleep(0.5)
+    time.sleep(0.3)
 
 
 def yandex_table_parser():
@@ -268,7 +272,7 @@ def yandex_table_parser():
                 glob.cursor.execute(
                     f""" UPDATE update_ad SET price = '{'↑' + str(new_price)}' WHERE url = '{url}';""")
                 print(f"[INFO] - Price update successfully | {'↑ ' + str(new_price)}")
-    time.sleep(0.5)
+    time.sleep(0.3)
 
 
 def avito_table_parser():
@@ -306,7 +310,7 @@ def avito_table_parser():
                 glob.cursor.execute(
                     f""" UPDATE update_ad SET price = '{'↑' + str(new_price)}' WHERE url = '{url}';""")
                 print(f"[INFO] - Price update successfully | {'↑ ' + str(new_price)}")
-    time.sleep(0.5)
+    time.sleep(0.3)
 
 
 def close_driver():
