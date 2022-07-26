@@ -1,11 +1,7 @@
-import contextlib
-from table_parser import *
-from main_code import *
-
-import psycopg2
-import telebot
 import shutil
-import glob
+
+from main_code import *
+from table_parser import *
 
 # create table advertisement(
 #     id SERIAL PRIMARY KEY,

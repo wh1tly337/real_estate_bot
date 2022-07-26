@@ -1,16 +1,17 @@
 import itertools
-from main_bot import data_base
+# import lxml
+import math
+import re
+import time
 
-from bs4 import BeautifulSoup as BS
-from selenium import webdriver
-from bs2json import bs2json
 import html_to_json
 import requests
 import telebot
-# import lxml
-import math
-import time
-import re
+from bs2json import bs2json
+from bs4 import BeautifulSoup as BS
+from selenium import webdriver
+
+from main_bot import data_base
 
 headers = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.5 Safari/605.1.15',

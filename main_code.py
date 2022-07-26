@@ -1,13 +1,13 @@
 import contextlib
-from site_parser import *
-
+import glob
+import os
 from datetime import datetime
+
 import openpyxl as op
 import psycopg2
 import pyexcel
-import shutil
-import glob
-import os
+
+from site_parser import *
 
 global file_name
 today = datetime.now()
