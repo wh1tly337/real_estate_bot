@@ -1,3 +1,4 @@
+import contextlib
 from table_parser import *
 from main_code import *
 
@@ -137,21 +138,16 @@ def telegram_bot():
         # try:
         global task
         task = 'table'
-        try:
+        with contextlib.suppress(Exception):
             start_connection()
-        except:
-            pass
-        try:
+        with contextlib.suppress(Exception):
             main_table_start()
-        except:
-            pass
-
         file_info = bot.get_file(message.document.file_id)
         downloaded_file = bot.download_file(file_info.file_path)
 
         namer(message)
 
-        src = '/Users/user/PycharmProjects/Parser/' + message.document.file_name
+        src = f'/Users/user/PycharmProjects/Parser/{message.document.file_name}'
         with open(src, 'wb') as new_file:
             new_file.write(downloaded_file)
 
@@ -165,12 +161,10 @@ def telegram_bot():
         global new_table_name
         global table_name
         table_name = message.document.file_name
-        if table_name[-3:] == 'txt':
+        if table_name[-3:] == 'txt' or table_name[-4:] != 'xlsx':
             new_table_name = f"{str(table_name)[:-4]}_upd"
-        elif table_name[-4:] == 'xlsx':
-            new_table_name = f"{str(table_name)[:-5]}_upd"
         else:
-            new_table_name = f"{str(table_name)[:-4]}_upd"
+            new_table_name = f"{str(table_name)[:-5]}_upd"
         close_connection()
 
         update_table_parser(message)
@@ -229,36 +223,38 @@ def telegram_bot():
         markup_quit = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
         btn1_quit = telebot.types.KeyboardButton("Завершить работу")
         markup_quit.add(btn1_quit)
-        global ID_url
         if ID_link == 'upn':
-            ID_url = 'upn'
-            sent = bot.send_message(message.chat.id,
-                                    text="Перейдите на сайт [УПН](https://upn.ru), настройте все необходимые Вам фильтры, скопируйте ссылку в адресной строке и отправьте ее мне",
-                                    parse_mode="MarkdownV2", disable_web_page_preview=True, reply_markup=markup_quit)
-            bot.register_next_step_handler(sent, get_site_url)
+            id_url_handler('upn', message,
+                           "Перейдите на сайт [УПН](https://upn.ru), настройте все необходимые Вам фильтры, скопируйте ссылку в адресной строке и отправьте ее мне",
+                           markup_quit)
+
         elif ID_link == 'cian':
-            ID_url = 'cian'
-            sent = bot.send_message(message.chat.id,
-                                    text="Перейдите на сайт [ЦИАН](https://ekb.cian.ru), настройте все необходимые Вам фильтры, скопируйте ссылку в адресной строке и отправьте ее мне",
-                                    parse_mode="MarkdownV2", disable_web_page_preview=True, reply_markup=markup_quit)
-            bot.register_next_step_handler(sent, get_site_url)
+            id_url_handler('cian', message,
+                           "Перейдите на сайт [ЦИАН](https://ekb.cian.ru), настройте все необходимые Вам фильтры, скопируйте ссылку в адресной строке и отправьте ее мне",
+                           markup_quit)
+
         elif ID_link == 'yandex':
-            ID_url = 'yandex'
-            sent = bot.send_message(message.chat.id,
-                                    text="Перейдите на сайт [Яндекс Недвижимость](https://realty.yandex.ru/ekaterinburg), настройте все необходимые Вам фильтры, скопируйте ссылку в адресной строке и отправьте ее мне",
-                                    parse_mode="MarkdownV2", disable_web_page_preview=True, reply_markup=markup_quit)
-            bot.register_next_step_handler(sent, get_site_url)
+            id_url_handler('yandex', message,
+                           "Перейдите на сайт [Яндекс Недвижимость](https://realty.yandex.ru/ekaterinburg), настройте все необходимые Вам фильтры, скопируйте ссылку в адресной строке и отправьте ее мне",
+                           markup_quit)
+
         elif ID_link == 'avito':
-            ID_url = 'avito'
-            sent = bot.send_message(message.chat.id,
-                                    text="Перейдите на сайт [Авито](https://www.avito.ru/ekaterinburg/nedvizhimost), настройте все необходимые Вам фильтры, скопируйте ссылку в адресной строке и отправьте ее мне",
-                                    parse_mode="MarkdownV2", disable_web_page_preview=True, reply_markup=markup_quit)
-            bot.register_next_step_handler(sent, get_site_url)
+            id_url_handler('avito', message,
+                           "Перейдите на сайт [Авито](https://www.avito.ru/ekaterinburg/nedvizhimost), настройте все необходимые Вам фильтры, скопируйте ссылку в адресной строке и отправьте ее мне",
+                           markup_quit)
+
         elif ID_link == 'error':
             sent = bot.send_message(message.chat.id, text="Введена неверная ссылка. Пожалуйста проверьте правильность ссылки и отправьте ее мне.", parse_mode="Markdown",
                                     disable_web_page_preview=True,
                                     reply_markup=markup_quit)
             bot.register_next_step_handler(sent, get_site_url)
+
+    def id_url_handler(arg0, message, text, markup_quit):
+        global ID_url
+        ID_url = arg0
+        sent = bot.send_message(message.chat.id, text=text, parse_mode="MarkdownV2", disable_web_page_preview=True, reply_markup=markup_quit)
+
+        bot.register_next_step_handler(sent, get_site_url)
 
     @bot.message_handler(content_types=['text'])
     def text(message):
@@ -331,19 +327,15 @@ def telegram_bot():
                     main_site_finish(req_res='error')
                     renamer()
                     remover()
-                    try:
+                    with contextlib.suppress(Exception):
                         close_connection()
-                    except:
-                        pass
                 if connection_quit:
                     cursor_quit.close()
                     connection_quit.close()
             elif task == 'table':
                 bot.send_message(message.chat.id, text="Хотите получить таблицу с не до конца обновленными данными?", reply_markup=markup_save_file)
-                try:
+                with contextlib.suppress(Exception):
                     close_connection()
-                except:
-                    pass
         elif message.text == "Нет, давай продолжим":
             bot.send_message(message.chat.id, text="Хорошо", reply_markup=markup_quit)
 
@@ -351,10 +343,8 @@ def telegram_bot():
             if task == 'site':
                 bot.send_message(message.chat.id, text="Отлично! В каком формате вы хотите получить результат?", reply_markup=markup_result)
             elif task == 'table':
-                try:
+                with contextlib.suppress(Exception):
                     close_driver()
-                except:
-                    pass
                 bot.send_message(message.chat.id, text="Отлично! В каком формате вы хотите получить результат?", reply_markup=markup_result)
         elif message.text == "Нет, не хочу":
             if task == 'site':
@@ -362,15 +352,11 @@ def telegram_bot():
                 renamer()
                 remover()
                 bot.send_message(message.chat.id, text="Хорошо", reply_markup=markup_start)
-                try:
+                with contextlib.suppress(Exception):
                     close_connection()
-                except:
-                    pass
             elif task == 'table':
-                try:
+                with contextlib.suppress(Exception):
                     close_driver()
-                except:
-                    pass
                 bot.send_message(message.chat.id, text="Хорошо", reply_markup=markup_start)
                 delete_update_ad_table()
                 close_connection()
@@ -387,10 +373,8 @@ def telegram_bot():
                 bot.send_message(message.chat.id, text="Ваш .csv файл", reply_markup=markup_start)
                 bot.send_document(message.chat.id, open(f"{file_name}.csv", "rb"))
                 remover()
-                try:
+                with contextlib.suppress(Exception):
                     close_connection()
-                except:
-                    pass
             elif task == 'table':
                 bot.send_message(message.chat.id, text="Ваш .csv файл", reply_markup=markup_start)
                 bot.send_document(message.chat.id, open(f"{new_table_name}.csv", "rb"))
@@ -403,10 +387,8 @@ def telegram_bot():
                 bot.send_message(message.chat.id, text="Ваш .xlsx файл", reply_markup=markup_start)
                 bot.send_document(message.chat.id, open(f"{file_name}.xlsx", "rb"))
                 remover()
-                try:
+                with contextlib.suppress(Exception):
                     close_connection()
-                except:
-                    pass
             elif task == 'table':
                 convert_table_csv_to_xlsx()
                 bot.send_message(message.chat.id, text="Ваш .xlsx файл", reply_markup=markup_start)
@@ -420,10 +402,8 @@ def telegram_bot():
                 bot.send_message(message.chat.id, text="Ваш .txt файл", reply_markup=markup_start)
                 bot.send_document(message.chat.id, open(f"{file_name}.txt", "rb"))
                 remover()
-                try:
+                with contextlib.suppress(Exception):
                     close_connection()
-                except:
-                    pass
             elif task == 'table':
                 convert_table_csv_to_txt()
                 bot.send_message(message.chat.id, text="Ваш .txt файл", reply_markup=markup_start)
@@ -439,10 +419,8 @@ def telegram_bot():
                 bot.send_document(message.chat.id, open(f"{file_name}.xlsx", "rb"))
                 bot.send_document(message.chat.id, open(f"{file_name}.txt", "rb"))
                 remover()
-                try:
+                with contextlib.suppress(Exception):
                     close_connection()
-                except:
-                    pass
             elif task == 'table':
                 convert_table_csv_to_xlsx()
                 convert_table_csv_to_txt()
@@ -455,10 +433,8 @@ def telegram_bot():
                 delete_update_ad_table()
                 close_connection()
         else:
-            try:
+            with contextlib.suppress(Exception):
                 main_site_finish(req_res='error')
-            except:
-                pass
             bot.send_message(message.chat.id, text="Таких команд я не знаю 😔\nПопробуй воспользоваться /help", reply_markup=markup_start)
 
     bot.polling(none_stop=True)
@@ -466,25 +442,3 @@ def telegram_bot():
 
 if __name__ == '__main__':
     telegram_bot()
-
-# 1) Проблема перезапуска бота. После второго прогона парсинга невозможно остановить его принудительно
-# Ее нужно фиксить через перезапуск самого кода в heroku
-#
-# 2)
-#
-# 3) Сделать так, чтобы если вдруг появлялась ошибка, то бот не останавливался, а продолжал работать и пользователю приходило сообщение об ошибке
-#
-# 4) Написать описание бота, то как все работает. Чтобы у пользователя не возникало вопросов о том как все работает
-#
-# 5) Сделать прогресс бар в боте
-#
-# 6) Нужно немного переделать парсер сайта. Чтобы он начинал парсить с той страницы, которую ему скинули, а не всегда с 1
-#
-#
-#
-#
-#
-#
-#
-#
-#

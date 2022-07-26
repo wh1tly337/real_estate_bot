@@ -1,3 +1,4 @@
+import contextlib
 from bs4 import BeautifulSoup as BS
 from selenium import webdriver
 from bs2json import bs2json
@@ -39,19 +40,9 @@ def add_driver():
 
 def reformer():
     global new_table_name
+
     if table_name[-3:] == 'txt':
-        with open(f"{table_name}", 'r') as file:
-            df = file.read()
-            df = df.replace(' | ', ';')
-
-        with open(f"{table_name}", 'w') as file:
-            file.write(df)
-
-        df = pd.read_csv(f"{table_name}")
-        new_table_name = f"{str(table_name)[:-4]}_upd.csv"
-        df.to_csv(f"{new_table_name}", index=False, header=True)
-
-        print("[INFO] - Copy .txt to .csv  successfully")
+        txt_converter()
     elif table_name[-4:] == 'xlsx':
         df = pd.read_excel(f"{table_name}")
         new_table_name = f"{str(table_name)[:-5]}_upd.csv"
@@ -66,32 +57,39 @@ def reformer():
         print('[INFO] - Already .csv file')
 
 
+def txt_converter():
+    global new_table_name
+
+    with open(f"{table_name}", 'r') as file:
+        df = file.read()
+        df = df.replace(' | ', ';')
+
+    with open(f"{table_name}", 'w') as file:
+        file.write(df)
+
+    df = pd.read_csv(f"{table_name}")
+    new_table_name = f"{str(table_name)[:-4]}_upd.csv"
+    df.to_csv(f"{new_table_name}", index=False, header=True)
+
+    print("[INFO] - Copy .txt to .csv  successfully")
+
+
 def table_file_remover():
-    try:
+    with contextlib.suppress(Exception):
         # os.remove(f"/Users/user/PycharmProjects/Parser/{new_table_name}")
         os.remove(f"{new_table_name}")
-    except:
-        pass
-    try:
+    with contextlib.suppress(Exception):
         # os.remove(f"/Users/user/PycharmProjects/Parser/{table_name[:-4]}.txt")
         os.remove(f"{table_name[:-4]}.txt")
-    except:
-        pass
-    try:
+    with contextlib.suppress(Exception):
         # os.remove(f"/Users/user/PycharmProjects/Parser/{table_name[:-5]}.xlsx")
         os.remove(f"{table_name[:-5]}.xlsx")
-    except:
-        pass
-    try:
+    with contextlib.suppress(Exception):
         # os.remove(f"/Users/user/PycharmProjects/Parser/{new_table_name[:-4]}.txt")
         os.remove(f"{new_table_name[:-4]}.txt")
-    except:
-        pass
-    try:
+    with contextlib.suppress(Exception):
         # os.remove(f"/Users/user/PycharmProjects/Parser/{new_table_name[:-4]}.xlsx")
         os.remove(f"{new_table_name[:-4]}.xlsx")
-    except:
-        pass
 
 
 def add_to_table():
@@ -108,13 +106,11 @@ def add_to_table():
 
 
 def update_table_parser(message):
-    try:
+    with contextlib.suppress(Exception):
         glob.connection = psycopg2.connect(host=host, user=user, password=password, database=db_name)
         glob.connection.autocommit = True
         glob.cursor = glob.connection.cursor()
         print("[INFO] - PostgreSQL connection started")
-    except:
-        pass
 
     reformer()
 
@@ -143,28 +139,22 @@ def update_table_parser(message):
                 except Exception as ex:
                     print('[ERROR UPN] - ', ex)
             elif url[:19] == 'https://ekb.cian.ru':
-                try:
+                with contextlib.suppress(Exception):
                     add_driver()
-                except:
-                    pass
                 try:
                     cian_table_parser()
                 except Exception as ex:
                     print('[ERROR CIAN] - ', ex)
             elif url[:24] == 'https://realty.yandex.ru':
-                try:
+                with contextlib.suppress(Exception):
                     add_driver()
-                except:
-                    pass
                 try:
                     yandex_table_parser()
                 except Exception as ex:
                     print('[ERROR YANDEX] - ', ex)
             elif url[:20] == 'https://www.avito.ru':
-                try:
+                with contextlib.suppress(Exception):
                     add_driver()
-                except:
-                    pass
                 try:
                     avito_table_parser()
                 except Exception as ex:
@@ -173,11 +163,8 @@ def update_table_parser(message):
             print('[ERROR TABLE] - ', ex)
             quit()
 
-    try:
+    with contextlib.suppress(Exception):
         close_driver()
-    except:
-        pass
-
     markup_res = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1_res = telebot.types.KeyboardButton(".csv")
     btn2_res = telebot.types.KeyboardButton(".xlsx")
@@ -195,7 +182,7 @@ def upn_table_parser():
     response = BS(request, 'lxml')
     try:
         availability = bs2json().convert(response.find())['html']['body']['div'][4]['main']['div']['div'][0]['div']['div'][0]['b']['text']
-    except:
+    except Exception:
         availability = 1
     if availability == 'НЕ НАЙДЕНО':
         glob.cursor.execute(f"""UPDATE update_ad SET square = 'DELETED' WHERE url = '{url}';""")
@@ -203,20 +190,18 @@ def upn_table_parser():
         new_price = bs2json().convert(response.find())['html']['body']['div'][4]['main']['div']['div']['div']['span'][0]['meta'][3]['attributes']['content']
         try:
             change = int(old_price) - int(new_price)
-        except:
+        except Exception:
             change = int(str(old_price)[1:]) - int(new_price)
         if change == 0:
             print('[INFO] - Price don`t changed')
-            pass
+        elif change > 0:
+            glob.cursor.execute(f""" UPDATE update_ad SET price = '{f'↓{str(new_price)}'}' WHERE url = '{url}';""")
+
+            print(f"[INFO] - Price update successfully | {f'↓ {str(new_price)}'}")
         else:
-            if change > 0:
-                glob.cursor.execute(
-                    f""" UPDATE update_ad SET price = '{'↓' + str(new_price)}' WHERE url = '{url}';""")
-                print(f"[INFO] - Price update successfully | {'↓ ' + str(new_price)}")
-            else:
-                glob.cursor.execute(
-                    f""" UPDATE update_ad SET price = '{'↑' + str(new_price)}' WHERE url = '{url}';""")
-                print(f"[INFO] - Price update successfully | {'↑ ' + str(new_price)}")
+            glob.cursor.execute(f""" UPDATE update_ad SET price = '{f'↑{str(new_price)}'}' WHERE url = '{url}';""")
+
+            print(f"[INFO] - Price update successfully | {f'↑ {str(new_price)}'}")
     time.sleep(0.3)
 
 
@@ -225,7 +210,7 @@ def cian_table_parser():
     full_page = html_to_json.convert(driver.page_source)['html'][0]['body'][0]['div'][1]['main'][0]
     try:
         availability = full_page['div'][0]['div'][2]['_value']
-    except:
+    except Exception:
         availability = 1
     if availability == 'Объявление снято с публикации':
         glob.cursor.execute(f"""UPDATE update_ad SET square = 'DELETED' WHERE url = '{url}';""")
@@ -234,20 +219,18 @@ def cian_table_parser():
         new_price = str(new_price).replace(' ', '')[:-1]
         try:
             change = int(old_price) - int(new_price)
-        except:
+        except Exception:
             change = int(str(old_price)[1:]) - int(new_price)
         if change == 0:
             print('[INFO] - Price don`t changed')
-            pass
+        elif change > 0:
+            glob.cursor.execute(f""" UPDATE update_ad SET price = '{f'↓{str(new_price)}'}' WHERE url = '{url}';""")
+
+            print(f"[INFO] - Price update successfully | {f'↓ {str(new_price)}'}")
         else:
-            if change > 0:
-                glob.cursor.execute(
-                    f""" UPDATE update_ad SET price = '{'↓' + str(new_price)}' WHERE url = '{url}';""")
-                print(f"[INFO] - Price update successfully | {'↓ ' + str(new_price)}")
-            else:
-                glob.cursor.execute(
-                    f""" UPDATE update_ad SET price = '{'↑' + str(new_price)}' WHERE url = '{url}';""")
-                print(f"[INFO] - Price update successfully | {'↑ ' + str(new_price)}")
+            glob.cursor.execute(f""" UPDATE update_ad SET price = '{f'↑{str(new_price)}'}' WHERE url = '{url}';""")
+
+            print(f"[INFO] - Price update successfully | {f'↑ {str(new_price)}'}")
     time.sleep(0.3)
 
 
@@ -256,7 +239,7 @@ def yandex_table_parser():
     full_page = html_to_json.convert(driver.page_source)['html'][0]['body'][0]['div'][1]['div'][0]['div'][1]['div'][0]['div'][3]['div'][0]['div'][0]
     try:
         availability = full_page['div'][2]['div'][0]['div'][0]['div'][0]['_value']
-    except:
+    except Exception:
         availability = 1
     if availability == 'объявление снято или устарело':
         glob.cursor.execute(f"""UPDATE update_ad SET square = 'DELETED' WHERE url = '{url}';""")
@@ -265,37 +248,33 @@ def yandex_table_parser():
         new_price = str(new_price).replace(' ', '')[:-1]
         try:
             change = int(old_price) - int(new_price)
-        except:
+        except Exception:
             change = int(str(old_price)[1:]) - int(new_price)
         if change == 0:
             print('[INFO] - Price don`t changed')
-            pass
+        elif change > 0:
+            glob.cursor.execute(f""" UPDATE update_ad SET price = '{f'↓{str(new_price)}'}' WHERE url = '{url}';""")
+
+            print(f"[INFO] - Price update successfully | {f'↓ {str(new_price)}'}")
         else:
-            if change > 0:
-                glob.cursor.execute(
-                    f""" UPDATE update_ad SET price = '{'↓' + str(new_price)}' WHERE url = '{url}';""")
-                print(f"[INFO] - Price update successfully | {'↓ ' + str(new_price)}")
-            else:
-                glob.cursor.execute(
-                    f""" UPDATE update_ad SET price = '{'↑' + str(new_price)}' WHERE url = '{url}';""")
-                print(f"[INFO] - Price update successfully | {'↑ ' + str(new_price)}")
+            glob.cursor.execute(f""" UPDATE update_ad SET price = '{f'↑{str(new_price)}'}' WHERE url = '{url}';""")
+
+            print(f"[INFO] - Price update successfully | {f'↑ {str(new_price)}'}")
     time.sleep(0.3)
 
 
 def avito_table_parser():
     driver.get(url=url)
-    try:
+    with contextlib.suppress(Exception):
         full_page = html_to_json.convert(driver.page_source)['html'][0]['body'][0]['div'][2]['div'][0]['div'][0]
-    except:
-        pass
     try:
         availability = full_page['div'][0]['div'][0]['div'][1]['div'][0]['a'][0]['span'][0]['_value']
-    except:
+    except Exception:
         try:
             availability = html_to_json.convert(driver.page_source)['html'][0]['body'][0]['div'][1]['div'][0]['div'][0]['h1'][0]['_value']
-        except:
+        except Exception:
             availability = 1
-    if availability == 'Объявление снято с публикации.' or availability == 'Ой! Такой страницы на нашем сайте нет :(':
+    if availability in {'Объявление снято с публикации.', 'Ой! Такой страницы на нашем сайте нет :('}:
         glob.cursor.execute(f"""UPDATE update_ad SET square = 'DELETED' WHERE url = '{url}';""")
     else:
         new_price = full_page['div'][0]['div'][1]['div'][1]['div'][1]['div'][0]['div'][0]['div'][0]['div'][0]
@@ -303,20 +282,18 @@ def avito_table_parser():
         new_price = str(new_price).replace(' ', '')
         try:
             change = int(old_price) - int(new_price)
-        except:
+        except Exception:
             change = int(str(old_price)[1:]) - int(new_price)
         if change == 0:
             print('[INFO] - Price don`t changed')
-            pass
+        elif change > 0:
+            glob.cursor.execute(f""" UPDATE update_ad SET price = '{f'↓{new_price}'}' WHERE url = '{url}';""")
+
+            print(f"[INFO] - Price update successfully | {f'↓ {new_price}'}")
         else:
-            if change > 0:
-                glob.cursor.execute(
-                    f""" UPDATE update_ad SET price = '{'↓' + str(new_price)}' WHERE url = '{url}';""")
-                print(f"[INFO] - Price update successfully | {'↓ ' + str(new_price)}")
-            else:
-                glob.cursor.execute(
-                    f""" UPDATE update_ad SET price = '{'↑' + str(new_price)}' WHERE url = '{url}';""")
-                print(f"[INFO] - Price update successfully | {'↑ ' + str(new_price)}")
+            glob.cursor.execute(f""" UPDATE update_ad SET price = '{f'↑{new_price}'}' WHERE url = '{url}';""")
+
+            print(f"[INFO] - Price update successfully | {f'↑ {new_price}'}")
     time.sleep(0.3)
 
 

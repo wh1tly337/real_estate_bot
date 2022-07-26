@@ -1,3 +1,4 @@
+import contextlib
 from site_parser import *
 
 from datetime import datetime
@@ -9,12 +10,9 @@ import glob
 import os
 
 global file_name
-today = datetime.today()
-if int(today.minute) < 10:
-    minute = '0' + str(today.minute)
-else:
-    minute = today.minute
-file_name = str(("{}.{}.{} - {}.{}".format(today.day, today.month, today.year, today.hour, minute)))
+today = datetime.now()
+minute = f'0{str(today.minute)}' if int(today.minute) < 10 else today.minute
+file_name = f"{today.day}.{today.month}.{today.year} - {today.hour}.{minute}"
 
 headers = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.5 Safari/605.1.15',
@@ -65,7 +63,7 @@ def create_update_ad_table():
 def main_site_start():
     try:
         create_new_site_table()
-    except:
+    except Exception:
         delete_new_site_table()
         create_new_site_table()
 
@@ -73,7 +71,7 @@ def main_site_start():
 def main_table_start():
     try:
         create_update_ad_table()
-    except:
+    except Exception:
         delete_update_ad_table()
         create_update_ad_table()
 
@@ -119,45 +117,33 @@ def convert_site_csv_to_txt():
 
 def renamer():
     flag = 0
-    try:
+    with contextlib.suppress(Exception):
         os.rename('pars_site.txt', f'{file_name}.txt')
         flag = 1
-    except:
-        pass
-    try:
+    with contextlib.suppress(Exception):
         os.rename('pars_site.csv', f'{file_name}.csv')
         flag = 1
-    except:
-        pass
-    try:
+    with contextlib.suppress(Exception):
         os.rename('pars_site.xlsx', f'{file_name}.xlsx')
         flag = 1
-    except:
-        pass
     if flag == 1:
         print("[INFO] - Renaming of all files was successful")
 
 
 def remover():
     flag = 0
-    try:
+    with contextlib.suppress(Exception):
         # os.remove(f"/Users/user/PycharmProjects/Parser/{file_name}.csv")
         os.remove(f"{file_name}.csv")
         flag = 1
-    except:
-        pass
-    try:
+    with contextlib.suppress(Exception):
         # os.remove(f"/Users/user/PycharmProjects/Parser/{file_name}.xlsx")
         os.remove(f"{file_name}.xlsx")
         flag = 1
-    except:
-        pass
-    try:
+    with contextlib.suppress(Exception):
         # os.remove(f"/Users/user/PycharmProjects/Parser/{file_name}.txt")
         os.remove(f"{file_name}.txt")
         flag = 1
-    except:
-        pass
     if flag == 1:
         print("[INFO] - Removing of all files was successful")
 
@@ -173,10 +159,8 @@ def delete_new_site_table():
 
 
 def delete_update_ad_table():
-    try:
+    with contextlib.suppress(Exception):
         start_connection()
-    except:
-        pass
     # Delete update_ad table
     with glob.connection.cursor() as glob.cursor:
         glob.cursor.execute(
@@ -207,8 +191,6 @@ def main_site_finish(req_res):
         convert_site_csv_to_xlsx()
         convert_site_csv_to_txt()
         renamer()
-    elif req_res == 'error':
-        pass
 
 
 def close_connection():
