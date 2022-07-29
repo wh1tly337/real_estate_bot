@@ -1,14 +1,15 @@
+import asyncio
 import contextlib
 # import lxml
 import glob
-import os
-import time
 
+import aiofiles
 import html_to_json
 import pandas as pd
 import psycopg2
 import requests
-import telebot
+from aiofiles import os
+from aiogram import Bot, Dispatcher, types
 from bs2json import bs2json
 from bs4 import BeautifulSoup as BS
 from selenium import webdriver
@@ -23,28 +24,29 @@ user = 'user'
 password = '13579001Ivan+'
 db_name = 'postgres'
 
-token = '5432400118:AAFgz1QNbckgmQ7X1jbEu87S2ZdhV6vU1m0'
-bot = telebot.TeleBot(token)
+bot = Bot(token='5432400118:AAFgz1QNbckgmQ7X1jbEu87S2ZdhV6vU1m0')
+dp = Dispatcher(bot)
 
 
-def namer(message):
+async def namer(message):
     global table_name
     table_name = message.document.file_name
     print(f"[INFO] - File successfully saved. File name: {table_name}")
 
 
-def add_driver():
+async def add_driver():
     global driver
     driver = webdriver.Safari()
     print("[INFO] - Driver started")
 
 
-def reformer():
+async def reformer():
     global new_table_name
 
     if table_name[-3:] == 'txt':
-        txt_converter()
+        await txt_converter()
     elif table_name[-4:] == 'xlsx':
+        # noinspection PyArgumentList
         df = pd.read_excel(f"{table_name}")
         new_table_name = f"{str(table_name)[:-5]}_upd.csv"
         df.to_csv(f"{new_table_name}", index=False, header=True, sep=";")
@@ -53,20 +55,20 @@ def reformer():
         print("[INFO] - Copy .xlsx to .csv  successfully")
     else:
         new_table_name = f"{str(table_name)[:-4]}_upd.csv"
-        os.rename(f"{table_name}", f"{new_table_name}")
+        await os.rename(f"{table_name}", f"{new_table_name}")
 
         print('[INFO] - Already .csv file')
 
 
-def txt_converter():
+async def txt_converter():
     global new_table_name
 
-    with open(f"{table_name}", 'r') as file:
-        df = file.read()
+    async with aiofiles.open(f"{table_name}", 'r') as file:
+        df = await file.read()
         df = df.replace(' | ', ';')
 
-    with open(f"{table_name}", 'w') as file:
-        file.write(df)
+    async with aiofiles.open(f"{table_name}", 'w') as file:
+        await file.write(df)
 
     df = pd.read_csv(f"{table_name}")
     new_table_name = f"{str(table_name)[:-4]}_upd.csv"
@@ -75,25 +77,25 @@ def txt_converter():
     print("[INFO] - Copy .txt to .csv  successfully")
 
 
-def table_file_remover():
+async def table_file_remover():
     with contextlib.suppress(Exception):
         # os.remove(f"/Users/user/PycharmProjects/Parser/{new_table_name}")
-        os.remove(f"{new_table_name}")
+        await os.remove(f"{new_table_name}")
     with contextlib.suppress(Exception):
         # os.remove(f"/Users/user/PycharmProjects/Parser/{table_name[:-4]}.txt")
-        os.remove(f"{table_name[:-4]}.txt")
+        await os.remove(f"{table_name[:-4]}.txt")
     with contextlib.suppress(Exception):
         # os.remove(f"/Users/user/PycharmProjects/Parser/{table_name[:-5]}.xlsx")
-        os.remove(f"{table_name[:-5]}.xlsx")
+        await os.remove(f"{table_name[:-5]}.xlsx")
     with contextlib.suppress(Exception):
         # os.remove(f"/Users/user/PycharmProjects/Parser/{new_table_name[:-4]}.txt")
-        os.remove(f"{new_table_name[:-4]}.txt")
+        await os.remove(f"{new_table_name[:-4]}.txt")
     with contextlib.suppress(Exception):
         # os.remove(f"/Users/user/PycharmProjects/Parser/{new_table_name[:-4]}.xlsx")
-        os.remove(f"{new_table_name[:-4]}.xlsx")
+        await os.remove(f"{new_table_name[:-4]}.xlsx")
 
 
-def add_to_table():
+async def add_to_table():
     connection_add = psycopg2.connect(host=host, user=user, password=password, database=db_name)
     connection_add.autocommit = True
     cursor_add = connection_add.cursor()
@@ -106,16 +108,16 @@ def add_to_table():
         connection_add.close()
 
 
-def update_table_parser(message):
+async def update_table_parser(message):
     with contextlib.suppress(Exception):
         glob.connection = psycopg2.connect(host=host, user=user, password=password, database=db_name)
         glob.connection.autocommit = True
         glob.cursor = glob.connection.cursor()
         print("[INFO] - PostgreSQL connection started")
 
-    reformer()
+    await reformer()
 
-    add_to_table()
+    await add_to_table()
 
     connection_max_row = psycopg2.connect(host=host, user=user, password=password, database=db_name)
     connection_max_row.autocommit = True
@@ -136,28 +138,28 @@ def update_table_parser(message):
             old_price = glob.cursor.fetchall()[row][0]
             if url[:14] == 'https://upn.ru':
                 try:
-                    upn_table_parser()
+                    await upn_table_parser()
                 except Exception as ex:
                     print('[ERROR UPN] - ', ex)
             elif url[:19] == 'https://ekb.cian.ru':
                 with contextlib.suppress(Exception):
-                    add_driver()
+                    await add_driver()
                 try:
-                    cian_table_parser()
+                    await cian_table_parser()
                 except Exception as ex:
                     print('[ERROR CIAN] - ', ex)
             elif url[:24] == 'https://realty.yandex.ru':
                 with contextlib.suppress(Exception):
-                    add_driver()
+                    await add_driver()
                 try:
-                    yandex_table_parser()
+                    await yandex_table_parser()
                 except Exception as ex:
                     print('[ERROR YANDEX] - ', ex)
             elif url[:20] == 'https://www.avito.ru':
                 with contextlib.suppress(Exception):
-                    add_driver()
+                    await add_driver()
                 try:
-                    avito_table_parser()
+                    await avito_table_parser()
                 except Exception as ex:
                     print('[ERROR AVITO] - ', ex)
         except Exception as ex:
@@ -165,20 +167,20 @@ def update_table_parser(message):
             quit()
 
     with contextlib.suppress(Exception):
-        close_driver()
-    markup_res = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
-    btn1_res = telebot.types.KeyboardButton(".csv")
-    btn2_res = telebot.types.KeyboardButton(".xlsx")
-    btn3_res = telebot.types.KeyboardButton(".txt")
-    btn4_res = telebot.types.KeyboardButton("Все форматы")
+        await close_driver()
+    markup_res = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    btn1_res = types.KeyboardButton(".csv")
+    btn2_res = types.KeyboardButton(".xlsx")
+    btn3_res = types.KeyboardButton(".txt")
+    btn4_res = types.KeyboardButton("Все форматы")
     markup_res.add(btn1_res, btn2_res, btn3_res, btn4_res)
-    bot.send_message(message.chat.id, text="Вся информация обновлена. В каком формате вы хотите получить результат?", reply_markup=markup_res, parse_mode="Markdown")
+    await bot.send_message(chat_id=message.chat.id, text="Вся информация обновлена. В каком формате вы хотите получить результат?", reply_markup=markup_res, parse_mode="Markdown")
     # bot.send_document(message.chat.id, open(f"{new_table_name}", "rb"))
     # table_file_remover()
     print("[INFO] - Table successfully updated")
 
 
-def upn_table_parser():
+async def upn_table_parser():
     request = requests.get(url, headers=headers).text
     response = BS(request, 'lxml')
     try:
@@ -203,10 +205,10 @@ def upn_table_parser():
             glob.cursor.execute(f""" UPDATE update_ad SET price = '{f'↑{str(new_price)}'}' WHERE url = '{url}';""")
 
             print(f"[INFO] - Price update successfully | {f'↑ {str(new_price)}'}")
-    time.sleep(0.3)
+    await asyncio.sleep(0.3)
 
 
-def cian_table_parser():
+async def cian_table_parser():
     driver.get(url=url)
     full_page = html_to_json.convert(driver.page_source)['html'][0]['body'][0]['div'][1]['main'][0]
     try:
@@ -232,10 +234,10 @@ def cian_table_parser():
             glob.cursor.execute(f""" UPDATE update_ad SET price = '{f'↑{str(new_price)}'}' WHERE url = '{url}';""")
 
             print(f"[INFO] - Price update successfully | {f'↑ {str(new_price)}'}")
-    time.sleep(0.3)
+    await asyncio.sleep(0.3)
 
 
-def yandex_table_parser():
+async def yandex_table_parser():
     driver.get(url=url)
     full_page = html_to_json.convert(driver.page_source)['html'][0]['body'][0]['div'][1]['div'][0]['div'][1]['div'][0]['div'][3]['div'][0]['div'][0]
     try:
@@ -261,10 +263,10 @@ def yandex_table_parser():
             glob.cursor.execute(f""" UPDATE update_ad SET price = '{f'↑{str(new_price)}'}' WHERE url = '{url}';""")
 
             print(f"[INFO] - Price update successfully | {f'↑ {str(new_price)}'}")
-    time.sleep(0.3)
+    await asyncio.sleep(0.3)
 
 
-def avito_table_parser():
+async def avito_table_parser():
     driver.get(url=url)
     with contextlib.suppress(Exception):
         full_page = html_to_json.convert(driver.page_source)['html'][0]['body'][0]['div'][2]['div'][0]['div'][0]
@@ -295,9 +297,9 @@ def avito_table_parser():
             glob.cursor.execute(f""" UPDATE update_ad SET price = '{f'↑{new_price}'}' WHERE url = '{url}';""")
 
             print(f"[INFO] - Price update successfully | {f'↑ {new_price}'}")
-    time.sleep(0.3)
+    await asyncio.sleep(0.3)
 
 
-def close_driver():
+async def close_driver():
     driver.quit()
     print("[INFO] - Driver closed")

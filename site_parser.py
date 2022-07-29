@@ -6,7 +6,7 @@ import time
 
 import html_to_json
 import requests
-import telebot
+from aiogram import Bot, Dispatcher
 from bs2json import bs2json
 from bs4 import BeautifulSoup as BS
 from selenium import webdriver
@@ -23,11 +23,11 @@ user = 'user'
 password = '13579001Ivan+'
 db_name = 'postgres'
 
-token = '5432400118:AAFgz1QNbckgmQ7X1jbEu87S2ZdhV6vU1m0'
-bot = telebot.TeleBot(token)
+bot = Bot(token='5432400118:AAFgz1QNbckgmQ7X1jbEu87S2ZdhV6vU1m0')
+dp = Dispatcher(bot)
 
 
-def upn_parser(message, url_upn):
+async def upn_parser(message, url_upn):
     print("[INFO] - Start parsing UPN")
     pos = url_upn.find('?page')
     url = url_upn if pos == -1 else url_upn[:pos]
@@ -37,8 +37,8 @@ def upn_parser(message, url_upn):
         bs2json().convert(response.find())['html']['head']['title']['text']).split('|')[1]))) / 25)
     if num_of_pages > 15:
         num_of_pages = 15
-        bot.send_message(message.chat.id,
-                         text="Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только 15 страниц.")
+        await bot.send_message(chat_id=message.chat.id, text='Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только 15 '
+                                                             'страниц.')
     for j in range(1, num_of_pages + 1):
         try:
             if re.search(r'\d+', url[-1]):
@@ -61,7 +61,7 @@ def upn_parser(message, url_upn):
                 url_ad = 'https://upn.ru' + advertisement[i]['div'][1]['a']['attributes']['href']
                 square = "".join((advertisement[i]['div'][1]['div'][2]['div'][0]['div'][1]['text']).split('/')[0])
                 try:
-                    data_base(adres=full_address, price=price, square=square, url=url_ad)
+                    await data_base(adres=full_address, price=price, square=square, url=url_ad)
                 except Exception:
                     quit()
         except Exception as ex:
@@ -69,7 +69,7 @@ def upn_parser(message, url_upn):
     print("[INFO] - Finish parsing UPN")
 
 
-def cian_parser(message, url_cian):
+async def cian_parser(message, url_cian):
     print("[INFO] - Start parsing Cian")
     url = url_cian
     try:
@@ -94,8 +94,8 @@ def cian_parser(message, url_cian):
             url_next_page = url
         if num_of_pages > 15:
             num_of_pages = 15
-            bot.send_message(message.chat.id,
-                             text="Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только 15 страниц.")
+            await bot.send_message(chat_id=message.chat.id, text='Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только '
+                                                                 '15 страниц.')
         for i in range(1, num_of_pages + 1):
             pos = url_next_page.find('&p=')
             if pos == -1:
@@ -135,7 +135,7 @@ def cian_parser(message, url_cian):
                     except Exception:
                         continue
                 try:
-                    data_base(adres=full_address, price=price, square=square, url=url_ad)
+                    await data_base(adres=full_address, price=price, square=square, url=url_ad)
                 except Exception:
                     quit()
     except Exception as ex:
@@ -145,7 +145,7 @@ def cian_parser(message, url_cian):
     print("[INFO] - Finish parsing Cian")
 
 
-def yandex_parser(message, url_yandex):
+async def yandex_parser(message, url_yandex):
     print("[INFO]  - Start parsing Yandex")
     url = url_yandex
     try:
@@ -171,8 +171,8 @@ def yandex_parser(message, url_yandex):
             url_next_page = url
         if num_of_pages > 15:
             num_of_pages = 15
-            bot.send_message(message.chat.id,
-                             text="Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только 15 страниц.")
+            await bot.send_message(chat_id=message.chat.id, text='Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только '
+                                                                 '15 страниц.')
         for j in range(num_of_pages):
             pos = url_next_page.find('&page=')
             if pos == -1:
@@ -202,7 +202,7 @@ def yandex_parser(message, url_yandex):
                 url_ad = 'https://realty.yandex.ru' + advertisement['div'][0]['div'][0]['a'][0]['_attributes']['href']
                 square = str(advertisement['div'][0]['div'][0]['a'][0]['span'][0]['_value']).split(',')[0][:3].strip()
                 try:
-                    data_base(adres=full_address, price=price, square=square, url=url_ad)
+                    await data_base(adres=full_address, price=price, square=square, url=url_ad)
                 except Exception:
                     quit()
     except Exception as ex:
@@ -212,7 +212,7 @@ def yandex_parser(message, url_yandex):
     print("[INFO] - Finish parsing Yandex")
 
 
-def avito_parser(message, url_avito):
+async def avito_parser(message, url_avito):
     print("[INFO] - Start parsing Avito")
     url = url_avito
     try:
@@ -233,8 +233,8 @@ def avito_parser(message, url_avito):
                     continue
         if num_of_pages > 15:
             num_of_pages = 15
-            bot.send_message(message.chat.id,
-                             text="Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только 15 страниц.")
+            await bot.send_message(chat_id=message.chat.id, text='Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только '
+                                                                 '15 страниц.')
         for i in range(1, num_of_pages + 1):
             pos = url_next_page.find('&p=')
             if pos == -1:
@@ -291,7 +291,7 @@ def avito_parser(message, url_avito):
                 except Exception:
                     square = '-'
                 try:
-                    data_base(adres=full_address, price=price, square=square, url=url_ad)
+                    await data_base(adres=full_address, price=price, square=square, url=url_ad)
                 except Exception:
                     quit()
     except Exception as ex:
