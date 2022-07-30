@@ -29,6 +29,12 @@ db_name = 'postgres'
 bot = Bot(token='5432400118:AAFgz1QNbckgmQ7X1jbEu87S2ZdhV6vU1m0')
 dp = Dispatcher(bot)
 
+global new_table_name
+global table_name
+global old_price
+global table_url
+global driver
+
 
 async def namer(message):
     global table_name
@@ -133,31 +139,31 @@ async def update_table_parser(message):
     for row in range(max_row):
         try:
             global old_price
-            global url
+            global table_url
             glob.cursor.execute("""SELECT url FROM update_ad;""")
-            url = glob.cursor.fetchall()[row][0]
+            table_url = glob.cursor.fetchall()[row][0]
             glob.cursor.execute("""SELECT price FROM update_ad;""")
             old_price = glob.cursor.fetchall()[row][0]
-            if url[:14] == 'https://upn.ru':
+            if table_url[:14] == 'https://upn.ru':
                 try:
                     await upn_table_parser()
                 except Exception as ex:
                     print('[ERROR UPN] - ', ex)
-            elif url[:19] == 'https://ekb.cian.ru':
+            elif table_url[:19] == 'https://ekb.cian.ru':
                 with contextlib.suppress(Exception):
                     await add_driver()
                 try:
                     await cian_table_parser()
                 except Exception as ex:
                     print('[ERROR CIAN] - ', ex)
-            elif url[:24] == 'https://realty.yandex.ru':
+            elif table_url[:24] == 'https://realty.yandex.ru':
                 with contextlib.suppress(Exception):
                     await add_driver()
                 try:
                     await yandex_table_parser()
                 except Exception as ex:
                     print('[ERROR YANDEX] - ', ex)
-            elif url[:20] == 'https://www.avito.ru':
+            elif table_url[:20] == 'https://www.avito.ru':
                 with contextlib.suppress(Exception):
                     await add_driver()
                 try:
@@ -185,24 +191,24 @@ async def table_db(new_price):
     if change == 0:
         print('[INFO] - Price don`t changed')
     elif change > 0:
-        glob.cursor.execute(f""" UPDATE update_ad SET price = '{f'↓{str(new_price)}'}' WHERE url = '{url}';""")
+        glob.cursor.execute(f""" UPDATE update_ad SET price = '{f'↓{str(new_price)}'}' WHERE url = '{table_url}';""")
 
         print(f"[INFO] - Price update successfully | {f'↓ {str(new_price)}'}")
     else:
-        glob.cursor.execute(f""" UPDATE update_ad SET price = '{f'↑{str(new_price)}'}' WHERE url = '{url}';""")
+        glob.cursor.execute(f""" UPDATE update_ad SET price = '{f'↑{str(new_price)}'}' WHERE url = '{table_url}';""")
 
         print(f"[INFO] - Price update successfully | {f'↑ {str(new_price)}'}")
 
 
 async def upn_table_parser():
-    request = requests.get(url, headers=headers).text
+    request = requests.get(table_url, headers=headers).text
     response = BS(request, 'lxml')
     try:
         availability = bs2json().convert(response.find())['html']['body']['div'][4]['main']['div']['div'][0]['div']['div'][0]['b']['text']
     except Exception:
         availability = 1
     if availability == 'НЕ НАЙДЕНО':
-        glob.cursor.execute(f"""UPDATE update_ad SET square = 'DELETED' WHERE url = '{url}';""")
+        glob.cursor.execute(f"""UPDATE update_ad SET square = 'DELETED' WHERE url = '{table_url}';""")
     else:
         new_price = bs2json().convert(response.find())['html']['body']['div'][4]['main']['div']['div']['div']['span'][0]['meta'][3]['attributes']['content']
         await table_db(new_price=new_price)
@@ -210,14 +216,14 @@ async def upn_table_parser():
 
 
 async def cian_table_parser():
-    driver.get(url=url)
+    driver.get(url=table_url)
     full_page = html_to_json.convert(driver.page_source)['html'][0]['body'][0]['div'][1]['main'][0]
     try:
         availability = full_page['div'][0]['div'][2]['_value']
     except Exception:
         availability = 1
     if availability == 'Объявление снято с публикации':
-        glob.cursor.execute(f"""UPDATE update_ad SET square = 'DELETED' WHERE url = '{url}';""")
+        glob.cursor.execute(f"""UPDATE update_ad SET square = 'DELETED' WHERE url = '{table_url}';""")
     else:
         new_price = full_page['div'][2]['div'][0]['div'][0]['div'][0]['div'][1]['div'][0]['div'][0]['div'][0]['span'][0]['span'][0]['_value']
         new_price = str(new_price).replace(' ', '')[:-1]
@@ -226,14 +232,14 @@ async def cian_table_parser():
 
 
 async def yandex_table_parser():
-    driver.get(url=url)
+    driver.get(url=table_url)
     full_page = html_to_json.convert(driver.page_source)['html'][0]['body'][0]['div'][1]['div'][0]['div'][1]['div'][0]['div'][3]['div'][0]['div'][0]
     try:
         availability = full_page['div'][2]['div'][0]['div'][0]['div'][0]['_value']
     except Exception:
         availability = 1
     if availability == 'объявление снято или устарело':
-        glob.cursor.execute(f"""UPDATE update_ad SET square = 'DELETED' WHERE url = '{url}';""")
+        glob.cursor.execute(f"""UPDATE update_ad SET square = 'DELETED' WHERE url = '{table_url}';""")
     else:
         new_price = full_page['div'][1]['h1'][0]['span'][0]['_value']
         new_price = str(new_price).replace(' ', '')[:-1]
@@ -242,7 +248,7 @@ async def yandex_table_parser():
 
 
 async def avito_table_parser():
-    driver.get(url=url)
+    driver.get(url=table_url)
     with contextlib.suppress(Exception):
         full_page = html_to_json.convert(driver.page_source)['html'][0]['body'][0]['div'][2]['div'][0]['div'][0]
     try:
@@ -253,7 +259,7 @@ async def avito_table_parser():
         except Exception:
             availability = 1
     if availability in {'Объявление снято с публикации.', 'Ой! Такой страницы на нашем сайте нет :('}:
-        glob.cursor.execute(f"""UPDATE update_ad SET square = 'DELETED' WHERE url = '{url}';""")
+        glob.cursor.execute(f"""UPDATE update_ad SET square = 'DELETED' WHERE url = '{table_url}';""")
     else:
         new_price = full_page['div'][0]['div'][1]['div'][1]['div'][1]['div'][0]['div'][0]['div'][0]['div'][0]
         new_price = new_price['div'][0]['div'][0]['div'][0]['div'][0]['span'][0]['span'][0]['span'][0]['_value']

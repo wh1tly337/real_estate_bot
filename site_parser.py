@@ -27,6 +27,19 @@ bot = Bot(token='5432400118:AAFgz1QNbckgmQ7X1jbEu87S2ZdhV6vU1m0')
 dp = Dispatcher(bot)
 
 
+async def cian_avito_url_cycle_detector(url_next_page, driver, i):
+    pos = url_next_page.find('&p=')
+    if pos == -1:
+        url_cycle = url_next_page
+    else:
+        pos = pos + 3
+        url_cycle = f"{url_next_page[:pos]}{i}{url_next_page[pos + 1:]}"
+    print(url_cycle)
+    driver.get(url=url_cycle)
+
+    return url_cycle
+
+
 async def upn_parser(message, url_upn):
     print("[INFO] - Start parsing UPN")
     pos = url_upn.find('?page')
@@ -72,8 +85,8 @@ async def upn_parser(message, url_upn):
 async def cian_parser(message, url_cian):
     print("[INFO] - Start parsing Cian")
     url = url_cian
+    driver = webdriver.Safari()
     try:
-        driver = webdriver.Safari()
         time.sleep(1)
         driver.get(url=url)
         full_page = html_to_json.convert(driver.page_source)['html'][0]['body'][0]
@@ -97,14 +110,7 @@ async def cian_parser(message, url_cian):
             await bot.send_message(chat_id=message.chat.id, text='Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только '
                                                                  '15 страниц.')
         for i in range(1, num_of_pages + 1):
-            pos = url_next_page.find('&p=')
-            if pos == -1:
-                url_cycle = url_next_page
-            else:
-                pos = pos + 3
-                url_cycle = f"{url_next_page[:pos]}{i}{url_next_page[pos + 1:]}"
-            print(url_cycle)
-            driver.get(url=url_cycle)
+            await cian_avito_url_cycle_detector(url_next_page, driver, i)
             full_page = html_to_json.convert(driver.page_source)['html'][0]['body'][0]
             for j in range(20):
                 try:
@@ -148,14 +154,13 @@ async def cian_parser(message, url_cian):
 async def yandex_parser(message, url_yandex):
     print("[INFO]  - Start parsing Yandex")
     url = url_yandex
+    driver = webdriver.Safari()
     try:
-        driver = webdriver.Safari()
         time.sleep(1)
         driver.get(url=url)
         full_page = html_to_json.convert(driver.page_source)
         num_of_pages = \
-            full_page['html'][0]['body'][0]['div'][1]['div'][1]['div'][0]['div'][0]['div'][1]['div'][1]['div'][0]['form'][0]['div'][0]['div'][2]['div'][0]['div'][0]['div'][0][
-                'fieldset']
+            full_page['html'][0]['body'][0]['div'][1]['div'][1]['div'][0]['div'][0]['div'][1]['div'][1]['div'][0]['form'][0]['div'][0]['div'][2]['div'][0]['div'][0]['div'][0]['fieldset']
         num_of_pages = num_of_pages[len(num_of_pages) - 1]['div'][0]['div'][4]['div'][0]['button'][0]['span'][0]['_value']
         num_of_pages = math.ceil(int("".join(re.findall(r'\d+', num_of_pages))) / 20)
         url_next_page = 1
@@ -215,8 +220,8 @@ async def yandex_parser(message, url_yandex):
 async def avito_parser(message, url_avito):
     print("[INFO] - Start parsing Avito")
     url = url_avito
+    driver = webdriver.Safari()
     try:
-        driver = webdriver.Safari()
         time.sleep(1)
         driver.get(url=url)
         full_page = html_to_json.convert(driver.page_source)['html'][0]['body'][0]['div'][0]
@@ -236,14 +241,7 @@ async def avito_parser(message, url_avito):
             await bot.send_message(chat_id=message.chat.id, text='Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только '
                                                                  '15 страниц.')
         for i in range(1, num_of_pages + 1):
-            pos = url_next_page.find('&p=')
-            if pos == -1:
-                url_cycle = url_next_page
-            else:
-                pos = pos + 3
-                url_cycle = f"{url_next_page[:pos]}{i}{url_next_page[pos + 1:]}"
-            print(url_cycle)
-            driver.get(url=url_cycle)
+            url_cycle = await cian_avito_url_cycle_detector(url_next_page, driver, i)
             full_page = html_to_json.convert(driver.page_source)['html'][0]['body'][0]['div'][0]
             for n in range(10):
                 try:
@@ -280,7 +278,7 @@ async def avito_parser(message, url_avito):
                     continue
                 url_ad = 'https://www.avito.ru' + advertisement['div'][0]['div'][0]['a'][0]['_attributes']['href']
                 try:
-                    if url_cycle.find("doma") == -1:
+                    if url_cycle.find('doma') == -1:
                         square = str(advertisement['div'][0]['div'][1]['div'][1]['a'][0]['h3'][0]['_value']).split(',')[1].strip()
                         if len(square) > 4:
                             square = square[:-2].strip()

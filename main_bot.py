@@ -5,7 +5,6 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 
 from main_code import *
 from table_parser import *
-from all_markups import *
 
 headers = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.5 Safari/605.1.15',
@@ -36,7 +35,7 @@ async def data_base(adres, price, square, url):
             glob.cursor.execute(
                 f"""INSERT INTO advertisement (adres, price, square, url) VALUES ('{adres}', '{price}', '{square}', '{url}');"""
             )
-        # print("[INFO] Data was successfully inserted")
+
     except Exception as ex:
         print("[ERROR DB] - ", ex)
         quit()
@@ -103,6 +102,7 @@ async def links(message: types.Message):
 @dp.message_handler(commands=['new_table'])
 async def new_table(message: types.Message, counter=0):
     global task
+
     task = 'site'
     await start_connection()
     if counter == 0:
@@ -165,23 +165,21 @@ async def get_site_url(message: types.Message, state: FSMContext):
         await bot.send_message(chat_id=message.chat.id, text='Я начал собирать информацию с ЦИАНа, это может занять некоторое время')
         await bot.send_message(chat_id=message.chat.id, text='Чем больше объявлений вы выбрали, тем дольше я буду работать')
         await main_site_main(req_site=2, url_upn=None, url_cian=user_response, url_yandex=None, url_avito=None, message=message)
-
     elif user_response[:24] == 'https://realty.yandex.ru' and id_url == 'yandex':
         await bot.send_message(chat_id=message.chat.id, text='Я начал собирать информацию с Яндекс Недвижимости, это может занять некоторое время')
         await bot.send_message(chat_id=message.chat.id, text='Чем больше объявлений вы выбрали, тем дольше я буду работать')
         await main_site_main(req_site=3, url_upn=None, url_cian=None, url_yandex=user_response, url_avito=None, message=message)
-
     elif user_response[:20] == 'https://www.avito.ru' and id_url == 'avito':
         await bot.send_message(chat_id=message.chat.id, text='Я начал собирать информацию с Авито, это может занять некоторое время')
         await bot.send_message(chat_id=message.chat.id, text='Чем больше объявлений вы выбрали, тем дольше я буду работать')
         await main_site_main(req_site=4, url_upn=None, url_cian=None, url_yandex=None, url_avito=user_response, message=message)
-
     elif user_response == 'Завершить работу':
         point = 1
         await bot.send_message(chat_id=message.chat.id, text='Вы уверены?', reply_markup=markup_sure)
     else:
         point = 1
         await getting_site_link(message, id_link='error')
+
     if point == 0:
         await bot.send_message(chat_id=message.chat.id, text="С этим сайтом я закончил, хотите добавить еще сайт для поиска?", reply_markup=markup_continue_question, parse_mode="Markdown")
 
@@ -193,42 +191,38 @@ async def getting_site_link(message: types.Message, id_link):
 
     if id_link == 'upn':
         id_url = 'upn'
-        await bot.send_message(chat_id=message.chat.id, text="Перейдите на сайт [УПН](https://upn.ru), настройте все необходимые Вам фильтры, скопируйте ссылку в адресной строке и отправьте ее мне",
-                               parse_mode="MarkdownV2", disable_web_page_preview=True, reply_markup=markup_quit)
+        message_text = 'Перейдите на сайт [УПН](https://upn.ru), настройте все необходимые Вам фильтры, скопируйте ссылку в адресной строке и отправьте ее мне'
+        await bot.send_message(chat_id=message.chat.id, text=message_text, parse_mode="MarkdownV2", disable_web_page_preview=True, reply_markup=markup_quit)
 
         await Answer.url_answer.set()
-
     elif id_link == 'cian':
         id_url = 'cian'
-        await bot.send_message(chat_id=message.chat.id, text="Перейдите на сайт [ЦИАН](https://ekb.cian.ru), настройте все необходимые Вам фильтры, скопируйте ссылку в адресной строке и отправьте "
-                                                             "ее мне", parse_mode="MarkdownV2", disable_web_page_preview=True, reply_markup=markup_quit)
+        message_text = "Перейдите на сайт [ЦИАН](https://ekb.cian.ru), настройте все необходимые Вам фильтры, скопируйте ссылку в адресной строке и отправьте ее мне"
+        await bot.send_message(chat_id=message.chat.id, text=message_text, parse_mode="MarkdownV2", disable_web_page_preview=True, reply_markup=markup_quit)
 
         await Answer.url_answer.set()
-
     elif id_link == 'yandex':
         id_url = 'yandex'
-        await bot.send_message(chat_id=message.chat.id, text="Перейдите на сайт [Яндекс Недвижимость](https://realty.yandex.ru/ekaterinburg), настройте все необходимые Вам фильтры, скопируйте ссылку "
-                                                             "в адресной строке и отправьте ее мне", parse_mode="MarkdownV2", disable_web_page_preview=True, reply_markup=markup_quit)
+        message_text = 'Перейдите на сайт [Яндекс Недвижимость](https://realty.yandex.ru/ekaterinburg), настройте все необходимые Вам фильтры, скопируйте ссылку в адресной строке и отправьте ее мне'
+        await bot.send_message(chat_id=message.chat.id, text=message_text, parse_mode="MarkdownV2", disable_web_page_preview=True, reply_markup=markup_quit)
 
         await Answer.url_answer.set()
-
     elif id_link == 'avito':
         id_url = 'avito'
-        await bot.send_message(chat_id=message.chat.id, text="Перейдите на сайт [Авито](https://www.avito.ru/ekaterinburg/nedvizhimost), настройте все необходимые Вам фильтры, скопируйте ссылку в "
-                                                             "адресной строке и отправьте ее мне", parse_mode="MarkdownV2", disable_web_page_preview=True, reply_markup=markup_quit)
+        message_text = 'Перейдите на сайт [Авито](https://www.avito.ru/ekaterinburg/nedvizhimost), настройте все необходимые Вам фильтры, скопируйте ссылку в адресной строке и отправьте ее мне'
+        await bot.send_message(chat_id=message.chat.id, text=message_text, parse_mode="MarkdownV2", disable_web_page_preview=True, reply_markup=markup_quit)
 
         await Answer.url_answer.set()
-
     elif id_link == 'error':
-        await bot.send_message(chat_id=message.chat.id, text="Введена неверная ссылка. Пожалуйста проверьте правильность ссылки и отправьте ее мне.", parse_mode="MarkdownV2",
-                               disable_web_page_preview=True, reply_markup=markup_quit)
+        message_text = 'Введена неверная ссылка. Пожалуйста проверьте правильность ссылки и отправьте ее мне.'
+        await bot.send_message(chat_id=message.chat.id, text=message_text, parse_mode="MarkdownV2", disable_web_page_preview=True, reply_markup=markup_quit)
 
         await Answer.url_answer.set()
 
 
 async def file_sender(message: types.Message, call):
     await bot.send_message(chat_id=message.chat.id, text="Ваши файлы", reply_markup=markup_start)
-    
+
     if call == 'site':
         result_file = file_name
     else:
