@@ -5,6 +5,7 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 
 from main_code import *
 from table_parser import *
+from all_markups import *
 
 headers = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.5 Safari/605.1.15',
@@ -18,6 +19,11 @@ db_name = 'postgres'
 
 bot = Bot(token='5432400118:AAFgz1QNbckgmQ7X1jbEu87S2ZdhV6vU1m0')
 dp = Dispatcher(bot, storage=MemoryStorage())
+
+global new_table_name
+global table_name
+global id_url
+global task
 
 
 class Answer(StatesGroup):
@@ -67,10 +73,6 @@ async def convert_table_csv_to_txt():
 
 @dp.message_handler(commands=['start'])
 async def start_message(message: types.Message):
-    markup_start = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    btn1_start = types.KeyboardButton("За работу")
-    btn2_start = types.KeyboardButton("/help")
-    markup_start.add(btn1_start, btn2_start)
     await bot.send_message(chat_id=message.chat.id, text=f"{message.from_user.full_name}, добро пожаловать в бот помощник по недвижимости!\
                      \nЯ в любое время могу собирать информацию о необходимых тебе объектах.\
                      \nТакже я могу подыскать информацию по любым указанными тобой параметрам.\
@@ -105,23 +107,12 @@ async def new_table(message: types.Message, counter=0):
     await start_connection()
     if counter == 0:
         await main_site_start()
-    markup_site_question = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    btn1_site_question = types.KeyboardButton("УПН")
-    btn2_site_question = types.KeyboardButton("ЦИАН")
-    btn3_site_question = types.KeyboardButton("Яндекс Недвижимость")
-    btn4_site_question = types.KeyboardButton("Авито")
-    btn5_site_question = types.KeyboardButton("Завершить работу")
-    markup_site_question.add(btn1_site_question, btn2_site_question)
-    markup_site_question.add(btn3_site_question, btn4_site_question)
-    markup_site_question.add(btn5_site_question)
+
     await bot.send_message(chat_id=message.chat.id, text="С какого сайта Вы хотите получить информацию?", reply_markup=markup_site_question, parse_mode="Markdown")
 
 
 @dp.message_handler(commands=['update_table'])
 async def update_table(message: types.Message):
-    markup_quit = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    btn1_quit = types.KeyboardButton("Завершить работу")
-    markup_quit.add(btn1_quit)
     await bot.send_message(chat_id=message.chat.id, text="Отправьте мне файл, информацию в котором Вы хотите обновить", reply_markup=markup_quit, parse_mode="Markdown")
 
 
@@ -143,9 +134,6 @@ async def handle_docs(message: types.Message):
 
         await namer(message)
 
-        markup_quit = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        btn1_quit = types.KeyboardButton("Завершить работу")
-        markup_quit.add(btn1_quit)
         await bot.send_message(chat_id=message.chat.id, text="Отлично! Я начал обновлять информацию, это может занять некоторое время", reply_markup=markup_quit, parse_mode="Markdown")
         await bot.send_message(chat_id=message.chat.id, text="Чем больше объявлений в файле, тем дольше я буду работать")
 
@@ -190,19 +178,11 @@ async def get_site_url(message: types.Message, state: FSMContext):
 
     elif user_response == 'Завершить работу':
         point = 1
-        markup_sure = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        btn1_sure = types.KeyboardButton("Да, уверен")
-        btn2_sure = types.KeyboardButton("Нет, давай продолжим")
-        markup_sure.add(btn1_sure, btn2_sure)
         await bot.send_message(chat_id=message.chat.id, text='Вы уверены?', reply_markup=markup_sure)
     else:
         point = 1
         await getting_site_link(message, id_link='error')
     if point == 0:
-        markup_continue_question = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        btn1_continue_question = types.KeyboardButton("Да")
-        btn2_continue_question = types.KeyboardButton("Нет")
-        markup_continue_question.add(btn1_continue_question, btn2_continue_question)
         await bot.send_message(chat_id=message.chat.id, text="С этим сайтом я закончил, хотите добавить еще сайт для поиска?", reply_markup=markup_continue_question, parse_mode="Markdown")
 
     await state.finish()
@@ -210,9 +190,7 @@ async def get_site_url(message: types.Message, state: FSMContext):
 
 async def getting_site_link(message: types.Message, id_link):
     global id_url
-    markup_quit = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    btn1_quit = types.KeyboardButton("Завершить работу")
-    markup_quit.add(btn1_quit)
+
     if id_link == 'upn':
         id_url = 'upn'
         await bot.send_message(chat_id=message.chat.id, text="Перейдите на сайт [УПН](https://upn.ru), настройте все необходимые Вам фильтры, скопируйте ссылку в адресной строке и отправьте ее мне",
@@ -248,40 +226,22 @@ async def getting_site_link(message: types.Message, id_link):
         await Answer.url_answer.set()
 
 
+async def file_sender(message: types.Message, call):
+    await bot.send_message(chat_id=message.chat.id, text="Ваши файлы", reply_markup=markup_start)
+    
+    if call == 'site':
+        result_file = file_name
+    else:
+        result_file = new_table_name
+
+    await bot.send_document(chat_id=message.chat.id, document=open(f"{result_file}.csv", "rb"))
+    await bot.send_document(chat_id=message.chat.id, document=open(f"{result_file}.xlsx", "rb"))
+    await bot.send_document(chat_id=message.chat.id, document=open(f"{result_file}.txt", "rb"))
+
+
 @dp.message_handler(content_types=['text'])
 async def text(message: types.Message):
     global task
-
-    markup_start = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    btn1_start = types.KeyboardButton("За работу")
-    btn2_start = types.KeyboardButton("/help")
-    markup_start.add(btn1_start, btn2_start)
-
-    markup_first_question = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    btn1_first_question = types.KeyboardButton("Собрать новую информацию")
-    btn2_first_question = types.KeyboardButton("Обновить старую информацию")
-    markup_first_question.add(btn1_first_question, btn2_first_question)
-
-    markup_quit = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    btn1_quit = types.KeyboardButton("Завершить работу")
-    markup_quit.add(btn1_quit)
-
-    markup_sure = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    btn1_sure = types.KeyboardButton("Да, уверен")
-    btn2_sure = types.KeyboardButton("Нет, давай продолжим")
-    markup_sure.add(btn1_sure, btn2_sure)
-
-    markup_save_file = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    btn1_save_file = types.KeyboardButton("Да, хочу")
-    btn2_save_file = types.KeyboardButton("Нет, не хочу")
-    markup_save_file.add(btn1_save_file, btn2_save_file)
-
-    markup_result = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    btn1_result = types.KeyboardButton(".csv")
-    btn2_result = types.KeyboardButton(".xlsx")
-    btn3_result = types.KeyboardButton(".txt")
-    btn4_result = types.KeyboardButton("Все форматы")
-    markup_result.add(btn1_result, btn2_result, btn3_result, btn4_result)
 
     if message.text == "За работу":
         await bot.send_message(chat_id=message.chat.id, text='Что вы хотите сделать?', reply_markup=markup_first_question)
@@ -412,10 +372,7 @@ async def text(message: types.Message):
     elif message.text == "Все форматы":
         if task == 'site':
             await main_site_finish(req_res='all')
-            await bot.send_message(chat_id=message.chat.id, text="Ваши файлы", reply_markup=markup_start)
-            await bot.send_document(chat_id=message.chat.id, document=open(f"{file_name}.csv", "rb"))
-            await bot.send_document(chat_id=message.chat.id, document=open(f"{file_name}.xlsx", "rb"))
-            await bot.send_document(chat_id=message.chat.id, document=open(f"{file_name}.txt", "rb"))
+            await file_sender(message, call=task)
             await remover()
             with contextlib.suppress(Exception):
                 await close_connection()
@@ -423,10 +380,7 @@ async def text(message: types.Message):
             await convert_table_csv_to_xlsx()
             await convert_table_csv_to_txt()
             await os.rename(f"{new_table_name}.csv", f"{new_table_name}.csv")
-            await bot.send_message(chat_id=message.chat.id, text="Ваши файлы", reply_markup=markup_start)
-            await bot.send_document(chat_id=message.chat.id, document=open(f"{new_table_name}.csv", "rb"))
-            await bot.send_document(chat_id=message.chat.id, document=open(f"{new_table_name}.xlsx", "rb"))
-            await bot.send_document(chat_id=message.chat.id, document=open(f"{new_table_name}.txt", "rb"))
+            await file_sender(message, call=task)
             await table_file_remover()
             await delete_update_ad_table()
             await close_connection()

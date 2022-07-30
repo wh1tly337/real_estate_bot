@@ -9,10 +9,12 @@ import pandas as pd
 import psycopg2
 import requests
 from aiofiles import os
-from aiogram import Bot, Dispatcher, types
+from aiogram import Bot, Dispatcher
 from bs2json import bs2json
 from bs4 import BeautifulSoup as BS
 from selenium import webdriver
+
+from all_markups import *
 
 headers = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.5 Safari/605.1.15',
@@ -168,16 +170,28 @@ async def update_table_parser(message):
 
     with contextlib.suppress(Exception):
         await close_driver()
-    markup_res = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    btn1_res = types.KeyboardButton(".csv")
-    btn2_res = types.KeyboardButton(".xlsx")
-    btn3_res = types.KeyboardButton(".txt")
-    btn4_res = types.KeyboardButton("Все форматы")
-    markup_res.add(btn1_res, btn2_res, btn3_res, btn4_res)
-    await bot.send_message(chat_id=message.chat.id, text="Вся информация обновлена. В каком формате вы хотите получить результат?", reply_markup=markup_res, parse_mode="Markdown")
+
+    await bot.send_message(chat_id=message.chat.id, text="Вся информация обновлена. В каком формате вы хотите получить результат?", reply_markup=markup_result, parse_mode="Markdown")
     # bot.send_document(message.chat.id, open(f"{new_table_name}", "rb"))
     # table_file_remover()
     print("[INFO] - Table successfully updated")
+
+
+async def table_db(new_price):
+    try:
+        change = int(old_price) - int(new_price)
+    except Exception:
+        change = int(str(old_price)[1:]) - int(new_price)
+    if change == 0:
+        print('[INFO] - Price don`t changed')
+    elif change > 0:
+        glob.cursor.execute(f""" UPDATE update_ad SET price = '{f'↓{str(new_price)}'}' WHERE url = '{url}';""")
+
+        print(f"[INFO] - Price update successfully | {f'↓ {str(new_price)}'}")
+    else:
+        glob.cursor.execute(f""" UPDATE update_ad SET price = '{f'↑{str(new_price)}'}' WHERE url = '{url}';""")
+
+        print(f"[INFO] - Price update successfully | {f'↑ {str(new_price)}'}")
 
 
 async def upn_table_parser():
@@ -191,20 +205,7 @@ async def upn_table_parser():
         glob.cursor.execute(f"""UPDATE update_ad SET square = 'DELETED' WHERE url = '{url}';""")
     else:
         new_price = bs2json().convert(response.find())['html']['body']['div'][4]['main']['div']['div']['div']['span'][0]['meta'][3]['attributes']['content']
-        try:
-            change = int(old_price) - int(new_price)
-        except Exception:
-            change = int(str(old_price)[1:]) - int(new_price)
-        if change == 0:
-            print('[INFO] - Price don`t changed')
-        elif change > 0:
-            glob.cursor.execute(f""" UPDATE update_ad SET price = '{f'↓{str(new_price)}'}' WHERE url = '{url}';""")
-
-            print(f"[INFO] - Price update successfully | {f'↓ {str(new_price)}'}")
-        else:
-            glob.cursor.execute(f""" UPDATE update_ad SET price = '{f'↑{str(new_price)}'}' WHERE url = '{url}';""")
-
-            print(f"[INFO] - Price update successfully | {f'↑ {str(new_price)}'}")
+        await table_db(new_price=new_price)
     await asyncio.sleep(0.3)
 
 
@@ -220,20 +221,7 @@ async def cian_table_parser():
     else:
         new_price = full_page['div'][2]['div'][0]['div'][0]['div'][0]['div'][1]['div'][0]['div'][0]['div'][0]['span'][0]['span'][0]['_value']
         new_price = str(new_price).replace(' ', '')[:-1]
-        try:
-            change = int(old_price) - int(new_price)
-        except Exception:
-            change = int(str(old_price)[1:]) - int(new_price)
-        if change == 0:
-            print('[INFO] - Price don`t changed')
-        elif change > 0:
-            glob.cursor.execute(f""" UPDATE update_ad SET price = '{f'↓{str(new_price)}'}' WHERE url = '{url}';""")
-
-            print(f"[INFO] - Price update successfully | {f'↓ {str(new_price)}'}")
-        else:
-            glob.cursor.execute(f""" UPDATE update_ad SET price = '{f'↑{str(new_price)}'}' WHERE url = '{url}';""")
-
-            print(f"[INFO] - Price update successfully | {f'↑ {str(new_price)}'}")
+        await table_db(new_price=new_price)
     await asyncio.sleep(0.3)
 
 
@@ -249,20 +237,7 @@ async def yandex_table_parser():
     else:
         new_price = full_page['div'][1]['h1'][0]['span'][0]['_value']
         new_price = str(new_price).replace(' ', '')[:-1]
-        try:
-            change = int(old_price) - int(new_price)
-        except Exception:
-            change = int(str(old_price)[1:]) - int(new_price)
-        if change == 0:
-            print('[INFO] - Price don`t changed')
-        elif change > 0:
-            glob.cursor.execute(f""" UPDATE update_ad SET price = '{f'↓{str(new_price)}'}' WHERE url = '{url}';""")
-
-            print(f"[INFO] - Price update successfully | {f'↓ {str(new_price)}'}")
-        else:
-            glob.cursor.execute(f""" UPDATE update_ad SET price = '{f'↑{str(new_price)}'}' WHERE url = '{url}';""")
-
-            print(f"[INFO] - Price update successfully | {f'↑ {str(new_price)}'}")
+        await table_db(new_price=new_price)
     await asyncio.sleep(0.3)
 
 
@@ -283,20 +258,7 @@ async def avito_table_parser():
         new_price = full_page['div'][0]['div'][1]['div'][1]['div'][1]['div'][0]['div'][0]['div'][0]['div'][0]
         new_price = new_price['div'][0]['div'][0]['div'][0]['div'][0]['span'][0]['span'][0]['span'][0]['_value']
         new_price = str(new_price).replace(' ', '')
-        try:
-            change = int(old_price) - int(new_price)
-        except Exception:
-            change = int(str(old_price)[1:]) - int(new_price)
-        if change == 0:
-            print('[INFO] - Price don`t changed')
-        elif change > 0:
-            glob.cursor.execute(f""" UPDATE update_ad SET price = '{f'↓{new_price}'}' WHERE url = '{url}';""")
-
-            print(f"[INFO] - Price update successfully | {f'↓ {new_price}'}")
-        else:
-            glob.cursor.execute(f""" UPDATE update_ad SET price = '{f'↑{new_price}'}' WHERE url = '{url}';""")
-
-            print(f"[INFO] - Price update successfully | {f'↑ {new_price}'}")
+        await table_db(new_price=new_price)
     await asyncio.sleep(0.3)
 
 

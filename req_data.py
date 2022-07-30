@@ -1,20 +1,25 @@
 # from table_parser import *
 # from site_parser import *
-# from data_base import *
+# from main_code import *
 # from main_bot import *
 #
+# from aiogram import Bot, Dispatcher, executor, types
+# from aiogram.dispatcher.filters import Text
 # from bs4 import BeautifulSoup as BS
 # from datetime import datetime
 # from selenium import webdriver
 # from bs2json import bs2json
 # import openpyxl as op
+# from aiofiles import os
 # import pandas as pd
 # import html_to_json
 # import psycopg2
 # import requests
+# import asyncio
+# import aiohttp
 # import pyexcel
-# import telebot
 # # import lxml
+# import shutil
 # import glob
 # import math
 # import time
@@ -51,4 +56,16 @@ db_name = 'postgres'
 # Bot
 
 token = '5432400118:AAFgz1QNbckgmQ7X1jbEu87S2ZdhV6vU1m0'
+
+# create table advertisement(
+#     id SERIAL PRIMARY KEY,
+#     adres varchar(255),
+#     price varchar(30),
+#     square varchar(10),
+#     url varchar(255)
+# );
+
+# select * from advertisement;
+
+# drop table advertisement;
 
