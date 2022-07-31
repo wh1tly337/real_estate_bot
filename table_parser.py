@@ -36,9 +36,10 @@ global table_url
 global driver
 
 
-async def namer(message):
+async def name_caller(message):
     global table_name
     table_name = message.document.file_name
+
     print(f"[INFO] - File successfully saved. File name: {table_name}")
 
 
@@ -48,17 +49,16 @@ async def add_driver():
     print("[INFO] - Driver started")
 
 
-async def reformer():
+async def file_format_reformer():
     global new_table_name
 
     if table_name[-3:] == 'txt':
-        await txt_converter()
+        await converter_txt_to_csv()
     elif table_name[-4:] == 'xlsx':
         # noinspection PyArgumentList
         df = pd.read_excel(f"{table_name}")
         new_table_name = f"{str(table_name)[:-5]}_upd.csv"
         df.to_csv(f"{new_table_name}", index=False, header=True, sep=";")
-        # df = pd.DataFrame(pd.read_csv(f"{new_table_name}"))
 
         print("[INFO] - Copy .xlsx to .csv  successfully")
     else:
@@ -68,7 +68,7 @@ async def reformer():
         print('[INFO] - Already .csv file')
 
 
-async def txt_converter():
+async def converter_txt_to_csv():
     global new_table_name
 
     async with aiofiles.open(f"{table_name}", 'r') as file:
@@ -85,25 +85,7 @@ async def txt_converter():
     print("[INFO] - Copy .txt to .csv  successfully")
 
 
-async def table_file_remover():
-    with contextlib.suppress(Exception):
-        # os.remove(f"/Users/user/PycharmProjects/Parser/{new_table_name}")
-        await os.remove(f"{new_table_name}")
-    with contextlib.suppress(Exception):
-        # os.remove(f"/Users/user/PycharmProjects/Parser/{table_name[:-4]}.txt")
-        await os.remove(f"{table_name[:-4]}.txt")
-    with contextlib.suppress(Exception):
-        # os.remove(f"/Users/user/PycharmProjects/Parser/{table_name[:-5]}.xlsx")
-        await os.remove(f"{table_name[:-5]}.xlsx")
-    with contextlib.suppress(Exception):
-        # os.remove(f"/Users/user/PycharmProjects/Parser/{new_table_name[:-4]}.txt")
-        await os.remove(f"{new_table_name[:-4]}.txt")
-    with contextlib.suppress(Exception):
-        # os.remove(f"/Users/user/PycharmProjects/Parser/{new_table_name[:-4]}.xlsx")
-        await os.remove(f"{new_table_name[:-4]}.xlsx")
-
-
-async def add_to_table():
+async def add_data_to_table():
     connection_add = psycopg2.connect(host=host, user=user, password=password, database=db_name)
     connection_add.autocommit = True
     cursor_add = connection_add.cursor()
@@ -123,9 +105,9 @@ async def update_table_parser(message):
         glob.cursor = glob.connection.cursor()
         print("[INFO] - PostgreSQL connection started")
 
-    await reformer()
+    await file_format_reformer()
 
-    await add_to_table()
+    await add_data_to_table()
 
     connection_max_row = psycopg2.connect(host=host, user=user, password=password, database=db_name)
     connection_max_row.autocommit = True

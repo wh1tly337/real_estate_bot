@@ -11,7 +11,7 @@ from bs2json import bs2json
 from bs4 import BeautifulSoup as BS
 from selenium import webdriver
 
-from main_bot import data_base
+import main_code as mc
 
 headers = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.5 Safari/605.1.15',
@@ -74,7 +74,7 @@ async def upn_parser(message, url_upn):
                 url_ad = 'https://upn.ru' + advertisement[i]['div'][1]['a']['attributes']['href']
                 square = "".join((advertisement[i]['div'][1]['div'][2]['div'][0]['div'][1]['text']).split('/')[0])
                 try:
-                    await data_base(adres=full_address, price=price, square=square, url=url_ad)
+                    await mc.data_base(adres=full_address, price=price, square=square, url=url_ad)
                 except Exception:
                     quit()
         except Exception as ex:
@@ -141,7 +141,7 @@ async def cian_parser(message, url_cian):
                     except Exception:
                         continue
                 try:
-                    await data_base(adres=full_address, price=price, square=square, url=url_ad)
+                    await mc.data_base(adres=full_address, price=price, square=square, url=url_ad)
                 except Exception:
                     quit()
     except Exception as ex:
@@ -207,7 +207,7 @@ async def yandex_parser(message, url_yandex):
                 url_ad = 'https://realty.yandex.ru' + advertisement['div'][0]['div'][0]['a'][0]['_attributes']['href']
                 square = str(advertisement['div'][0]['div'][0]['a'][0]['span'][0]['_value']).split(',')[0][:3].strip()
                 try:
-                    await data_base(adres=full_address, price=price, square=square, url=url_ad)
+                    await mc.data_base(adres=full_address, price=price, square=square, url=url_ad)
                 except Exception:
                     quit()
     except Exception as ex:
@@ -289,7 +289,7 @@ async def avito_parser(message, url_avito):
                 except Exception:
                     square = '-'
                 try:
-                    await data_base(adres=full_address, price=price, square=square, url=url_ad)
+                    await mc.data_base(adres=full_address, price=price, square=square, url=url_ad)
                 except Exception:
                     quit()
     except Exception as ex:
