@@ -165,7 +165,7 @@ async def update_table_parser(message):
     print("[INFO] - Table successfully updated")
 
 
-async def table_db(new_price):
+async def db_price_updater(new_price):
     try:
         change = int(old_price) - int(new_price)
     except Exception:
@@ -193,7 +193,7 @@ async def upn_table_parser():
         glob.cursor.execute(f"""UPDATE update_ad SET square = 'DELETED' WHERE url = '{table_url}';""")
     else:
         new_price = bs2json().convert(response.find())['html']['body']['div'][4]['main']['div']['div']['div']['span'][0]['meta'][3]['attributes']['content']
-        await table_db(new_price=new_price)
+        await db_price_updater(new_price=new_price)
     await asyncio.sleep(0.3)
 
 
@@ -209,7 +209,7 @@ async def cian_table_parser():
     else:
         new_price = full_page['div'][2]['div'][0]['div'][0]['div'][0]['div'][1]['div'][0]['div'][0]['div'][0]['span'][0]['span'][0]['_value']
         new_price = str(new_price).replace(' ', '')[:-1]
-        await table_db(new_price=new_price)
+        await db_price_updater(new_price=new_price)
     await asyncio.sleep(0.3)
 
 
@@ -225,7 +225,7 @@ async def yandex_table_parser():
     else:
         new_price = full_page['div'][1]['h1'][0]['span'][0]['_value']
         new_price = str(new_price).replace(' ', '')[:-1]
-        await table_db(new_price=new_price)
+        await db_price_updater(new_price=new_price)
     await asyncio.sleep(0.3)
 
 
@@ -246,7 +246,7 @@ async def avito_table_parser():
         new_price = full_page['div'][0]['div'][1]['div'][1]['div'][1]['div'][0]['div'][0]['div'][0]['div'][0]
         new_price = new_price['div'][0]['div'][0]['div'][0]['div'][0]['span'][0]['span'][0]['span'][0]['_value']
         new_price = str(new_price).replace(' ', '')
-        await table_db(new_price=new_price)
+        await db_price_updater(new_price=new_price)
     await asyncio.sleep(0.3)
 
 

@@ -40,7 +40,7 @@ async def cian_avito_url_cycle_detector(url_next_page, driver, i):
     return url_cycle
 
 
-async def upn_parser(message, url_upn):
+async def upn_site_parser(message, url_upn):
     print("[INFO] - Start parsing UPN")
     pos = url_upn.find('?page')
     url = url_upn if pos == -1 else url_upn[:pos]
@@ -82,7 +82,7 @@ async def upn_parser(message, url_upn):
     print("[INFO] - Finish parsing UPN")
 
 
-async def cian_parser(message, url_cian):
+async def cian_site_parser(message, url_cian):
     print("[INFO] - Start parsing Cian")
     url = url_cian
     driver = webdriver.Safari()
@@ -151,7 +151,7 @@ async def cian_parser(message, url_cian):
     print("[INFO] - Finish parsing Cian")
 
 
-async def yandex_parser(message, url_yandex):
+async def yandex_site_parser(message, url_yandex):
     print("[INFO]  - Start parsing Yandex")
     url = url_yandex
     driver = webdriver.Safari()
@@ -217,7 +217,7 @@ async def yandex_parser(message, url_yandex):
     print("[INFO] - Finish parsing Yandex")
 
 
-async def avito_parser(message, url_avito):
+async def avito_site_parser(message, url_avito):
     print("[INFO] - Start parsing Avito")
     url = url_avito
     driver = webdriver.Safari()

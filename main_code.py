@@ -136,13 +136,13 @@ async def table_parsing_start():
 
 async def site_parsing_main(req_site, url_upn, url_cian, url_yandex, url_avito, message):
     if req_site == 1:
-        await sp.upn_parser(message, url_upn)
+        await sp.upn_site_parser(message, url_upn)
     elif req_site == 2:
-        await sp.cian_parser(message, url_cian)
+        await sp.cian_site_parser(message, url_cian)
     elif req_site == 3:
-        await sp.yandex_parser(message, url_yandex)
+        await sp.yandex_site_parser(message, url_yandex)
     elif req_site == 4:
-        await sp.avito_parser(message, url_avito)
+        await sp.avito_site_parser(message, url_avito)
 
 
 async def file_renamer():
@@ -159,38 +159,24 @@ async def file_renamer():
 
 
 async def file_remover(from_where):
-    # if from_where == 'site':
-    #     file_name_to_convert = file_name
-    # else:
-    #     file_name_to_convert = mb.new_table_name
-
     if from_where == 'site':
         with contextlib.suppress(Exception):
-            # os.remove(f"/Users/user/PycharmProjects/Parser/{file_name}.csv")
             await os.remove(f"{file_name}.csv")
-
         with contextlib.suppress(Exception):
-            # os.remove(f"/Users/user/PycharmProjects/Parser/{file_name}.xlsx")
             await os.remove(f"{file_name}.xlsx")
-
         with contextlib.suppress(Exception):
-            # os.remove(f"/Users/user/PycharmProjects/Parser/{file_name}.txt")
             await os.remove(f"{file_name}.txt")
+
     else:
         with contextlib.suppress(Exception):
-            # os.remove(f"/Users/user/PycharmProjects/Parser/{new_table_name}")
             await os.remove(f"{tp.new_table_name}")
         with contextlib.suppress(Exception):
-            # os.remove(f"/Users/user/PycharmProjects/Parser/{table_name[:-4]}.txt")
             await os.remove(f"{tp.table_name[:-4]}.txt")
         with contextlib.suppress(Exception):
-            # os.remove(f"/Users/user/PycharmProjects/Parser/{table_name[:-5]}.xlsx")
             await os.remove(f"{tp.table_name[:-5]}.xlsx")
         with contextlib.suppress(Exception):
-            # os.remove(f"/Users/user/PycharmProjects/Parser/{new_table_name[:-4]}.txt")
             await os.remove(f"{tp.new_table_name[:-4]}.txt")
         with contextlib.suppress(Exception):
-            # os.remove(f"/Users/user/PycharmProjects/Parser/{new_table_name[:-4]}.xlsx")
             await os.remove(f"{tp.new_table_name[:-4]}.xlsx")
 
     print("[INFO] - Removing of all files was successful")
