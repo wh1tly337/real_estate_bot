@@ -10,24 +10,12 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 import main_code as mc
 import table_parser as tp
 from all_markups import *
-
-headers = {
-    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.5 Safari/605.1.15',
-    'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'
-}
-
-host = '127.0.0.1'
-user = 'user'
-password = '13579001Ivan+'
-db_name = 'postgres'
+from req_data import *
 
 bot = Bot(token='5432400118:AAFgz1QNbckgmQ7X1jbEu87S2ZdhV6vU1m0')
 dp = Dispatcher(bot, storage=MemoryStorage())
 
-global table_name_upd
-global table_name
-global id_url
-global task
+global table_name_upd, table_name, id_url, task
 
 
 class Answer(StatesGroup):
