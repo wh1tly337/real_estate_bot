@@ -68,4 +68,3 @@ token = '5432400118:AAFgz1QNbckgmQ7X1jbEu87S2ZdhV6vU1m0'
 # select * from advertisement;
 
 # drop table advertisement;
-
