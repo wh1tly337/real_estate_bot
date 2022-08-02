@@ -68,8 +68,9 @@ async def upn_site_parser(message, url_upn):
                     await mc.data_base(adres=full_address, price=price, square=square, url=url_ad)
                 except Exception:
                     quit()
+
         except Exception as ex:
-            print("[ERROR UPN] - ", ex)
+            print("[ERROR] [UPN_SITE_PARSER] - ", ex)
     print("[INFO] - Finish parsing UPN")
 
 
@@ -135,8 +136,9 @@ async def cian_site_parser(message, url_cian):
                     await mc.data_base(adres=full_address, price=price, square=square, url=url_ad)
                 except Exception:
                     quit()
+
     except Exception as ex:
-        print("[ERROR CIAN] - ", ex)
+        print("[ERROR] [CIAN_SITE_PARSER] - ", ex)
     finally:
         driver.quit()
     print("[INFO] - Finish parsing Cian")
@@ -201,8 +203,9 @@ async def yandex_site_parser(message, url_yandex):
                     await mc.data_base(adres=full_address, price=price, square=square, url=url_ad)
                 except Exception:
                     quit()
+
     except Exception as ex:
-        print("[ERROR YANDEX] - ", ex)
+        print("[ERROR] [YANDEX_SITE_PARSER] - ", ex)
     finally:
         driver.quit()
     print("[INFO] - Finish parsing Yandex")
@@ -283,8 +286,9 @@ async def avito_site_parser(message, url_avito):
                     await mc.data_base(adres=full_address, price=price, square=square, url=url_ad)
                 except Exception:
                     quit()
+
     except Exception as ex:
-        print("[ERROR AVITO] - ", ex)
+        print("[ERROR] [AVITO_SITE_PARSER] - ", ex)
     finally:
         driver.quit()
     print("[INFO] - Finish parsing Avito")

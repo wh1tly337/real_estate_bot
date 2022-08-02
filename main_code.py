@@ -21,69 +21,85 @@ filename_creator = f"{today.day}.{today.month}.{today.year} - {today.hour}.{minu
 
 
 async def start_connection():
-    glob.connection = psycopg2.connect(host=host, user=user, password=password, database=db_name)
+    try:
+        glob.connection = psycopg2.connect(host=host, user=user, password=password, database=db_name)
 
-    glob.connection.autocommit = True
-    glob.cursor = glob.connection.cursor()
+        glob.connection.autocommit = True
+        glob.cursor = glob.connection.cursor()
 
-    print("[INFO] - PostgreSQL connection started")
+        print("[INFO] - PostgreSQL connection started")
+
+    except Exception as ex:
+        print('[ERROR] [START_CONNECTION] - ', ex)
 
 
 async def table_name_handler(message, from_where):
-    if from_where == 'mb':
-        global table_name, table_name_upd
+    try:
+        if from_where == 'mb':
+            global table_name, table_name_upd
 
-        table_name = message.document.file_name
-        if table_name[-3:] == 'txt' or table_name[-4:] != 'xlsx':
-            table_name_upd = f"{str(table_name)[:-4]}_upd"
+            table_name = message.document.file_name
+            if table_name[-3:] == 'txt' or table_name[-4:] != 'xlsx':
+                table_name_upd = f"{str(table_name)[:-4]}_upd"
+            else:
+                table_name_upd = f"{str(table_name)[:-5]}_upd"
+
+            return table_name, table_name_upd
+
         else:
-            table_name_upd = f"{str(table_name)[:-5]}_upd"
+            table_name = message.document.file_name
 
-        return table_name, table_name_upd
+            return table_name
 
-    else:
-        table_name = message.document.file_name
-
-        return table_name
+    except Exception as ex:
+        print('[ERROR] [TABLE_NAME_HANDLER] - ', ex)
 
 
 async def convert_csv_to_xlsx(from_where):
-    if from_where == 'site':
-        file_name_to_convert = 'pars_site'
-    else:
-        file_name_to_convert = table_name_upd
+    try:
+        if from_where == 'site':
+            file_name_to_convert = 'pars_site'
+        else:
+            file_name_to_convert = table_name_upd
 
-    sheet = pyexcel.get_sheet(file_name=f"{file_name_to_convert}.csv", delimiter=";")
-    sheet.save_as(f"{file_name_to_convert}.xlsx")
+        sheet = pyexcel.get_sheet(file_name=f"{file_name_to_convert}.csv", delimiter=";")
+        sheet.save_as(f"{file_name_to_convert}.xlsx")
 
-    table = op.load_workbook(f"{file_name_to_convert}.xlsx")
-    main_sheet = table[f"{file_name_to_convert}.csv"]
-    main_sheet.column_dimensions['B'].width = 30
-    main_sheet.column_dimensions['C'].width = 10
-    main_sheet.column_dimensions['E'].width = 40
-    table.save(f"{file_name_to_convert}.xlsx")
+        table = op.load_workbook(f"{file_name_to_convert}.xlsx")
+        main_sheet = table[f"{file_name_to_convert}.csv"]
+        main_sheet.column_dimensions['B'].width = 30
+        main_sheet.column_dimensions['C'].width = 10
+        main_sheet.column_dimensions['E'].width = 40
+        table.save(f"{file_name_to_convert}.xlsx")
 
-    print("[INFO] - Copy .csv to .xlsx successfully")
+        print("[INFO] - Copy .csv to .xlsx successfully")
+
+    except Exception as ex:
+        print('[ERROR] [CONVERT_CSV_TO_XLSX] - ', ex)
 
 
 async def convert_csv_to_txt(from_where):
-    if from_where == 'site':
-        file_name_to_convert = 'pars_site'
-    else:
-        file_name_to_convert = table_name_upd
+    try:
+        if from_where == 'site':
+            file_name_to_convert = 'pars_site'
+        else:
+            file_name_to_convert = table_name_upd
 
-    shutil.copyfile(f"{file_name_to_convert}.csv", 'garages_table_4txt.csv')
-    await os.rename('garages_table_4txt.csv', f"{file_name_to_convert}.txt")
+        shutil.copyfile(f"{file_name_to_convert}.csv", 'garages_table_4txt.csv')
+        await os.rename('garages_table_4txt.csv', f"{file_name_to_convert}.txt")
 
-    async with aiofiles.open(f"{file_name_to_convert}.txt", 'r') as file:
-        df = await file.read()
-        df = df.replace(';', ' | ')
-        df = df.replace('"', '')
+        async with aiofiles.open(f"{file_name_to_convert}.txt", 'r') as file:
+            df = await file.read()
+            df = df.replace(';', ' | ')
+            df = df.replace('"', '')
 
-    async with aiofiles.open(f"{file_name_to_convert}.txt", 'w') as file:
-        await file.write(df)
+        async with aiofiles.open(f"{file_name_to_convert}.txt", 'w') as file:
+            await file.write(df)
 
-    print("[INFO] - Copy .csv to .txt successfully")
+        print("[INFO] - Copy .csv to .txt successfully")
+
+    except Exception as ex:
+        print('[ERROR] [CONVERT_CSV_TO_XLSX] - ', ex)
 
 
 async def data_base(adres, price, square, url):
@@ -94,38 +110,46 @@ async def data_base(adres, price, square, url):
             )
 
     except Exception as ex:
-        print("[ERROR DB] - ", ex)
+        print("[ERROR] [DATA_BASE] - ", ex)
         quit()
 
 
 async def create_advertisement_table():
-    # Create new advertisement table
-    with glob.connection.cursor() as glob.cursor:
-        glob.cursor.execute(
-            """create table advertisement(
-                id SERIAL PRIMARY KEY,
-                adres varchar(255),
-                price varchar(30),
-                square varchar(10),
-                url varchar(255));"""
-        )
+    try:
+        # Create new advertisement table
+        with glob.connection.cursor() as glob.cursor:
+            glob.cursor.execute(
+                """CREATE TABLE advertisement(
+                    id SERIAL PRIMARY KEY,
+                    adres VARCHAR(255),
+                    price VARCHAR(30),
+                    square VARCHAR(10),
+                    url VARCHAR(255));"""
+            )
 
-    print("[INFO] - PostgreSQL 'advertisement' table created")
+        print("[INFO] - PostgreSQL 'advertisement' table created")
+
+    except Exception as ex:
+        print('[ERROR] [CREATE_ADVERTISEMENT_TABLE] - ', ex)
 
 
 async def create_update_ad_table():
-    # Create new update_ad table
-    with glob.connection.cursor() as glob.cursor:
-        glob.cursor.execute(
-            """create table update_ad(
-                id SERIAL PRIMARY KEY,
-                adres varchar(255),
-                price varchar(30),
-                square varchar(10),
-                url varchar(255));"""
-        )
+    try:
+        # Create new update_ad table
+        with glob.connection.cursor() as glob.cursor:
+            glob.cursor.execute(
+                """CREATE TABLE update_ad(
+                    id SERIAL PRIMARY KEY,
+                    adres VARCHAR(255),
+                    price VARCHAR(30),
+                    square VARCHAR(10),
+                    url VARCHAR(255));"""
+            )
 
-    print("[INFO] - PostgreSQL 'update_ad' table created")
+        print("[INFO] - PostgreSQL 'update_ad' table created")
+
+    except Exception as ex:
+        print('[ERROR] [CREATE_UPDATE_AD_TABLE] - ', ex)
 
 
 async def site_parsing_start():
@@ -156,98 +180,126 @@ async def site_parsing_main(req_site, url_upn, url_cian, url_yandex, url_avito, 
 
 
 async def file_renamer():
-    with contextlib.suppress(Exception):
-        await os.rename('pars_site.txt', f'{filename_creator}.txt')
+    try:
+        with contextlib.suppress(Exception):
+            await os.rename('pars_site.txt', f'{filename_creator}.txt')
 
-    with contextlib.suppress(Exception):
-        await os.rename('pars_site.csv', f'{filename_creator}.csv')
+        with contextlib.suppress(Exception):
+            await os.rename('pars_site.csv', f'{filename_creator}.csv')
 
-    with contextlib.suppress(Exception):
-        await os.rename('pars_site.xlsx', f'{filename_creator}.xlsx')
+        with contextlib.suppress(Exception):
+            await os.rename('pars_site.xlsx', f'{filename_creator}.xlsx')
 
-    print("[INFO] - Renaming of all files was successful")
+        print("[INFO] - Renaming of all files was successful")
+
+    except Exception as ex:
+        print('[ERROR] [FILE_RENAMER] - ', ex)
 
 
 async def file_remover(from_where):
-    if from_where == 'site':
-        with contextlib.suppress(Exception):
-            await os.remove(f"{filename_creator}.csv")
-        with contextlib.suppress(Exception):
-            await os.remove(f"{filename_creator}.xlsx")
-        with contextlib.suppress(Exception):
-            await os.remove(f"{filename_creator}.txt")
+    try:
+        if from_where == 'site':
+            with contextlib.suppress(Exception):
+                await os.remove(f"{filename_creator}.csv")
+            with contextlib.suppress(Exception):
+                await os.remove(f"{filename_creator}.xlsx")
+            with contextlib.suppress(Exception):
+                await os.remove(f"{filename_creator}.txt")
 
-    else:
-        with contextlib.suppress(Exception):
-            await os.remove(f"{tp.table_name_upd_tp}")
-        with contextlib.suppress(Exception):
-            await os.remove(f"{tp.table_name[:-4]}.txt")
-        with contextlib.suppress(Exception):
-            await os.remove(f"{tp.table_name[:-5]}.xlsx")
-        with contextlib.suppress(Exception):
-            await os.remove(f"{tp.table_name_upd_tp[:-4]}.txt")
-        with contextlib.suppress(Exception):
-            await os.remove(f"{tp.table_name_upd_tp[:-4]}.xlsx")
+        else:
+            with contextlib.suppress(Exception):
+                await os.remove(f"{tp.table_name_upd_tp}")
+            with contextlib.suppress(Exception):
+                await os.remove(f"{tp.table_name_tp[:-4]}.txt")
+            with contextlib.suppress(Exception):
+                await os.remove(f"{tp.table_name_tp[:-5]}.xlsx")
+            with contextlib.suppress(Exception):
+                await os.remove(f"{tp.table_name_upd_tp[:-4]}.txt")
+            with contextlib.suppress(Exception):
+                await os.remove(f"{tp.table_name_upd_tp[:-4]}.xlsx")
 
-    print("[INFO] - Removing of all files was successful")
+        print("[INFO] - Removing of all files was successful")
+
+    except Exception as ex:
+        print('[ERROR] [FILE_REMOVER] - ', ex)
 
 
 async def delete_advertisement_table():
-    # Delete advertisement table
-    with glob.connection.cursor() as glob.cursor:
-        glob.cursor.execute(
-            """drop table advertisement;"""
-        )
+    try:
+        # Delete advertisement table
+        with glob.connection.cursor() as glob.cursor:
+            glob.cursor.execute(
+                """DROP TABLE advertisement;"""
+            )
 
-    print("[INFO] - PostgreSQL 'advertisement' table deleted")
+        print("[INFO] - PostgreSQL 'advertisement' table deleted")
+
+    except Exception as ex:
+        print('[ERROR] [DELETE_ADVERTISEMENT_TABLE] - ', ex)
 
 
 async def delete_update_ad_table():
-    with contextlib.suppress(Exception):
-        await start_connection()
-    # Delete update_ad table
-    with glob.connection.cursor() as glob.cursor:
-        glob.cursor.execute(
-            """drop table update_ad;"""
-        )
+    try:
+        with contextlib.suppress(Exception):
+            await start_connection()
 
-    print("[INFO] - PostgreSQL 'update_ad' table deleted")
+        # Delete update_ad table
+        with glob.connection.cursor() as glob.cursor:
+            glob.cursor.execute(
+                """DROP TABLE update_ad;"""
+            )
+
+        print("[INFO] - PostgreSQL 'update_ad' table deleted")
+
+    except Exception as ex:
+        print('[ERROR] [DELETE_UPDATE_AD_TABLE] - ', ex)
 
 
 async def site_parsing_finish(req_res):
-    with glob.connection.cursor() as glob.cursor:
-        glob.cursor.execute(
-            """COPY advertisement TO '/Users/user/PycharmProjects/Parser/pars_site.csv' (FORMAT CSV, HEADER TRUE, DELIMITER ';', ENCODING 'UTF8');"""
-        )
-    # Скорее всего это не будет работать на сервере, нужно будет менять директорию на серверную
+    try:
+        with glob.connection.cursor() as glob.cursor:
+            glob.cursor.execute(
+                """COPY advertisement TO '/Users/user/PycharmProjects/Parser/pars_site.csv' (FORMAT CSV, HEADER TRUE, DELIMITER ';', ENCODING 'UTF8');"""
+            )
+        # Скорее всего это не будет работать на сервере, нужно будет менять директорию на серверную
 
-    await delete_advertisement_table()
+        await delete_advertisement_table()
 
-    if req_res == 'csv':
-        await file_renamer()
-    elif req_res == 'xlsx':
-        await convert_csv_to_xlsx(from_where='site')
-        await file_renamer()
-    elif req_res == 'txt':
-        await convert_csv_to_txt(from_where='site')
-        await file_renamer()
-    elif req_res == 'all':
-        await convert_csv_to_xlsx(from_where='site')
-        await convert_csv_to_txt(from_where='site')
-        await file_renamer()
+        if req_res == 'csv':
+            await file_renamer()
+        elif req_res == 'xlsx':
+            await convert_csv_to_xlsx(from_where='site')
+            await file_renamer()
+        elif req_res == 'txt':
+            await convert_csv_to_txt(from_where='site')
+            await file_renamer()
+        elif req_res == 'all':
+            await convert_csv_to_xlsx(from_where='site')
+            await convert_csv_to_txt(from_where='site')
+            await file_renamer()
+
+    except Exception as ex:
+        print('[ERROR] [SITE_PARSING_FINISH] - ', ex)
 
 
 async def table_parsing_finish():
-    table_name_upd_tp = await tp.repeater()
+    try:
+        table_name_upd_tp = await tp.repeater()
 
-    with glob.connection.cursor() as glob.cursor:
-        glob.cursor.execute(
-            f"""COPY update_ad TO '/Users/user/PycharmProjects/Parser/{table_name_upd_tp}' (FORMAT CSV, HEADER TRUE, DELIMITER ';', ENCODING 'UTF8');"""
-        )
+        with glob.connection.cursor() as glob.cursor:
+            glob.cursor.execute(
+                f"""COPY update_ad TO '/Users/user/PycharmProjects/Parser/{table_name_upd_tp}' (FORMAT CSV, HEADER TRUE, DELIMITER ';', ENCODING 'UTF8');"""
+            )
+    except Exception as ex:
+        print('[ERROR] [TABLE_PARSING_FINISH] - ', ex)
 
 
 async def close_connection():
-    if glob.connection:
-        glob.cursor.close()
-        glob.connection.close()
-        print("[INFO] - PostgreSQL connection closed")
+    try:
+        if glob.connection:
+            glob.cursor.close()
+            glob.connection.close()
+            print("[INFO] - PostgreSQL connection closed")
+
+    except Exception as ex:
+        print('[ERROR] [CLOSE_CONNECTION] - ', ex)

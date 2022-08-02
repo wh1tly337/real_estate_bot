@@ -21,13 +21,17 @@ from req_data import *
 bot = Bot(token='5432400118:AAFgz1QNbckgmQ7X1jbEu87S2ZdhV6vU1m0')
 dp = Dispatcher(bot)
 
-global table_name_upd_tp, old_price, table_url, driver
+global table_name_upd_tp, table_name_tp, old_price, table_url, driver
 
 
 async def add_driver():
-    global driver
-    driver = webdriver.Safari()
-    print("[INFO] - Driver started")
+    try:
+        global driver
+        driver = webdriver.Safari()
+        print("[INFO] - Driver started")
+
+    except Exception as ex:
+        print('[ERROR] [ADD_DRIVER] - ', ex)
 
 
 async def repeater():
@@ -35,120 +39,136 @@ async def repeater():
 
 
 async def file_format_reformer(table_filename):
-    global table_name_upd_tp
+    try:
+        global table_name_upd_tp, table_name_tp
 
-    table_name = table_filename
+        table_name = table_filename, table_name_tp
 
-    if table_name[-3:] == 'txt':
-        await converter_txt_to_csv(table_filename)
-    elif table_name[-4:] == 'xlsx':
-        # noinspection PyArgumentList
-        df = pd.read_excel(f"{table_name}")
-        table_name_upd_tp = f"{str(table_name)[:-5]}_upd.csv"
-        df.to_csv(f"{table_name_upd_tp}", index=False, header=True, sep=";")
+        if table_name[-3:] == 'txt':
+            await converter_txt_to_csv(table_filename)
+        elif table_name[-4:] == 'xlsx':
+            # noinspection PyArgumentList
+            df = pd.read_excel(f"{table_name}")
+            table_name_upd_tp = f"{str(table_name)[:-5]}_upd.csv"
+            df.to_csv(f"{table_name_upd_tp}", index=False, header=True, sep=";")
 
-        print("[INFO] - Copy .xlsx to .csv  successfully")
-    else:
-        table_name_upd_tp = f"{str(table_name)[:-4]}_upd.csv"
-        await os.rename(f"{table_name}", f"{table_name_upd_tp}")
+            print("[INFO] - Copy .xlsx to .csv  successfully")
+        else:
+            table_name_upd_tp = f"{str(table_name)[:-4]}_upd.csv"
+            await os.rename(f"{table_name}", f"{table_name_upd_tp}")
 
-        print('[INFO] - Already .csv file')
+            print('[INFO] - Already .csv file')
+
+    except Exception as ex:
+        print('[ERROR] [FILE_FORMAT_REFORMER] - ', ex)
 
 
 async def converter_txt_to_csv(table_filename):
-    global table_name_upd_tp
+    try:
+        global table_name_upd_tp
 
-    table_name = table_filename
+        table_name = table_filename
 
-    async with aiofiles.open(f"{table_name}", 'r') as file:
-        df = await file.read()
-        df = df.replace(' | ', ';')
+        async with aiofiles.open(f"{table_name}", 'r') as file:
+            df = await file.read()
+            df = df.replace(' | ', ';')
 
-    async with aiofiles.open(f"{table_name}", 'w') as file:
-        await file.write(df)
+        async with aiofiles.open(f"{table_name}", 'w') as file:
+            await file.write(df)
 
-    df = pd.read_csv(f"{table_name}")
-    table_name_upd_tp = f"{str(table_name)[:-4]}_upd.csv"
-    df.to_csv(f"{table_name_upd_tp}", index=False, header=True)
+        df = pd.read_csv(f"{table_name}")
+        table_name_upd_tp = f"{str(table_name)[:-4]}_upd.csv"
+        df.to_csv(f"{table_name_upd_tp}", index=False, header=True)
 
-    print("[INFO] - Copy .txt to .csv  successfully")
+        print("[INFO] - Copy .txt to .csv  successfully")
+
+    except Exception as ex:
+        print('[ERROR] [CONVERTER_TXT_TO_CSV] - ', ex)
 
 
 async def add_data_to_table():
-    connection_add = psycopg2.connect(host=host, user=user, password=password, database=db_name)
-    connection_add.autocommit = True
-    cursor_add = connection_add.cursor()
+    try:
+        connection_add = psycopg2.connect(host=host, user=user, password=password, database=db_name)
+        connection_add.autocommit = True
+        cursor_add = connection_add.cursor()
 
-    cursor_add.execute(f"""COPY update_ad FROM '/Users/user/PycharmProjects/Parser/{table_name_upd_tp}' DELIMITER ';' CSV HEADER;""")
-    # Скорее всего это не будет работать на сервере, нужно будет менять директорию на серверную
+        cursor_add.execute(f"""COPY update_ad FROM '/Users/user/PycharmProjects/Parser/{table_name_upd_tp}' DELIMITER ';' CSV HEADER;""")
+        # Скорее всего это не будет работать на сервере, нужно будет менять директорию на серверную
 
-    if connection_add:
-        cursor_add.close()
-        connection_add.close()
+        if connection_add:
+            cursor_add.close()
+            connection_add.close()
+
+    except Exception as ex:
+        print('[ERROR] [ADD_DATA_TO_TABLE] - ', ex)
 
 
 async def update_table_parser(message):
-    with contextlib.suppress(Exception):
-        glob.connection = psycopg2.connect(host=host, user=user, password=password, database=db_name)
-        glob.connection.autocommit = True
-        glob.cursor = glob.connection.cursor()
-        print("[INFO] - PostgreSQL connection started")
+    try:
+        with contextlib.suppress(Exception):
+            glob.connection = psycopg2.connect(host=host, user=user, password=password, database=db_name)
+            glob.connection.autocommit = True
+            glob.cursor = glob.connection.cursor()
+            print("[INFO] - PostgreSQL connection started")
 
-    table_filename = await mc.table_name_handler(message, from_where='tp')
+        table_filename = await mc.table_name_handler(message, from_where='tp')
 
-    await file_format_reformer(table_filename)
+        await file_format_reformer(table_filename)
 
-    await add_data_to_table()
+        await add_data_to_table()
 
-    connection_max_row = psycopg2.connect(host=host, user=user, password=password, database=db_name)
-    connection_max_row.autocommit = True
-    cursor_max_row = connection_max_row.cursor()
-    cursor_max_row.execute("""SELECT count(*) FROM update_ad;""")
-    max_row = cursor_max_row.fetchall()[0][0]
-    if connection_max_row:
-        cursor_max_row.close()
-        connection_max_row.close()
+        connection_max_row = psycopg2.connect(host=host, user=user, password=password, database=db_name)
+        connection_max_row.autocommit = True
+        cursor_max_row = connection_max_row.cursor()
+        cursor_max_row.execute("""SELECT count(*) FROM update_ad;""")
+        max_row = cursor_max_row.fetchall()[0][0]
+        if connection_max_row:
+            cursor_max_row.close()
+            connection_max_row.close()
 
-    for row in range(max_row):
-        try:
-            global old_price
-            global table_url
+        for row in range(max_row):
+            try:
+                global old_price
+                global table_url
 
-            glob.cursor.execute("""SELECT url FROM update_ad;""")
-            table_url = glob.cursor.fetchall()[row][0]
-            glob.cursor.execute("""SELECT price FROM update_ad;""")
-            old_price = glob.cursor.fetchall()[row][0]
+                glob.cursor.execute("""SELECT url FROM update_ad;""")
+                table_url = glob.cursor.fetchall()[row][0]
+                glob.cursor.execute("""SELECT price FROM update_ad;""")
+                old_price = glob.cursor.fetchall()[row][0]
 
-            if table_url[:14] == 'https://upn.ru':
-                try:
-                    await upn_table_parser()
-                except Exception as ex:
-                    print('[ERROR UPN] - ', ex)
-            elif table_url[:19] == 'https://ekb.cian.ru':
-                with contextlib.suppress(Exception):
-                    await add_driver()
-                try:
-                    await cian_table_parser()
-                except Exception as ex:
-                    print('[ERROR CIAN] - ', ex)
-            elif table_url[:24] == 'https://realty.yandex.ru':
-                with contextlib.suppress(Exception):
-                    await add_driver()
-                try:
-                    await yandex_table_parser()
-                except Exception as ex:
-                    print('[ERROR YANDEX] - ', ex)
-            elif table_url[:20] == 'https://www.avito.ru':
-                with contextlib.suppress(Exception):
-                    await add_driver()
-                try:
-                    await avito_table_parser()
-                except Exception as ex:
-                    print('[ERROR AVITO] - ', ex)
+                if table_url[:14] == 'https://upn.ru':
+                    try:
+                        await upn_table_parser()
+                    except Exception as ex:
+                        print('[ERROR] [UPN_TABLE_PARSER] - ', ex)
+                elif table_url[:19] == 'https://ekb.cian.ru':
+                    with contextlib.suppress(Exception):
+                        await add_driver()
+                    try:
+                        await cian_table_parser()
+                    except Exception as ex:
+                        print('[ERROR] [CIAN_TABLE_PARSER] - ', ex)
+                elif table_url[:24] == 'https://realty.yandex.ru':
+                    with contextlib.suppress(Exception):
+                        await add_driver()
+                    try:
+                        await yandex_table_parser()
+                    except Exception as ex:
+                        print('[ERROR] [YANDEX_TABLE_PARSER] - ', ex)
+                elif table_url[:20] == 'https://www.avito.ru':
+                    with contextlib.suppress(Exception):
+                        await add_driver()
+                    try:
+                        await avito_table_parser()
+                    except Exception as ex:
+                        print('[ERROR] [AVITO_TABLE_PARSER] - ', ex)
 
-        except Exception as ex:
-            print('[ERROR TABLE] - ', ex)
-            quit()
+            except Exception as ex:
+                print('[ERROR] [TABLE_CYCLE] - ', ex)
+                quit()
+
+    except Exception as ex:
+        print('[ERROR] [UPDATE_TABLE_PARSER] - ', ex)
 
     with contextlib.suppress(Exception):
         await close_driver()
@@ -245,5 +265,9 @@ async def avito_table_parser():
 
 
 async def close_driver():
-    driver.quit()
-    print("[INFO] - Driver closed")
+    try:
+        driver.quit()
+        print("[INFO] - Driver closed")
+
+    except Exception as ex:
+        print('[ERROR] [CLOSE_DRIVER] - ', ex)
