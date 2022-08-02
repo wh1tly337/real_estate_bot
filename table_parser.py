@@ -11,10 +11,11 @@ import requests
 from aiofiles import os
 from aiogram import Bot, Dispatcher
 from bs2json import bs2json
-from bs4 import BeautifulSoup as BS
+from bs4 import BeautifulSoup
 from selenium import webdriver
 
 from all_markups import *
+import main_code as mc
 
 headers = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.5 Safari/605.1.15',
@@ -29,18 +30,10 @@ db_name = 'postgres'
 bot = Bot(token='5432400118:AAFgz1QNbckgmQ7X1jbEu87S2ZdhV6vU1m0')
 dp = Dispatcher(bot)
 
-global new_table_name
-global table_name
+global table_name_upd_tp
 global old_price
 global table_url
 global driver
-
-
-async def name_caller(message):
-    global table_name
-    table_name = message.document.file_name
-
-    print(f"[INFO] - File successfully saved. File name: {table_name}")
 
 
 async def add_driver():
@@ -49,27 +42,35 @@ async def add_driver():
     print("[INFO] - Driver started")
 
 
-async def file_format_reformer():
-    global new_table_name
+async def repeater():
+    return table_name_upd_tp
+
+
+async def file_format_reformer(table_filename):
+    global table_name_upd_tp
+
+    table_name = table_filename
 
     if table_name[-3:] == 'txt':
-        await converter_txt_to_csv()
+        await converter_txt_to_csv(table_filename)
     elif table_name[-4:] == 'xlsx':
         # noinspection PyArgumentList
         df = pd.read_excel(f"{table_name}")
-        new_table_name = f"{str(table_name)[:-5]}_upd.csv"
-        df.to_csv(f"{new_table_name}", index=False, header=True, sep=";")
+        table_name_upd_tp = f"{str(table_name)[:-5]}_upd.csv"
+        df.to_csv(f"{table_name_upd_tp}", index=False, header=True, sep=";")
 
         print("[INFO] - Copy .xlsx to .csv  successfully")
     else:
-        new_table_name = f"{str(table_name)[:-4]}_upd.csv"
-        await os.rename(f"{table_name}", f"{new_table_name}")
+        table_name_upd_tp = f"{str(table_name)[:-4]}_upd.csv"
+        await os.rename(f"{table_name}", f"{table_name_upd_tp}")
 
         print('[INFO] - Already .csv file')
 
 
-async def converter_txt_to_csv():
-    global new_table_name
+async def converter_txt_to_csv(table_filename):
+    global table_name_upd_tp
+
+    table_name = table_filename
 
     async with aiofiles.open(f"{table_name}", 'r') as file:
         df = await file.read()
@@ -79,8 +80,8 @@ async def converter_txt_to_csv():
         await file.write(df)
 
     df = pd.read_csv(f"{table_name}")
-    new_table_name = f"{str(table_name)[:-4]}_upd.csv"
-    df.to_csv(f"{new_table_name}", index=False, header=True)
+    table_name_upd_tp = f"{str(table_name)[:-4]}_upd.csv"
+    df.to_csv(f"{table_name_upd_tp}", index=False, header=True)
 
     print("[INFO] - Copy .txt to .csv  successfully")
 
@@ -90,7 +91,7 @@ async def add_data_to_table():
     connection_add.autocommit = True
     cursor_add = connection_add.cursor()
 
-    cursor_add.execute(f"""COPY update_ad FROM '/Users/user/PycharmProjects/Parser/{new_table_name}' DELIMITER ';' CSV HEADER;""")
+    cursor_add.execute(f"""COPY update_ad FROM '/Users/user/PycharmProjects/Parser/{table_name_upd_tp}' DELIMITER ';' CSV HEADER;""")
     # Скорее всего это не будет работать на сервере, нужно будет менять директорию на серверную
 
     if connection_add:
@@ -105,7 +106,9 @@ async def update_table_parser(message):
         glob.cursor = glob.connection.cursor()
         print("[INFO] - PostgreSQL connection started")
 
-    await file_format_reformer()
+    table_filename = await mc.table_name_handler(message, from_where='tp')
+
+    await file_format_reformer(table_filename)
 
     await add_data_to_table()
 
@@ -122,10 +125,12 @@ async def update_table_parser(message):
         try:
             global old_price
             global table_url
+
             glob.cursor.execute("""SELECT url FROM update_ad;""")
             table_url = glob.cursor.fetchall()[row][0]
             glob.cursor.execute("""SELECT price FROM update_ad;""")
             old_price = glob.cursor.fetchall()[row][0]
+
             if table_url[:14] == 'https://upn.ru':
                 try:
                     await upn_table_parser()
@@ -152,6 +157,7 @@ async def update_table_parser(message):
                     await avito_table_parser()
                 except Exception as ex:
                     print('[ERROR AVITO] - ', ex)
+
         except Exception as ex:
             print('[ERROR TABLE] - ', ex)
             quit()
@@ -160,8 +166,7 @@ async def update_table_parser(message):
         await close_driver()
 
     await bot.send_message(chat_id=message.chat.id, text="Вся информация обновлена. В каком формате вы хотите получить результат?", reply_markup=markup_result, parse_mode="Markdown")
-    # bot.send_document(message.chat.id, open(f"{new_table_name}", "rb"))
-    # table_file_remover()
+
     print("[INFO] - Table successfully updated")
 
 
@@ -170,6 +175,7 @@ async def db_price_updater(new_price):
         change = int(old_price) - int(new_price)
     except Exception:
         change = int(str(old_price)[1:]) - int(new_price)
+
     if change == 0:
         print('[INFO] - Price don`t changed')
     elif change > 0:
@@ -184,7 +190,7 @@ async def db_price_updater(new_price):
 
 async def upn_table_parser():
     request = requests.get(table_url, headers=headers).text
-    response = BS(request, 'lxml')
+    response = BeautifulSoup(request, 'lxml')
     try:
         availability = bs2json().convert(response.find())['html']['body']['div'][4]['main']['div']['div'][0]['div']['div'][0]['b']['text']
     except Exception:

@@ -8,7 +8,7 @@ import html_to_json
 import requests
 from aiogram import Bot, Dispatcher
 from bs2json import bs2json
-from bs4 import BeautifulSoup as BS
+from bs4 import BeautifulSoup
 from selenium import webdriver
 
 import main_code as mc
@@ -45,7 +45,7 @@ async def upn_site_parser(message, url_upn):
     pos = url_upn.find('?page')
     url = url_upn if pos == -1 else url_upn[:pos]
     request = requests.get(url, headers=headers).text
-    response = BS(request, 'lxml')
+    response = BeautifulSoup(request, 'lxml')
     num_of_pages = math.ceil(int("".join(re.findall(r'\d+', str(
         bs2json().convert(response.find())['html']['head']['title']['text']).split('|')[1]))) / 25)
     if num_of_pages > 15:
@@ -60,7 +60,7 @@ async def upn_site_parser(message, url_upn):
                 url_cycle = f'{url}?page={j}'
             print(url_cycle)
             request = requests.get(url_cycle, headers=headers).text
-            response = BS(request, 'lxml')
+            response = BeautifulSoup(request, 'lxml')
             advertisement = bs2json().convert(response.find())['html']['body']['div'][4]['main']['div']['div'][2]['div'][1]['div'][1]['div']
             num_of_ads = len(advertisement)
             for i in range(num_of_ads):

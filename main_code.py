@@ -9,14 +9,15 @@ import psycopg2
 import pyexcel
 from aiofiles import os
 
-import main_bot as mb
 import site_parser as sp
 import table_parser as tp
 
-global file_name
+global table_name, table_name_upd
+
+global filename_creator
 today = datetime.now()
 minute = f'0{str(today.minute)}' if int(today.minute) < 10 else today.minute
-file_name = f"{today.day}.{today.month}.{today.year} - {today.hour}.{minute}"
+filename_creator = f"{today.day}.{today.month}.{today.year} - {today.hour}.{minute}"
 
 headers = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.5 Safari/605.1.15',
@@ -38,11 +39,29 @@ async def start_connection():
     print("[INFO] - PostgreSQL connection started")
 
 
+async def table_name_handler(message, from_where):
+    if from_where == 'mb':
+        global table_name, table_name_upd
+
+        table_name = message.document.file_name
+        if table_name[-3:] == 'txt' or table_name[-4:] != 'xlsx':
+            table_name_upd = f"{str(table_name)[:-4]}_upd"
+        else:
+            table_name_upd = f"{str(table_name)[:-5]}_upd"
+
+        return table_name, table_name_upd
+
+    else:
+        table_name = message.document.file_name
+
+        return table_name
+
+
 async def convert_csv_to_xlsx(from_where):
     if from_where == 'site':
         file_name_to_convert = 'pars_site'
     else:
-        file_name_to_convert = mb.new_table_name
+        file_name_to_convert = table_name_upd
 
     sheet = pyexcel.get_sheet(file_name=f"{file_name_to_convert}.csv", delimiter=";")
     sheet.save_as(f"{file_name_to_convert}.xlsx")
@@ -61,7 +80,7 @@ async def convert_csv_to_txt(from_where):
     if from_where == 'site':
         file_name_to_convert = 'pars_site'
     else:
-        file_name_to_convert = mb.new_table_name
+        file_name_to_convert = table_name_upd
 
     shutil.copyfile(f"{file_name_to_convert}.csv", 'garages_table_4txt.csv')
     await os.rename('garages_table_4txt.csv', f"{file_name_to_convert}.txt")
@@ -69,6 +88,7 @@ async def convert_csv_to_txt(from_where):
     async with aiofiles.open(f"{file_name_to_convert}.txt", 'r') as file:
         df = await file.read()
         df = df.replace(';', ' | ')
+        df = df.replace('"', '')
 
     async with aiofiles.open(f"{file_name_to_convert}.txt", 'w') as file:
         await file.write(df)
@@ -147,13 +167,13 @@ async def site_parsing_main(req_site, url_upn, url_cian, url_yandex, url_avito, 
 
 async def file_renamer():
     with contextlib.suppress(Exception):
-        await os.rename('pars_site.txt', f'{file_name}.txt')
+        await os.rename('pars_site.txt', f'{filename_creator}.txt')
 
     with contextlib.suppress(Exception):
-        await os.rename('pars_site.csv', f'{file_name}.csv')
+        await os.rename('pars_site.csv', f'{filename_creator}.csv')
 
     with contextlib.suppress(Exception):
-        await os.rename('pars_site.xlsx', f'{file_name}.xlsx')
+        await os.rename('pars_site.xlsx', f'{filename_creator}.xlsx')
 
     print("[INFO] - Renaming of all files was successful")
 
@@ -161,23 +181,23 @@ async def file_renamer():
 async def file_remover(from_where):
     if from_where == 'site':
         with contextlib.suppress(Exception):
-            await os.remove(f"{file_name}.csv")
+            await os.remove(f"{filename_creator}.csv")
         with contextlib.suppress(Exception):
-            await os.remove(f"{file_name}.xlsx")
+            await os.remove(f"{filename_creator}.xlsx")
         with contextlib.suppress(Exception):
-            await os.remove(f"{file_name}.txt")
+            await os.remove(f"{filename_creator}.txt")
 
     else:
         with contextlib.suppress(Exception):
-            await os.remove(f"{tp.new_table_name}")
+            await os.remove(f"{tp.table_name_upd_tp}")
         with contextlib.suppress(Exception):
             await os.remove(f"{tp.table_name[:-4]}.txt")
         with contextlib.suppress(Exception):
             await os.remove(f"{tp.table_name[:-5]}.xlsx")
         with contextlib.suppress(Exception):
-            await os.remove(f"{tp.new_table_name[:-4]}.txt")
+            await os.remove(f"{tp.table_name_upd_tp[:-4]}.txt")
         with contextlib.suppress(Exception):
-            await os.remove(f"{tp.new_table_name[:-4]}.xlsx")
+            await os.remove(f"{tp.table_name_upd_tp[:-4]}.xlsx")
 
     print("[INFO] - Removing of all files was successful")
 
@@ -225,6 +245,15 @@ async def site_parsing_finish(req_res):
         await convert_csv_to_xlsx(from_where='site')
         await convert_csv_to_txt(from_where='site')
         await file_renamer()
+
+
+async def table_parsing_finish():
+    table_name_upd_tp = await tp.repeater()
+
+    with glob.connection.cursor() as glob.cursor:
+        glob.cursor.execute(
+            f"""COPY update_ad TO '/Users/user/PycharmProjects/Parser/{table_name_upd_tp}' (FORMAT CSV, HEADER TRUE, DELIMITER ';', ENCODING 'UTF8');"""
+        )
 
 
 async def close_connection():
