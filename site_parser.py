@@ -218,7 +218,7 @@ async def avito_site_parser(message, url_avito):
     try:
         time.sleep(1)
         driver.get(url=url)
-        full_page = html_to_json.convert(driver.page_source)['html'][0]['body'][0]['div'][0]
+        full_page = html_to_json.convert(driver.page_source)['html'][0]['body'][0]['div'][0]['div'][0]
         num_of_pages = math.ceil(int("".join(re.findall(r'\d+', full_page['div'][2]['div'][1]['div'][0]['span'][0]['_value']))) / 50)
         if num_of_pages == 1:
             url_next_page = url
@@ -236,7 +236,7 @@ async def avito_site_parser(message, url_avito):
                                                                  '15 страниц.')
         for i in range(1, num_of_pages + 1):
             url_cycle = await cian_avito_url_cycle_detector(url_next_page, driver, i)
-            full_page = html_to_json.convert(driver.page_source)['html'][0]['body'][0]['div'][0]
+            full_page = html_to_json.convert(driver.page_source)['html'][0]['body'][0]['div'][0]['div'][0]
             for n in range(10):
                 try:
                     num_of_ads = len(full_page['div'][2]['div'][2]['div'][2]['div'][n]['div'][0]['div'])
