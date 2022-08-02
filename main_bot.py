@@ -56,6 +56,7 @@ async def new_table(message: types.Message, call=0):
     global task
 
     task = 'site'
+
     if call == 0:
         await mc.start_connection()
         await mc.site_parsing_start()
@@ -71,9 +72,8 @@ async def update_table(message: types.Message):
 @dp.message_handler(content_types=['document'])
 async def handle_docs(message: types.Message):
     try:
-        global table_name_upd
-        global table_name
-        global task
+        global table_name_upd, table_name, task
+
         task = 'table'
 
         with contextlib.suppress(Exception):
@@ -96,7 +96,7 @@ async def handle_docs(message: types.Message):
         await mc.table_parsing_finish()
 
     except Exception as ex:
-        print('[ERROR FILE] - ', ex)
+        print('[ERROR] [HANDLE_DOCS] - ', ex)
 
 
 @dp.message_handler(state=Answer.response_as_link)
@@ -152,7 +152,8 @@ async def getting_site_link(message: types.Message, status_url):
             await Answer.response_as_link.set()
         elif status_url == 'yandex':
             id_url = 'yandex'
-            message_text = 'Перейдите на сайт [Яндекс Недвижимость](https://realty.yandex.ru/ekaterinburg), настройте все необходимые Вам фильтры, скопируйте ссылку в адресной строке и отправьте ее мне'
+            message_text = 'Перейдите на сайт [Яндекс Недвижимость](https://realty.yandex.ru/ekaterinburg), настройте все необходимые Вам фильтры, скопируйте ссылку в адресной строке и отправьте ее' \
+                           ' мне'
             await bot.send_message(chat_id=message.chat.id, text=message_text, parse_mode="MarkdownV2", disable_web_page_preview=True, reply_markup=markup_quit)
 
             await Answer.response_as_link.set()
@@ -245,7 +246,7 @@ async def text(message: types.Message):
                                    reply_markup=markup_result)
         elif task == 'table':
             with contextlib.suppress(Exception):
-                await tp.close_driver()
+                await mc.close_driver()
             await bot.send_message(chat_id=message.chat.id, text='Отлично! В каком формате вы хотите получить результат?',
                                    reply_markup=markup_result)
     elif message.text == "Нет, не хочу":
@@ -257,7 +258,7 @@ async def text(message: types.Message):
                 await mc.close_connection()
         elif task == 'table':
             with contextlib.suppress(Exception):
-                await tp.close_driver()
+                await mc.close_driver()
             await bot.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_start)
             await mc.delete_update_ad_table()
             await mc.close_connection()

@@ -8,16 +8,31 @@ import openpyxl as op
 import psycopg2
 import pyexcel
 from aiofiles import os
+from selenium import webdriver
 
 import site_parser as sp
 import table_parser as tp
 from req_data import *
 
-global table_name, table_name_upd, filename_creator
+global table_name, table_name_upd, filename_creator, driver
 
 today = datetime.now()
 minute = f'0{str(today.minute)}' if int(today.minute) < 10 else today.minute
 filename_creator = f"{today.day}.{today.month}.{today.year} - {today.hour}.{minute}"
+
+
+async def add_driver():
+    try:
+        global driver
+
+        driver = webdriver.Safari()
+
+        print("[INFO] - Driver started")
+
+        return driver
+
+    except Exception as ex:
+        print('[ERROR] [ADD_DRIVER] - ', ex)
 
 
 async def start_connection():
@@ -115,57 +130,56 @@ async def data_base(adres, price, square, url):
 
 
 async def create_advertisement_table():
-    try:
-        # Create new advertisement table
-        with glob.connection.cursor() as glob.cursor:
-            glob.cursor.execute(
-                """CREATE TABLE advertisement(
-                    id SERIAL PRIMARY KEY,
-                    adres VARCHAR(255),
-                    price VARCHAR(30),
-                    square VARCHAR(10),
-                    url VARCHAR(255));"""
-            )
+    # Create new advertisement table
+    with glob.connection.cursor() as glob.cursor:
+        glob.cursor.execute(
+            """CREATE TABLE advertisement(
+                id SERIAL PRIMARY KEY,
+                adres VARCHAR(255),
+                price VARCHAR(30),
+                square VARCHAR(10),
+                url VARCHAR(255));"""
+        )
 
-        print("[INFO] - PostgreSQL 'advertisement' table created")
-
-    except Exception as ex:
-        print('[ERROR] [CREATE_ADVERTISEMENT_TABLE] - ', ex)
+    print("[INFO] - PostgreSQL 'advertisement' table created")
 
 
 async def create_update_ad_table():
-    try:
-        # Create new update_ad table
-        with glob.connection.cursor() as glob.cursor:
-            glob.cursor.execute(
-                """CREATE TABLE update_ad(
-                    id SERIAL PRIMARY KEY,
-                    adres VARCHAR(255),
-                    price VARCHAR(30),
-                    square VARCHAR(10),
-                    url VARCHAR(255));"""
-            )
+    # Create new update_ad table
+    with glob.connection.cursor() as glob.cursor:
+        glob.cursor.execute(
+            """CREATE TABLE update_ad(
+                id SERIAL PRIMARY KEY,
+                adres VARCHAR(255),
+                price VARCHAR(30),
+                square VARCHAR(10),
+                url VARCHAR(255));"""
+        )
 
-        print("[INFO] - PostgreSQL 'update_ad' table created")
-
-    except Exception as ex:
-        print('[ERROR] [CREATE_UPDATE_AD_TABLE] - ', ex)
+    print("[INFO] - PostgreSQL 'update_ad' table created")
 
 
 async def site_parsing_start():
     try:
-        await create_advertisement_table()
-    except Exception:
-        await delete_advertisement_table()
-        await create_advertisement_table()
+        try:
+            await create_advertisement_table()
+        except Exception:
+            await delete_advertisement_table()
+            await create_advertisement_table()
+
+    except Exception as ex:
+        print('[ERROR] [SITE_PARSING_START] - ', ex)
 
 
 async def table_parsing_start():
     try:
-        await create_update_ad_table()
-    except Exception:
-        await delete_update_ad_table()
-        await create_update_ad_table()
+        try:
+            await create_update_ad_table()
+        except Exception:
+            await delete_update_ad_table()
+            await create_update_ad_table()
+    except Exception as ex:
+        print('[ERROR] [TABLE_PARSING_START] - ', ex)
 
 
 async def site_parsing_main(req_site, url_upn, url_cian, url_yandex, url_avito, message):
@@ -225,58 +239,53 @@ async def file_remover(from_where):
 
 
 async def delete_advertisement_table():
-    try:
-        # Delete advertisement table
-        with glob.connection.cursor() as glob.cursor:
-            glob.cursor.execute(
-                """DROP TABLE advertisement;"""
-            )
+    # Delete advertisement table
+    with glob.connection.cursor() as glob.cursor:
+        glob.cursor.execute(
+            """DROP TABLE advertisement;"""
+        )
 
-        print("[INFO] - PostgreSQL 'advertisement' table deleted")
-
-    except Exception as ex:
-        print('[ERROR] [DELETE_ADVERTISEMENT_TABLE] - ', ex)
+    print("[INFO] - PostgreSQL 'advertisement' table deleted")
 
 
 async def delete_update_ad_table():
-    try:
-        with contextlib.suppress(Exception):
-            await start_connection()
+    with contextlib.suppress(Exception):
+        await start_connection()
 
-        # Delete update_ad table
-        with glob.connection.cursor() as glob.cursor:
-            glob.cursor.execute(
-                """DROP TABLE update_ad;"""
-            )
+    # Delete update_ad table
+    with glob.connection.cursor() as glob.cursor:
+        glob.cursor.execute(
+            """DROP TABLE update_ad;"""
+        )
 
-        print("[INFO] - PostgreSQL 'update_ad' table deleted")
-
-    except Exception as ex:
-        print('[ERROR] [DELETE_UPDATE_AD_TABLE] - ', ex)
+    print("[INFO] - PostgreSQL 'update_ad' table deleted")
 
 
 async def site_parsing_finish(req_res):
     try:
-        with glob.connection.cursor() as glob.cursor:
-            glob.cursor.execute(
-                """COPY advertisement TO '/Users/user/PycharmProjects/Parser/pars_site.csv' (FORMAT CSV, HEADER TRUE, DELIMITER ';', ENCODING 'UTF8');"""
-            )
-        # Скорее всего это не будет работать на сервере, нужно будет менять директорию на серверную
+        if req_res == 'error':
+            pass
+        else:
+            with glob.connection.cursor() as glob.cursor:
+                glob.cursor.execute(
+                    """COPY advertisement TO '/Users/user/PycharmProjects/Parser/pars_site.csv' (FORMAT CSV, HEADER TRUE, DELIMITER ';', ENCODING 'UTF8');"""
+                )
+            # Скорее всего это не будет работать на сервере, нужно будет менять директорию на серверную
 
-        await delete_advertisement_table()
+            await delete_advertisement_table()
 
-        if req_res == 'csv':
-            await file_renamer()
-        elif req_res == 'xlsx':
-            await convert_csv_to_xlsx(from_where='site')
-            await file_renamer()
-        elif req_res == 'txt':
-            await convert_csv_to_txt(from_where='site')
-            await file_renamer()
-        elif req_res == 'all':
-            await convert_csv_to_xlsx(from_where='site')
-            await convert_csv_to_txt(from_where='site')
-            await file_renamer()
+            if req_res == 'csv':
+                await file_renamer()
+            elif req_res == 'xlsx':
+                await convert_csv_to_xlsx(from_where='site')
+                await file_renamer()
+            elif req_res == 'txt':
+                await convert_csv_to_txt(from_where='site')
+                await file_renamer()
+            elif req_res == 'all':
+                await convert_csv_to_xlsx(from_where='site')
+                await convert_csv_to_txt(from_where='site')
+                await file_renamer()
 
     except Exception as ex:
         print('[ERROR] [SITE_PARSING_FINISH] - ', ex)
@@ -303,3 +312,12 @@ async def close_connection():
 
     except Exception as ex:
         print('[ERROR] [CLOSE_CONNECTION] - ', ex)
+
+
+async def close_driver():
+    try:
+        driver.quit()
+        print("[INFO] - Driver closed")
+
+    except Exception as ex:
+        print('[ERROR] [CLOSE_DRIVER] - ', ex)

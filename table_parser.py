@@ -12,7 +12,6 @@ from aiofiles import os
 from aiogram import Bot, Dispatcher
 from bs2json import bs2json
 from bs4 import BeautifulSoup
-from selenium import webdriver
 
 import main_code as mc
 from all_markups import *
@@ -24,16 +23,6 @@ dp = Dispatcher(bot)
 global table_name_upd_tp, table_name_tp, old_price, table_url, driver
 
 
-async def add_driver():
-    try:
-        global driver
-        driver = webdriver.Safari()
-        print("[INFO] - Driver started")
-
-    except Exception as ex:
-        print('[ERROR] [ADD_DRIVER] - ', ex)
-
-
 async def repeater():
     return table_name_upd_tp
 
@@ -42,7 +31,8 @@ async def file_format_reformer(table_filename):
     try:
         global table_name_upd_tp, table_name_tp
 
-        table_name = table_filename, table_name_tp
+        table_name = table_filename
+        table_name_tp = table_filename
 
         if table_name[-3:] == 'txt':
             await converter_txt_to_csv(table_filename)
@@ -105,6 +95,7 @@ async def add_data_to_table():
 
 async def update_table_parser(message):
     try:
+        global driver
         with contextlib.suppress(Exception):
             glob.connection = psycopg2.connect(host=host, user=user, password=password, database=db_name)
             glob.connection.autocommit = True
@@ -126,10 +117,12 @@ async def update_table_parser(message):
             cursor_max_row.close()
             connection_max_row.close()
 
+        requirement = False
+        driver = None
+
         for row in range(max_row):
             try:
-                global old_price
-                global table_url
+                global old_price, table_url
 
                 glob.cursor.execute("""SELECT url FROM update_ad;""")
                 table_url = glob.cursor.fetchall()[row][0]
@@ -139,27 +132,49 @@ async def update_table_parser(message):
                 if table_url[:14] == 'https://upn.ru':
                     try:
                         await upn_table_parser()
+
                     except Exception as ex:
                         print('[ERROR] [UPN_TABLE_PARSER] - ', ex)
+
                 elif table_url[:19] == 'https://ekb.cian.ru':
-                    with contextlib.suppress(Exception):
-                        await add_driver()
+                    if driver is None:
+                        driver = await mc.add_driver()
+                    else:
+                        pass
+
+                    requirement = True
+
                     try:
                         await cian_table_parser()
+
                     except Exception as ex:
                         print('[ERROR] [CIAN_TABLE_PARSER] - ', ex)
+
                 elif table_url[:24] == 'https://realty.yandex.ru':
-                    with contextlib.suppress(Exception):
-                        await add_driver()
+                    if driver is None:
+                        driver = await mc.add_driver()
+                    else:
+                        pass
+
+                    requirement = True
+
                     try:
                         await yandex_table_parser()
+
                     except Exception as ex:
                         print('[ERROR] [YANDEX_TABLE_PARSER] - ', ex)
+
                 elif table_url[:20] == 'https://www.avito.ru':
-                    with contextlib.suppress(Exception):
-                        await add_driver()
+                    if driver is None:
+                        driver = await mc.add_driver()
+                    else:
+                        pass
+
+                    requirement = True
+
                     try:
                         await avito_table_parser()
+
                     except Exception as ex:
                         print('[ERROR] [AVITO_TABLE_PARSER] - ', ex)
 
@@ -167,15 +182,15 @@ async def update_table_parser(message):
                 print('[ERROR] [TABLE_CYCLE] - ', ex)
                 quit()
 
+        if requirement:
+            await mc.close_driver()
+
+        await bot.send_message(chat_id=message.chat.id, text="Вся информация обновлена. В каком формате вы хотите получить результат?", reply_markup=markup_result, parse_mode="Markdown")
+
+        print("[INFO] - Table successfully updated")
+
     except Exception as ex:
         print('[ERROR] [UPDATE_TABLE_PARSER] - ', ex)
-
-    with contextlib.suppress(Exception):
-        await close_driver()
-
-    await bot.send_message(chat_id=message.chat.id, text="Вся информация обновлена. В каком формате вы хотите получить результат?", reply_markup=markup_result, parse_mode="Markdown")
-
-    print("[INFO] - Table successfully updated")
 
 
 async def db_price_updater(new_price):
@@ -203,8 +218,9 @@ async def upn_table_parser():
         availability = bs2json().convert(response.find())['html']['body']['div'][4]['main']['div']['div'][0]['div']['div'][0]['b']['text']
     except Exception:
         availability = 1
-    if availability == 'НЕ НАЙДЕНО':
+    if availability == 'ОБЪЕКТ НЕ НАЙДЕН':
         glob.cursor.execute(f"""UPDATE update_ad SET square = 'DELETED' WHERE url = '{table_url}';""")
+        print(f'[INFO] - Advertisement deleted, {table_url}')
     else:
         new_price = bs2json().convert(response.find())['html']['body']['div'][4]['main']['div']['div']['div']['span'][0]['meta'][3]['attributes']['content']
         await db_price_updater(new_price=new_price)
@@ -220,6 +236,7 @@ async def cian_table_parser():
         availability = 1
     if availability == 'Объявление снято с публикации':
         glob.cursor.execute(f"""UPDATE update_ad SET square = 'DELETED' WHERE url = '{table_url}';""")
+        print('[INFO] - Advertisement deleted')
     else:
         new_price = full_page['div'][2]['div'][0]['div'][0]['div'][0]['div'][1]['div'][0]['div'][0]['div'][0]['span'][0]['span'][0]['_value']
         new_price = str(new_price).replace(' ', '')[:-1]
@@ -236,6 +253,7 @@ async def yandex_table_parser():
         availability = 1
     if availability == 'объявление снято или устарело':
         glob.cursor.execute(f"""UPDATE update_ad SET square = 'DELETED' WHERE url = '{table_url}';""")
+        print('[INFO] - Advertisement deleted')
     else:
         new_price = full_page['div'][1]['h1'][0]['span'][0]['_value']
         new_price = str(new_price).replace(' ', '')[:-1]
@@ -256,18 +274,10 @@ async def avito_table_parser():
             availability = 1
     if availability in {'Объявление снято с публикации.', 'Ой! Такой страницы на нашем сайте нет :('}:
         glob.cursor.execute(f"""UPDATE update_ad SET square = 'DELETED' WHERE url = '{table_url}';""")
+        print(f'[INFO] - Advertisement deleted, {table_url}')
     else:
         new_price = full_page['div'][0]['div'][1]['div'][1]['div'][1]['div'][0]['div'][0]['div'][0]['div'][0]
         new_price = new_price['div'][0]['div'][0]['div'][0]['div'][0]['span'][0]['span'][0]['span'][0]['_value']
         new_price = str(new_price).replace(' ', '')
         await db_price_updater(new_price=new_price)
     await asyncio.sleep(0.3)
-
-
-async def close_driver():
-    try:
-        driver.quit()
-        print("[INFO] - Driver closed")
-
-    except Exception as ex:
-        print('[ERROR] [CLOSE_DRIVER] - ', ex)
