@@ -93,7 +93,7 @@ async def handle_docs(message: types.Message):
 
         await tp.update_table_parser(message)
 
-        await mc.table_parsing_finish()
+        # await mc.table_parsing_finish()
 
     except Exception as ex:
         print('[ERROR] [HANDLE_DOCS] - ', ex)
@@ -245,8 +245,8 @@ async def text(message: types.Message):
             await bot.send_message(chat_id=message.chat.id, text='Отлично! В каком формате вы хотите получить результат?',
                                    reply_markup=markup_result)
         elif task == 'table':
-            with contextlib.suppress(Exception):
-                await mc.close_driver()
+            # with contextlib.suppress(Exception):
+            #     await mc.close_driver()
             await bot.send_message(chat_id=message.chat.id, text='Отлично! В каком формате вы хотите получить результат?',
                                    reply_markup=markup_result)
     elif message.text == "Нет, не хочу":
@@ -257,8 +257,8 @@ async def text(message: types.Message):
             with contextlib.suppress(Exception):
                 await mc.close_connection()
         elif task == 'table':
-            with contextlib.suppress(Exception):
-                await mc.close_driver()
+            # with contextlib.suppress(Exception):
+            #     await mc.close_driver()
             await bot.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_start)
             await mc.delete_update_ad_table()
             await mc.close_connection()

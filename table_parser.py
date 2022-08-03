@@ -122,80 +122,89 @@ async def update_table_parser(message):
 
         counter = 1
         for row in range(max_row):
-            for id_handler in range(max_row):
-                try:
-                    global old_price, table_url
+            # maybe this stopper work not correctly
+            if counter is None:
+                break
+            else:
+                for id_handler in range(max_row):
+                    try:
+                        global old_price, table_url
 
-                    glob.cursor.execute("""SELECT id FROM update_ad;""")
-                    ad_id = glob.cursor.fetchall()[row][0]
-                    glob.cursor.execute("""SELECT url FROM update_ad;""")
-                    table_url = glob.cursor.fetchall()[row][0]
-                    glob.cursor.execute("""SELECT price FROM update_ad;""")
-                    old_price = glob.cursor.fetchall()[row][0]
-                    if ad_id != counter:
-                        continue
-                    else:
-                        if table_url[:14] == 'https://upn.ru':
-                            try:
-                                await upn_table_parser()
+                        glob.cursor.execute("""SELECT id FROM update_ad;""")
+                        ad_id = glob.cursor.fetchall()[row][0]
+                        glob.cursor.execute("""SELECT url FROM update_ad;""")
+                        table_url = glob.cursor.fetchall()[row][0]
+                        glob.cursor.execute("""SELECT price FROM update_ad;""")
+                        old_price = glob.cursor.fetchall()[row][0]
+                        if ad_id != counter:
+                            continue
+                        else:
+                            if table_url[:14] == 'https://upn.ru':
+                                try:
+                                    await upn_table_parser()
 
-                            except Exception as ex:
-                                print('[ERROR] [UPN_TABLE_PARSER] - ', ex)
+                                except Exception as ex:
+                                    print('[ERROR] [UPN_TABLE_PARSER] - ', ex)
 
-                        elif table_url[:19] == 'https://ekb.cian.ru':
-                            if driver is None:
-                                driver = await mc.add_driver()
-                            else:
-                                pass
+                            elif table_url[:19] == 'https://ekb.cian.ru':
+                                if driver is None:
+                                    driver = await mc.add_driver()
+                                else:
+                                    pass
 
-                            requirement = True
+                                requirement = True
 
-                            try:
-                                await cian_table_parser()
+                                try:
+                                    await cian_table_parser()
 
-                            except Exception as ex:
-                                print('[ERROR] [CIAN_TABLE_PARSER] - ', ex)
+                                except Exception as ex:
+                                    print('[ERROR] [CIAN_TABLE_PARSER] - ', ex)
 
-                        elif table_url[:24] == 'https://realty.yandex.ru':
-                            if driver is None:
-                                driver = await mc.add_driver()
-                            else:
-                                pass
+                            elif table_url[:24] == 'https://realty.yandex.ru':
+                                if driver is None:
+                                    driver = await mc.add_driver()
+                                else:
+                                    pass
 
-                            requirement = True
+                                requirement = True
 
-                            try:
-                                await yandex_table_parser()
+                                try:
+                                    await yandex_table_parser()
 
-                            except Exception as ex:
-                                print('[ERROR] [YANDEX_TABLE_PARSER] - ', ex)
+                                except Exception as ex:
+                                    print('[ERROR] [YANDEX_TABLE_PARSER] - ', ex)
 
-                        elif table_url[:20] == 'https://www.avito.ru':
-                            if driver is None:
-                                driver = await mc.add_driver()
-                            else:
-                                pass
+                            elif table_url[:20] == 'https://www.avito.ru':
+                                if driver is None:
+                                    driver = await mc.add_driver()
+                                else:
+                                    pass
 
-                            requirement = True
+                                requirement = True
 
-                            try:
-                                await avito_table_parser()
+                                try:
+                                    await avito_table_parser()
 
-                            except Exception as ex:
-                                print('[ERROR] [AVITO_TABLE_PARSER] - ', ex)
+                                except Exception as ex:
+                                    print('[ERROR] [AVITO_TABLE_PARSER] - ', ex)
 
-                        counter += 1
+                            counter += 1
 
-                except Exception as ex:
-                    print('[ERROR] [TABLE_CYCLE] - ', ex)
-                    quit()
+                    except Exception as ex:
+                        await asyncio.sleep(5)
+                        print('[ERROR] [TABLE_CYCLE] - ', ex)
+                        counter = None
+                        break
 
         if requirement:
             await mc.close_driver()
 
-        await bot.send_message(chat_id=message.chat.id, text="Вся информация обновлена. В каком формате вы хотите получить результат?", reply_markup=markup_result, parse_mode="Markdown")
+        if counter is not None:
+            await bot.send_message(chat_id=message.chat.id, text="Вся информация обновлена. В каком формате вы хотите получить результат?", reply_markup=markup_result, parse_mode="Markdown")
 
-        print("[INFO] - Table successfully updated")
+            await mc.table_parsing_finish()
+
+            print("[INFO] - Table successfully updated")
 
     except Exception as ex:
         print('[ERROR] [UPDATE_TABLE_PARSER] - ', ex)
@@ -228,7 +237,6 @@ async def upn_table_parser():
         availability = 1
     if availability == 'ОБЪЕКТ НЕ НАЙДЕН':
         glob.cursor.execute(f"""UPDATE update_ad SET square = 'DELETED' WHERE url = '{table_url}';""")
-        print(f'[INFO] - Advertisement deleted, {table_url}')
     else:
         new_price = bs2json().convert(response.find())['html']['body']['div'][4]['main']['div']['div']['div']['span'][0]['meta'][3]['attributes']['content']
         await db_price_updater(new_price=new_price)
@@ -282,7 +290,6 @@ async def avito_table_parser():
             availability = 1
     if availability in {'Объявление снято с публикации.', 'Ой! Такой страницы на нашем сайте нет :('}:
         glob.cursor.execute(f"""UPDATE update_ad SET square = 'DELETED' WHERE url = '{table_url}';""")
-        print(f'[INFO] - Advertisement deleted, {table_url}')
     else:
         new_price = full_page['div'][0]['div'][1]['div'][1]['div'][1]['div'][0]['div'][0]['div'][0]['div'][0]
         new_price = new_price['div'][0]['div'][0]['div'][0]['div'][0]['span'][0]['span'][0]['span'][0]['_value']
