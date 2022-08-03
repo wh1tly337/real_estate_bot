@@ -120,67 +120,75 @@ async def update_table_parser(message):
         requirement = False
         driver = None
 
+        counter = 1
         for row in range(max_row):
-            try:
-                global old_price, table_url
+            for id_handler in range(max_row):
+                try:
+                    global old_price, table_url
 
-                glob.cursor.execute("""SELECT url FROM update_ad;""")
-                table_url = glob.cursor.fetchall()[row][0]
-                glob.cursor.execute("""SELECT price FROM update_ad;""")
-                old_price = glob.cursor.fetchall()[row][0]
-
-                if table_url[:14] == 'https://upn.ru':
-                    try:
-                        await upn_table_parser()
-
-                    except Exception as ex:
-                        print('[ERROR] [UPN_TABLE_PARSER] - ', ex)
-
-                elif table_url[:19] == 'https://ekb.cian.ru':
-                    if driver is None:
-                        driver = await mc.add_driver()
+                    glob.cursor.execute("""SELECT id FROM update_ad;""")
+                    ad_id = glob.cursor.fetchall()[row][0]
+                    glob.cursor.execute("""SELECT url FROM update_ad;""")
+                    table_url = glob.cursor.fetchall()[row][0]
+                    glob.cursor.execute("""SELECT price FROM update_ad;""")
+                    old_price = glob.cursor.fetchall()[row][0]
+                    if ad_id != counter:
+                        continue
                     else:
-                        pass
+                        if table_url[:14] == 'https://upn.ru':
+                            try:
+                                await upn_table_parser()
 
-                    requirement = True
+                            except Exception as ex:
+                                print('[ERROR] [UPN_TABLE_PARSER] - ', ex)
 
-                    try:
-                        await cian_table_parser()
+                        elif table_url[:19] == 'https://ekb.cian.ru':
+                            if driver is None:
+                                driver = await mc.add_driver()
+                            else:
+                                pass
 
-                    except Exception as ex:
-                        print('[ERROR] [CIAN_TABLE_PARSER] - ', ex)
+                            requirement = True
 
-                elif table_url[:24] == 'https://realty.yandex.ru':
-                    if driver is None:
-                        driver = await mc.add_driver()
-                    else:
-                        pass
+                            try:
+                                await cian_table_parser()
 
-                    requirement = True
+                            except Exception as ex:
+                                print('[ERROR] [CIAN_TABLE_PARSER] - ', ex)
 
-                    try:
-                        await yandex_table_parser()
+                        elif table_url[:24] == 'https://realty.yandex.ru':
+                            if driver is None:
+                                driver = await mc.add_driver()
+                            else:
+                                pass
 
-                    except Exception as ex:
-                        print('[ERROR] [YANDEX_TABLE_PARSER] - ', ex)
+                            requirement = True
 
-                elif table_url[:20] == 'https://www.avito.ru':
-                    if driver is None:
-                        driver = await mc.add_driver()
-                    else:
-                        pass
+                            try:
+                                await yandex_table_parser()
 
-                    requirement = True
+                            except Exception as ex:
+                                print('[ERROR] [YANDEX_TABLE_PARSER] - ', ex)
 
-                    try:
-                        await avito_table_parser()
+                        elif table_url[:20] == 'https://www.avito.ru':
+                            if driver is None:
+                                driver = await mc.add_driver()
+                            else:
+                                pass
 
-                    except Exception as ex:
-                        print('[ERROR] [AVITO_TABLE_PARSER] - ', ex)
+                            requirement = True
 
-            except Exception as ex:
-                print('[ERROR] [TABLE_CYCLE] - ', ex)
-                quit()
+                            try:
+                                await avito_table_parser()
+
+                            except Exception as ex:
+                                print('[ERROR] [AVITO_TABLE_PARSER] - ', ex)
+
+                        counter += 1
+
+                except Exception as ex:
+                    print('[ERROR] [TABLE_CYCLE] - ', ex)
+                    quit()
 
         if requirement:
             await mc.close_driver()
