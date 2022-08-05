@@ -1,6 +1,6 @@
 import contextlib
+import glob
 
-import psycopg2
 from aiogram import Bot, Dispatcher
 from aiogram import executor
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
@@ -9,7 +9,6 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 
 import main_code as mc
 from all_markups import *
-from req_data import *
 
 bot = Bot(token='5432400118:AAFgz1QNbckgmQ7X1jbEu87S2ZdhV6vU1m0')
 dp = Dispatcher(bot, storage=MemoryStorage())
@@ -208,11 +207,8 @@ async def text(message: types.Message):
 
     elif message.text == "Да, уверен":
         if task == 'site':
-            connection_quit = psycopg2.connect(host=host, user=user, password=password, database=db_name)
-            connection_quit.autocommit = True
-            cursor_quit = connection_quit.cursor()
-            cursor_quit.execute("""SELECT count(*) FROM advertisement;""")
-            check = cursor_quit.fetchall()[0][0]
+            # Before for this cursor i create his personal connection to data base, i think that not necessary
+            check = glob.cursor.fetchall()[0][0]
             if int(check) != 0:
                 await bot.send_message(chat_id=message.chat.id, text='Хотите получить объявления которые я успел найти?',
                                        reply_markup=markup_save_file)
@@ -222,9 +218,6 @@ async def text(message: types.Message):
                 await mc.file_remover(from_where='site')
                 with contextlib.suppress(Exception):
                     await mc.close_connection()
-            if connection_quit:
-                cursor_quit.close()
-                connection_quit.close()
         elif task == 'table':
             await bot.send_message(chat_id=message.chat.id, text='Хотите получить таблицу с не до конца обновленными данными?',
                                    reply_markup=markup_save_file)
