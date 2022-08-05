@@ -11,7 +11,6 @@ from aiofiles import os
 from selenium import webdriver
 
 import site_parser as sp
-import table_parser as tp
 from req_data import *
 
 global table_name, table_name_upd, filename_creator, driver
@@ -48,23 +47,17 @@ async def start_connection():
         print('[ERROR] [START_CONNECTION] - ', ex)
 
 
-async def table_name_handler(message, from_where):
+async def table_name_handler(message):
     try:
-        if from_where == 'mb':
-            global table_name, table_name_upd
+        global table_name, table_name_upd
 
-            table_name = message.document.file_name
-            if table_name[-3:] == 'txt' or table_name[-4:] != 'xlsx':
-                table_name_upd = f"{str(table_name)[:-4]}_upd"
-            else:
-                table_name_upd = f"{str(table_name)[:-5]}_upd"
-
-            return table_name, table_name_upd
-
+        table_name = message.document.file_name
+        if table_name[-3:] == 'txt' or table_name[-4:] != 'xlsx':
+            table_name_upd = f"{str(table_name)[:-4]}_upd"
         else:
-            table_name = message.document.file_name
+            table_name_upd = f"{str(table_name)[:-5]}_upd"
 
-            return table_name
+        return table_name, table_name_upd
 
     except Exception as ex:
         print('[ERROR] [TABLE_NAME_HANDLER] - ', ex)
@@ -178,6 +171,7 @@ async def table_parsing_start():
         except Exception:
             await delete_update_ad_table()
             await create_update_ad_table()
+
     except Exception as ex:
         print('[ERROR] [TABLE_PARSING_START] - ', ex)
 
@@ -222,15 +216,15 @@ async def file_remover(from_where):
 
         else:
             with contextlib.suppress(Exception):
-                await os.remove(f"{tp.table_name_upd_tp}")
+                await os.remove(f"{table_name_upd}.csv")
             with contextlib.suppress(Exception):
-                await os.remove(f"{tp.table_name_tp[:-4]}.txt")
+                await os.remove(f"{table_name}")
             with contextlib.suppress(Exception):
-                await os.remove(f"{tp.table_name_tp[:-5]}.xlsx")
+                await os.remove(f"{table_name}")
             with contextlib.suppress(Exception):
-                await os.remove(f"{tp.table_name_upd_tp[:-4]}.txt")
+                await os.remove(f"{table_name_upd}.txt")
             with contextlib.suppress(Exception):
-                await os.remove(f"{tp.table_name_upd_tp[:-4]}.xlsx")
+                await os.remove(f"{table_name_upd}.xlsx")
 
         print("[INFO] - Removing of all files was successful")
 
@@ -249,9 +243,6 @@ async def delete_advertisement_table():
 
 
 async def delete_update_ad_table():
-    with contextlib.suppress(Exception):
-        await start_connection()
-
     # Delete update_ad table
     with glob.connection.cursor() as glob.cursor:
         glob.cursor.execute(
@@ -293,12 +284,11 @@ async def site_parsing_finish(req_res):
 
 async def table_parsing_finish():
     try:
-        table_name_upd_tp = await tp.repeater()
-
         with glob.connection.cursor() as glob.cursor:
             glob.cursor.execute(
-                f"""COPY update_ad TO '/Users/user/PycharmProjects/Parser/{table_name_upd_tp}' (FORMAT CSV, HEADER TRUE, DELIMITER ';', ENCODING 'UTF8');"""
+                f"""COPY update_ad TO '/Users/user/PycharmProjects/Parser/{table_name_upd}.csv' (FORMAT CSV, HEADER TRUE, DELIMITER ';', ENCODING 'UTF8');"""
             )
+
     except Exception as ex:
         print('[ERROR] [TABLE_PARSING_FINISH] - ', ex)
 

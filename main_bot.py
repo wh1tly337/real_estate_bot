@@ -72,14 +72,12 @@ async def update_table(message: types.Message):
 @dp.message_handler(content_types=['document'])
 async def handle_docs(message: types.Message):
     try:
-        global table_name_upd, table_name, task
+        global table_name, table_name_upd, task
 
         task = 'table'
 
-        with contextlib.suppress(Exception):
-            await mc.start_connection()
-        with contextlib.suppress(Exception):
-            await mc.table_parsing_start()
+        await mc.start_connection()
+        await mc.table_parsing_start()
 
         src = f"/Users/user/PycharmProjects/Parser/{message.document.file_name}"
         await message.document.download(destination_file=src)
@@ -87,13 +85,9 @@ async def handle_docs(message: types.Message):
         await bot.send_message(chat_id=message.chat.id, text="Отлично! Я начал обновлять информацию, это может занять некоторое время", reply_markup=markup_quit, parse_mode="Markdown")
         await bot.send_message(chat_id=message.chat.id, text="Чем больше объявлений в файле, тем дольше я буду работать")
 
-        table_name, table_name_upd = await mc.table_name_handler(message, from_where='mb')
-
-        await mc.close_connection()
+        table_name, table_name_upd = await mc.table_name_handler(message)
 
         await tp.update_table_parser(message)
-
-        # await mc.table_parsing_finish()
 
     except Exception as ex:
         print('[ERROR] [HANDLE_DOCS] - ', ex)
@@ -235,8 +229,6 @@ async def text(message: types.Message):
         elif task == 'table':
             await bot.send_message(chat_id=message.chat.id, text='Хотите получить таблицу с не до конца обновленными данными?',
                                    reply_markup=markup_save_file)
-            with contextlib.suppress(Exception):
-                await mc.close_connection()
     elif message.text == "Нет, давай продолжим":
         await bot.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_quit)
 
@@ -245,8 +237,6 @@ async def text(message: types.Message):
             await bot.send_message(chat_id=message.chat.id, text='Отлично! В каком формате вы хотите получить результат?',
                                    reply_markup=markup_result)
         elif task == 'table':
-            # with contextlib.suppress(Exception):
-            #     await mc.close_driver()
             await bot.send_message(chat_id=message.chat.id, text='Отлично! В каком формате вы хотите получить результат?',
                                    reply_markup=markup_result)
     elif message.text == "Нет, не хочу":
@@ -257,12 +247,10 @@ async def text(message: types.Message):
             with contextlib.suppress(Exception):
                 await mc.close_connection()
         elif task == 'table':
-            # with contextlib.suppress(Exception):
-            #     await mc.close_driver()
             await bot.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_start)
+            await mc.file_remover(from_where='table')
             await mc.delete_update_ad_table()
             await mc.close_connection()
-            await mc.file_remover(from_where='table')
 
     elif message.text == "Да":
         await new_table(message, call=1)
