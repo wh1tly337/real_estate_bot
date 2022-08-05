@@ -8,7 +8,6 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 
 import main_code as mc
-import table_parser as tp
 from all_markups import *
 from req_data import *
 
@@ -87,7 +86,7 @@ async def handle_docs(message: types.Message):
 
         table_name, table_name_upd = await mc.table_name_handler(message)
 
-        await tp.update_table_parser(message)
+        await mc.table_parsing_main(message)
 
     except Exception as ex:
         print('[ERROR] [HANDLE_DOCS] - ', ex)

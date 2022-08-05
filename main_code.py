@@ -1,3 +1,4 @@
+import asyncio
 import contextlib
 import glob
 import shutil
@@ -5,15 +6,22 @@ from datetime import datetime
 
 import aiofiles
 import openpyxl as op
+import pandas as pd
 import psycopg2
 import pyexcel
 from aiofiles import os
+from aiogram import Bot, Dispatcher
 from selenium import webdriver
 
 import site_parser as sp
+import table_parser as tp
+from all_markups import *
 from req_data import *
 
-global table_name, table_name_upd, filename_creator, driver
+global table_name, table_name_upd, filename_creator, driver, old_price, table_url
+
+bot = Bot(token='5432400118:AAFgz1QNbckgmQ7X1jbEu87S2ZdhV6vU1m0')
+dp = Dispatcher(bot)
 
 today = datetime.now()
 minute = f'0{str(today.minute)}' if int(today.minute) < 10 else today.minute
@@ -110,6 +118,24 @@ async def convert_csv_to_txt(from_where):
         print('[ERROR] [CONVERT_CSV_TO_XLSX] - ', ex)
 
 
+async def convert_txt_to_csv():
+    try:
+        async with aiofiles.open(f"{table_name}", 'r') as file:
+            df = await file.read()
+            df = df.replace(' | ', ';')
+
+        async with aiofiles.open(f"{table_name}", 'w') as file:
+            await file.write(df)
+
+        df = pd.read_csv(f"{table_name}")
+        df.to_csv(f"{table_name_upd}.csv", index=False, header=True)
+
+        print("[INFO] - Copy .txt to .csv  successfully")
+
+    except Exception as ex:
+        print('[ERROR] [CONVERTER_TXT_TO_CSV] - ', ex)
+
+
 async def data_base(adres, price, square, url):
     try:
         with glob.connection.cursor() as glob.cursor:
@@ -120,6 +146,14 @@ async def data_base(adres, price, square, url):
     except Exception as ex:
         print("[ERROR] [DATA_BASE] - ", ex)
         quit()
+
+
+async def add_data_to_data_base():
+    try:
+        glob.cursor.execute(f"""COPY update_ad FROM '/Users/user/PycharmProjects/Parser/{table_name_upd}.csv' DELIMITER ';' CSV HEADER;""")
+
+    except Exception as ex:
+        print('[ERROR] [ADD_DATA_TO_TABLE] - ', ex)
 
 
 async def create_advertisement_table():
@@ -185,6 +219,125 @@ async def site_parsing_main(req_site, url_upn, url_cian, url_yandex, url_avito, 
         await sp.yandex_site_parser(message, url_yandex)
     elif req_site == 4:
         await sp.avito_site_parser(message, url_avito)
+
+
+async def table_parsing_main(message):
+    try:
+        global driver, table_name, table_name_upd
+
+        with contextlib.suppress(Exception):
+            await start_connection()
+
+        await file_format_reformer()
+
+        await add_data_to_data_base()
+
+        glob.cursor.execute("""SELECT count(*) FROM update_ad;""")
+        max_row = glob.cursor.fetchall()[0][0]
+
+        requirement, driver, counter = False, None, 1
+
+        for row in range(max_row):
+            # maybe this stopper work not correctly
+            if counter is None:
+                break
+            else:
+                for id_handler in range(max_row):
+                    try:
+                        global old_price, table_url
+
+                        glob.cursor.execute("""SELECT id FROM update_ad;""")
+                        ad_id = glob.cursor.fetchall()[row][0]
+                        glob.cursor.execute("""SELECT url FROM update_ad;""")
+                        table_url = glob.cursor.fetchall()[row][0]
+                        glob.cursor.execute("""SELECT price FROM update_ad;""")
+                        old_price = glob.cursor.fetchall()[row][0]
+
+                        if ad_id != counter:
+                            continue
+                        else:
+                            if table_url[:14] == 'https://upn.ru':
+                                try:
+                                    await tp.upn_table_parser(table_url=table_url, old_price=old_price)
+
+                                except Exception as ex:
+                                    print('[ERROR] [UPN_TABLE_PARSER] - ', ex)
+
+                            elif table_url[:19] == 'https://ekb.cian.ru':
+                                if driver is None:
+                                    driver = await add_driver()
+
+                                requirement = True
+
+                                try:
+                                    await tp.cian_table_parser(table_url=table_url, old_price=old_price, driver=driver)
+
+                                except Exception as ex:
+                                    print('[ERROR] [CIAN_TABLE_PARSER] - ', ex)
+
+                            elif table_url[:24] == 'https://realty.yandex.ru':
+                                if driver is None:
+                                    driver = await add_driver()
+
+                                requirement = True
+
+                                try:
+                                    await tp.yandex_table_parser(table_url=table_url, old_price=old_price, driver=driver)
+
+                                except Exception as ex:
+                                    print('[ERROR] [YANDEX_TABLE_PARSER] - ', ex)
+
+                            elif table_url[:20] == 'https://www.avito.ru':
+                                if driver is None:
+                                    driver = await add_driver()
+
+                                requirement = True
+
+                                try:
+                                    await tp.avito_table_parser(table_url=table_url, old_price=old_price, driver=driver)
+
+                                except Exception as ex:
+                                    print('[ERROR] [AVITO_TABLE_PARSER] - ', ex)
+
+                            counter += 1
+
+                    except Exception as ex:
+                        await asyncio.sleep(5)
+                        print('[ERROR] [TABLE_CYCLE] - ', ex)
+                        counter = None
+                        break
+
+        if requirement:
+            await close_driver()
+
+        if counter is not None:
+            await table_parsing_finish()
+
+            await bot.send_message(chat_id=message.chat.id, text="Вся информация обновлена. В каком формате вы хотите получить результат?", reply_markup=markup_result, parse_mode="Markdown")
+
+            print("[INFO] - Table successfully updated")
+
+    except Exception as ex:
+        print('[ERROR] [TABLE_PARSER_MAIN] - ', ex)
+
+
+async def file_format_reformer():
+    try:
+        if table_name[-3:] == 'txt':
+            await convert_txt_to_csv()
+        elif table_name[-4:] == 'xlsx':
+            # noinspection PyArgumentList
+            df = pd.read_excel(f"{table_name}")
+            df.to_csv(f"{table_name_upd}.csv", index=False, header=True, sep=";")
+
+            print("[INFO] - Copy .xlsx to .csv  successfully")
+        else:
+            await os.rename(f"{table_name}", f"{table_name_upd}.csv")
+
+            print('[INFO] - Already .csv file')
+
+    except Exception as ex:
+        print('[ERROR] [FILE_FORMAT_REFORMER] - ', ex)
 
 
 async def file_renamer():
