@@ -203,12 +203,15 @@ async def yandex_site_parser(message, url_yandex):
                 except Exception:
                     continue
                 full_address = []
-                for adr in range(10):
+                for adr in range(20):
                     try:
                         address = str(advertisement['div'][0]['div'][0]['div'][0]['a'][adr]['_value']).replace(',', '')
                         full_address.append(address)
                     except Exception:
-                        break
+                        address = str(advertisement['div'][0]['div'][0]['div'][0]['text'][adr]).replace(',', '')
+                        full_address.append(address)
+                    finally:
+                        continue
                 full_address = ' '.join(full_address)
                 price = "".join(re.findall(r'\d+', advertisement['div'][0]['div'][1]['div'][0]['span'][0]['_value']))
                 url_ad = 'https://realty.yandex.ru' + advertisement['div'][0]['div'][0]['a'][0]['_attributes']['href']
