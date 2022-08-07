@@ -138,11 +138,11 @@ async def convert_txt_to_csv():
         print('[ERROR] [CONVERTER_TXT_TO_CSV] - ', ex)
 
 
-async def data_base(adres, price, square, url):
+async def data_base(status, adres, price, square, url):
     try:
         with glob.connection.cursor() as glob.cursor:
             glob.cursor.execute(
-                f"""INSERT INTO advertisement (adres, price, square, url) VALUES ('{adres}', '{price}', '{square}', '{url}');"""
+                f"""INSERT INTO advertisement (status, adres, price, square, url) VALUES ('{status}', '{adres}', '{price}', '{square}', '{url}');"""
             )
 
     except Exception as ex:
@@ -164,6 +164,7 @@ async def create_advertisement_table():
         glob.cursor.execute(
             """CREATE TABLE advertisement(
                 id SERIAL PRIMARY KEY,
+                status VARCHAR(255),
                 adres VARCHAR(255),
                 price VARCHAR(30),
                 square VARCHAR(10),
@@ -179,6 +180,7 @@ async def create_update_ad_table():
         glob.cursor.execute(
             """CREATE TABLE update_ad(
                 id SERIAL PRIMARY KEY,
+                status VARCHAR(255),
                 adres VARCHAR(255),
                 price VARCHAR(30),
                 square VARCHAR(10),

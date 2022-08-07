@@ -70,10 +70,10 @@ async def upn_site_parser(message, url_upn):
                     price = "".join(re.findall(r'\d+', advertisement[i]['div'][1]['div'][7]['div'][0]['div'][0]['div'][1]['text']))
                 full_address = "".join((advertisement[i]['div'][1]['div'][1]['span']['text']).split(',')[-2:])
                 url_ad = 'https://upn.ru' + advertisement[i]['div'][1]['a']['attributes']['href']
-                square = "".join((advertisement[i]['div'][1]['div'][2]['div'][0]['div'][1]['text']).split('/')[0])
+                square = round(float("".join((advertisement[i]['div'][1]['div'][2]['div'][0]['div'][1]['text']).split('/')[0])))
 
                 try:
-                    await mc.data_base(adres=full_address, price=price, square=square, url=url_ad)
+                    await mc.data_base(status='Active', adres=full_address, price=price, square=square, url=url_ad)
                 except Exception:
                     break
 
@@ -129,7 +129,7 @@ async def cian_site_parser(message, url_cian):
                 advertisement = full_page['div'][0]['div'][0]['div'][sp]['article'][j]
                 url_ad = advertisement['div'][0]['div'][1]['div'][0]['div'][0]['a'][0]['_attributes']['href']
                 try:
-                    square = str(advertisement['div'][0]['div'][1]['div'][0]['div'][0]['div'][0]['span'][0]['span'][0]['_value']).split(',')[1].strip()[:3].strip()
+                    square = round(float(str(advertisement['div'][0]['div'][1]['div'][0]['div'][0]['div'][0]['span'][0]['span'][0]['_value']).split(',')[1].strip()[:3].strip()))
                 except Exception:
                     square = '-'
                 for n, m in itertools.product(range(10), range(10)):
@@ -148,7 +148,7 @@ async def cian_site_parser(message, url_cian):
                         continue
 
                 try:
-                    await mc.data_base(adres=full_address, price=price, square=square, url=url_ad)
+                    await mc.data_base(status='Active', adres=full_address, price=price, square=square, url=url_ad)
                 except Exception:
                     break
 
@@ -233,10 +233,10 @@ async def yandex_site_parser(message, url_yandex):
                     full_address = ' '.join(full_address)
                     price = "".join(re.findall(r'\d+', advertisement['div'][0]['div'][1]['div'][0]['span'][0]['_value']))
                     url_ad = 'https://realty.yandex.ru' + advertisement['div'][0]['div'][0]['a'][0]['_attributes']['href']
-                    square = str(advertisement['div'][0]['div'][0]['a'][0]['span'][0]['_value']).split(',')[0][:3].strip()
+                    square = round(float(str(advertisement['div'][0]['div'][0]['a'][0]['span'][0]['_value']).split(',')[0][:3].strip()))
 
                     try:
-                        await mc.data_base(adres=full_address, price=price, square=square, url=url_ad)
+                        await mc.data_base(status='Active', adres=full_address, price=price, square=square, url=url_ad)
                     except Exception:
                         point = True
                         break
@@ -320,15 +320,17 @@ async def avito_site_parser(message, url_avito):
                         square = str(advertisement['div'][0]['div'][1]['div'][1]['a'][0]['h3'][0]['_value']).split(',')[1].strip()
                         if len(square) > 4:
                             square = square[:-2].strip()
+                            square = round(float(square))
                         if square.find('>') != -1:
                             square = square[2:].strip()
+                            square = round(float(square))
                     else:
                         square = '-'
                 except Exception:
                     square = '-'
 
                 try:
-                    await mc.data_base(adres=full_address, price=price, square=square, url=url_ad)
+                    await mc.data_base(status='Active', adres=full_address, price=price, square=square, url=url_ad)
                 except Exception:
                     break
 
