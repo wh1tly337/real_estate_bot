@@ -10,6 +10,8 @@ from random import randint
 import html_to_json
 import requests
 from aiogram import Bot, Dispatcher
+from bob_telegram_tools.bot import TelegramBot
+from bob_telegram_tools.utils import TelegramTqdm
 from bs2json import bs2json
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -34,6 +36,9 @@ async def cian_avito_url_cycle_detector(url_next_page, i):
 
 
 async def upn_site_parser(message, url_upn):
+    bot_tqdm = TelegramBot('5432400118:AAFgz1QNbckgmQ7X1jbEu87S2ZdhV6vU1m0', message.chat.id)
+    tqdm = TelegramTqdm(bot_tqdm)
+
     print("[INFO] - Start parsing UPN")
     pos = url_upn.find('?page')
     url = url_upn if pos == -1 else url_upn[:pos]
@@ -45,7 +50,7 @@ async def upn_site_parser(message, url_upn):
         num_of_pages = 15
         await bot.send_message(chat_id=message.chat.id, text='Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только 15 '
                                                              'страниц.')
-    for j in range(1, num_of_pages + 1):
+    for j in tqdm(range(1, num_of_pages + 1)):
         try:
             if re.search(r'\d+', url[-1]):
                 url_cycle = f'{url}?page={j}'
@@ -66,10 +71,11 @@ async def upn_site_parser(message, url_upn):
                 full_address = "".join((advertisement[i]['div'][1]['div'][1]['span']['text']).split(',')[-2:])
                 url_ad = 'https://upn.ru' + advertisement[i]['div'][1]['a']['attributes']['href']
                 square = "".join((advertisement[i]['div'][1]['div'][2]['div'][0]['div'][1]['text']).split('/')[0])
+
                 try:
                     await mc.data_base(adres=full_address, price=price, square=square, url=url_ad)
                 except Exception:
-                    quit()
+                    break
 
         except Exception as ex:
             print("[ERROR] [UPN_SITE_PARSER] - ", ex)
@@ -77,6 +83,9 @@ async def upn_site_parser(message, url_upn):
 
 
 async def cian_site_parser(message, url_cian):
+    bot_tqdm = TelegramBot('5432400118:AAFgz1QNbckgmQ7X1jbEu87S2ZdhV6vU1m0', message.chat.id)
+    tqdm = TelegramTqdm(bot_tqdm)
+
     print("[INFO] - Start parsing Cian")
     url = url_cian
     driver = webdriver.Safari()
@@ -104,7 +113,7 @@ async def cian_site_parser(message, url_cian):
             num_of_pages = 15
             await bot.send_message(chat_id=message.chat.id, text='Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только '
                                                                  '15 страниц.')
-        for i in range(1, num_of_pages + 1):
+        for i in tqdm(range(1, num_of_pages + 1)):
             url_cycle = await cian_avito_url_cycle_detector(url_next_page, i)
             driver.get(url=url_cycle)
             driver.execute_script(f"window.scrollTo(0, {randint(0, 1080)})")
@@ -137,11 +146,13 @@ async def cian_site_parser(message, url_cian):
                         break
                     except Exception:
                         continue
+
                 try:
                     await mc.data_base(adres=full_address, price=price, square=square, url=url_ad)
-                    await asyncio.sleep(float('{:.3f}'.format(random.random())))
                 except Exception:
-                    quit()
+                    break
+
+                await asyncio.sleep(float('{:.3f}'.format(random.random())))
 
     except Exception as ex:
         print("[ERROR] [CIAN_SITE_PARSER] - ", ex)
@@ -151,9 +162,13 @@ async def cian_site_parser(message, url_cian):
 
 
 async def yandex_site_parser(message, url_yandex):
+    bot_tqdm = TelegramBot('5432400118:AAFgz1QNbckgmQ7X1jbEu87S2ZdhV6vU1m0', message.chat.id)
+    tqdm = TelegramTqdm(bot_tqdm)
+
     print("[INFO]  - Start parsing Yandex")
     url = url_yandex
     driver = webdriver.Safari()
+    point = False
     try:
         time.sleep(1)
         driver.get(url=url)
@@ -177,50 +192,56 @@ async def yandex_site_parser(message, url_yandex):
             num_of_pages = 15
             await bot.send_message(chat_id=message.chat.id, text='Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только '
                                                                  '15 страниц.')
-        for j in range(num_of_pages):
-            pos = url_next_page.find('&page=')
-            if pos == -1:
-                pos = url_next_page.find('?page=')
+        for j in tqdm(range(num_of_pages)):
+            if point is True:
+                break
+            else:
+                pos = url_next_page.find('&page=')
                 if pos == -1:
-                    url_cycle = url_next_page
+                    pos = url_next_page.find('?page=')
+                    if pos == -1:
+                        url_cycle = url_next_page
+                    else:
+                        pos = pos + 6
+                        url_cycle = f"{url_next_page[:pos]}{j}{url_next_page[pos + 1:]}"
                 else:
                     pos = pos + 6
                     url_cycle = f"{url_next_page[:pos]}{j}{url_next_page[pos + 1:]}"
-            else:
-                pos = pos + 6
-                url_cycle = f"{url_next_page[:pos]}{j}{url_next_page[pos + 1:]}"
-            print(url_cycle)
-            driver.get(url=url_cycle)
-            driver.execute_script(f"window.scrollTo(0, {randint(0, 1080)})")
-            full_page = html_to_json.convert(driver.page_source)
-            num_of_ads = len(full_page['html'][0]['body'][0]['div'][1]['div'][1]['div'][0]['div'][0]['div'][1]['div'][3]['ol'][0]['li'])
-            for i in range(num_of_ads):
-                advertisement = full_page['html'][0]['body'][0]['div'][1]['div'][1]['div'][0]['div'][0]['div'][1]['div'][3]['ol'][0]['li'][i]
-                if len(advertisement) != 3:
-                    continue
-                try:
-                    advertisement = full_page['html'][0]['body'][0]['div'][1]['div'][1]['div'][0]['div'][0]['div'][1]['div'][3]['ol'][0]['li'][i]['div'][0]['div'][0]
-                except Exception:
-                    continue
-                full_address = []
-                for adr in range(20):
-                    try:
-                        address = str(advertisement['div'][0]['div'][0]['div'][0]['a'][adr]['_value']).replace(',', '')
-                        full_address.append(address)
-                    except Exception:
-                        address = str(advertisement['div'][0]['div'][0]['div'][0]['text'][adr]).replace(',', '')
-                        full_address.append(address)
-                    finally:
+                print(url_cycle)
+                driver.get(url=url_cycle)
+                driver.execute_script(f"window.scrollTo(0, {randint(0, 1080)})")
+                full_page = html_to_json.convert(driver.page_source)
+                num_of_ads = len(full_page['html'][0]['body'][0]['div'][1]['div'][1]['div'][0]['div'][0]['div'][1]['div'][3]['ol'][0]['li'])
+                for i in range(num_of_ads):
+                    advertisement = full_page['html'][0]['body'][0]['div'][1]['div'][1]['div'][0]['div'][0]['div'][1]['div'][3]['ol'][0]['li'][i]
+                    if len(advertisement) != 3:
                         continue
-                full_address = ' '.join(full_address)
-                price = "".join(re.findall(r'\d+', advertisement['div'][0]['div'][1]['div'][0]['span'][0]['_value']))
-                url_ad = 'https://realty.yandex.ru' + advertisement['div'][0]['div'][0]['a'][0]['_attributes']['href']
-                square = str(advertisement['div'][0]['div'][0]['a'][0]['span'][0]['_value']).split(',')[0][:3].strip()
-                try:
-                    await mc.data_base(adres=full_address, price=price, square=square, url=url_ad)
+                    try:
+                        advertisement = full_page['html'][0]['body'][0]['div'][1]['div'][1]['div'][0]['div'][0]['div'][1]['div'][3]['ol'][0]['li'][i]['div'][0]['div'][0]
+                    except Exception:
+                        continue
+                    full_address = []
+                    for adr in range(20):
+                        try:
+                            address = str(advertisement['div'][0]['div'][0]['div'][0]['a'][adr]['_value']).replace(',', '')
+                            full_address.append(address)
+                        except Exception:
+                            address = str(advertisement['div'][0]['div'][0]['div'][0]['text'][adr]).replace(',', '')
+                            full_address.append(address)
+                        finally:
+                            continue
+                    full_address = ' '.join(full_address)
+                    price = "".join(re.findall(r'\d+', advertisement['div'][0]['div'][1]['div'][0]['span'][0]['_value']))
+                    url_ad = 'https://realty.yandex.ru' + advertisement['div'][0]['div'][0]['a'][0]['_attributes']['href']
+                    square = str(advertisement['div'][0]['div'][0]['a'][0]['span'][0]['_value']).split(',')[0][:3].strip()
+
+                    try:
+                        await mc.data_base(adres=full_address, price=price, square=square, url=url_ad)
+                    except Exception:
+                        point = True
+                        break
+
                     await asyncio.sleep(float('{:.3f}'.format(random.random())))
-                except Exception:
-                    quit()
 
     except Exception as ex:
         print("[ERROR] [YANDEX_SITE_PARSER] - ", ex)
@@ -230,6 +251,9 @@ async def yandex_site_parser(message, url_yandex):
 
 
 async def avito_site_parser(message, url_avito):
+    bot_tqdm = TelegramBot('5432400118:AAFgz1QNbckgmQ7X1jbEu87S2ZdhV6vU1m0', message.chat.id)
+    tqdm = TelegramTqdm(bot_tqdm)
+
     print("[INFO] - Start parsing Avito")
     url = url_avito
     driver = webdriver.Safari()
@@ -252,7 +276,7 @@ async def avito_site_parser(message, url_avito):
             num_of_pages = 15
             await bot.send_message(chat_id=message.chat.id, text='Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только '
                                                                  '15 страниц.')
-        for i in range(1, num_of_pages + 1):
+        for i in tqdm(range(1, num_of_pages + 1)):
             url_cycle = await cian_avito_url_cycle_detector(url_next_page, i)
             driver.get(url=url_cycle)
             driver.execute_script(f"window.scrollTo(0, {randint(0, 1080)})")
@@ -302,11 +326,13 @@ async def avito_site_parser(message, url_avito):
                         square = '-'
                 except Exception:
                     square = '-'
+
                 try:
                     await mc.data_base(adres=full_address, price=price, square=square, url=url_ad)
-                    await asyncio.sleep(float('{:.3f}'.format(random.random())))
                 except Exception:
-                    quit()
+                    break
+
+                await asyncio.sleep(float('{:.3f}'.format(random.random())))
 
     except Exception as ex:
         print("[ERROR] [AVITO_SITE_PARSER] - ", ex)
