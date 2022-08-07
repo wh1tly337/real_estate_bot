@@ -98,20 +98,16 @@ async def get_site_url(message: types.Message, state: FSMContext):
 
     point = 0
     if user_response[:14] == 'https://upn.ru' and id_url == 'upn':
-        await bot.send_message(chat_id=message.chat.id, text='Я начал собирать информацию с УПНа, это может занять некоторое время')
-        await bot.send_message(chat_id=message.chat.id, text='Чем больше объявлений вы выбрали, тем дольше я буду работать')
+        await bot.send_message(chat_id=message.chat.id, text='Я начал собирать информацию с УПНа, это может занять некоторое время\nПрогресс выполнения работы:')
         await mc.site_parsing_main(req_site=1, url_upn=user_response, url_cian=None, url_yandex=None, url_avito=None, message=message)
     elif user_response[:19] == 'https://ekb.cian.ru' and id_url == 'cian':
-        await bot.send_message(chat_id=message.chat.id, text='Я начал собирать информацию с ЦИАНа, это может занять некоторое время')
-        await bot.send_message(chat_id=message.chat.id, text='Чем больше объявлений вы выбрали, тем дольше я буду работать')
+        await bot.send_message(chat_id=message.chat.id, text='Я начал собирать информацию с ЦИАНа, это может занять некоторое время\nПрогресс выполнения работы:')
         await mc.site_parsing_main(req_site=2, url_upn=None, url_cian=user_response, url_yandex=None, url_avito=None, message=message)
     elif user_response[:24] == 'https://realty.yandex.ru' and id_url == 'yandex':
-        await bot.send_message(chat_id=message.chat.id, text='Я начал собирать информацию с Яндекс Недвижимости, это может занять некоторое время')
-        await bot.send_message(chat_id=message.chat.id, text='Чем больше объявлений вы выбрали, тем дольше я буду работать')
+        await bot.send_message(chat_id=message.chat.id, text='Я начал собирать информацию с Яндекс Недвижимости, это может занять некоторое время\nПрогресс выполнения работы:')
         await mc.site_parsing_main(req_site=3, url_upn=None, url_cian=None, url_yandex=user_response, url_avito=None, message=message)
     elif user_response[:20] == 'https://www.avito.ru' and id_url == 'avito':
-        await bot.send_message(chat_id=message.chat.id, text='Я начал собирать информацию с Авито, это может занять некоторое время')
-        await bot.send_message(chat_id=message.chat.id, text='Чем больше объявлений вы выбрали, тем дольше я буду работать')
+        await bot.send_message(chat_id=message.chat.id, text='Я начал собирать информацию с Авито, это может занять некоторое время.\nПрогресс выполнения работы:')
         await mc.site_parsing_main(req_site=4, url_upn=None, url_cian=None, url_yandex=None, url_avito=user_response, message=message)
     elif user_response == 'Завершить работу':
         point = 1
@@ -182,136 +178,144 @@ async def file_sender(message: types.Message, call):
 async def text(message: types.Message):
     global task
 
-    if message.text == "За работу":
-        await bot.send_message(chat_id=message.chat.id, text='Что вы хотите сделать?', reply_markup=markup_first_question)
-    elif message.text == "Собрать новую информацию":
-        task = 'fast_quit'
-        await new_table(message, call=0)
-    elif message.text == "Обновить старую информацию":
-        task = 'fast_quit'
-        await update_table(message)
+    try:
+        if message.text == "За работу":
+            await bot.send_message(chat_id=message.chat.id, text='Что вы хотите сделать?', reply_markup=markup_first_question)
+        elif message.text == "Собрать новую информацию":
+            task = 'fast_quit'
+            await new_table(message, call=0)
+        elif message.text == "Обновить старую информацию":
+            task = 'fast_quit'
+            await update_table(message)
 
-    elif message.text == "УПН":
-        await getting_site_link(message, status_url='upn')
-    elif message.text == "ЦИАН":
-        await getting_site_link(message, status_url='cian')
-    elif message.text == "Яндекс Недвижимость":
-        await getting_site_link(message, status_url='yandex')
-    elif message.text == "Авито":
-        await getting_site_link(message, status_url='avito')
-    elif message.text == "Завершить работу":
-        if task == 'fast_quit':
-            await bot.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_start)
-        else:
-            await bot.send_message(chat_id=message.chat.id, text='Вы уверены?', reply_markup=markup_sure)
-
-    elif message.text == "Да, уверен":
-        if task == 'site':
-            # Before for this cursor i create his personal connection to data base, i think that not necessary
-            check = glob.cursor.fetchall()[0][0]
-            if int(check) != 0:
-                await bot.send_message(chat_id=message.chat.id, text='Хотите получить объявления которые я успел найти?',
-                                       reply_markup=markup_save_file)
+        elif message.text == "УПН":
+            await getting_site_link(message, status_url='upn')
+        elif message.text == "ЦИАН":
+            await getting_site_link(message, status_url='cian')
+        elif message.text == "Яндекс Недвижимость":
+            await getting_site_link(message, status_url='yandex')
+        elif message.text == "Авито":
+            await getting_site_link(message, status_url='avito')
+        elif message.text == "Завершить работу":
+            if task == 'fast_quit':
+                await bot.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_start)
             else:
+                await bot.send_message(chat_id=message.chat.id, text='Вы уверены?', reply_markup=markup_sure)
+
+        elif message.text == "Да, уверен":
+            if task == 'site':
+                # Before for this cursor i create his personal connection to data base, i think that not necessary
+                with glob.connection.cursor() as glob.cursor:
+                    glob.cursor.execute("""SELECT count(*) FROM advertisement;""")
+                    check = glob.cursor.fetchall()[0][0]
+                if int(check) != 0:
+                    await bot.send_message(chat_id=message.chat.id, text='Хотите получить объявления которые я успел найти?',
+                                           reply_markup=markup_save_file)
+                else:
+                    await bot.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_start)
+                    await mc.delete_advertisement_table()
+                    await mc.file_remover(from_where='site')
+                    with contextlib.suppress(Exception):
+                        await mc.close_connection()
+                    with contextlib.suppress(Exception):
+                        await mc.close_driver()
+            elif task == 'table':
+                await bot.send_message(chat_id=message.chat.id, text='Хотите получить таблицу с не до конца обновленными данными?',
+                                       reply_markup=markup_save_file)
+        elif message.text == "Нет, давай продолжим":
+            await bot.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_quit)
+
+        elif message.text == "Да, хочу":
+            if task == 'site':
+                await bot.send_message(chat_id=message.chat.id, text='Отлично! В каком формате вы хотите получить результат?',
+                                       reply_markup=markup_result)
+            elif task == 'table':
+                await bot.send_message(chat_id=message.chat.id, text='Отлично! В каком формате вы хотите получить результат?',
+                                       reply_markup=markup_result)
+        elif message.text == "Нет, не хочу":
+            if task == 'site':
                 await bot.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_start)
                 await mc.delete_advertisement_table()
                 await mc.file_remover(from_where='site')
                 with contextlib.suppress(Exception):
                     await mc.close_connection()
-        elif task == 'table':
-            await bot.send_message(chat_id=message.chat.id, text='Хотите получить таблицу с не до конца обновленными данными?',
-                                   reply_markup=markup_save_file)
-    elif message.text == "Нет, давай продолжим":
-        await bot.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_quit)
+            elif task == 'table':
+                await bot.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_start)
+                await mc.file_remover(from_where='table')
+                await mc.delete_update_ad_table()
+                await mc.close_connection()
 
-    elif message.text == "Да, хочу":
-        if task == 'site':
+        elif message.text == "Да":
+            await new_table(message, call=1)
+        elif message.text == "Нет":
             await bot.send_message(chat_id=message.chat.id, text='Отлично! В каком формате вы хотите получить результат?',
                                    reply_markup=markup_result)
-        elif task == 'table':
-            await bot.send_message(chat_id=message.chat.id, text='Отлично! В каком формате вы хотите получить результат?',
-                                   reply_markup=markup_result)
-    elif message.text == "Нет, не хочу":
-        if task == 'site':
-            await bot.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_start)
-            await mc.delete_advertisement_table()
-            await mc.file_remover(from_where='site')
-            with contextlib.suppress(Exception):
-                await mc.close_connection()
-        elif task == 'table':
-            await bot.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_start)
-            await mc.file_remover(from_where='table')
-            await mc.delete_update_ad_table()
-            await mc.close_connection()
 
-    elif message.text == "Да":
-        await new_table(message, call=1)
-    elif message.text == "Нет":
-        await bot.send_message(chat_id=message.chat.id, text='Отлично! В каком формате вы хотите получить результат?',
-                               reply_markup=markup_result)
+        elif message.text == ".csv":
+            if task == 'site':
+                await mc.site_parsing_finish(req_res='csv')
+                await bot.send_message(chat_id=message.chat.id, text="Ваш .csv файл", reply_markup=markup_start)
+                await bot.send_document(chat_id=message.chat.id, document=open(f"{mc.filename_creator}.csv", "rb"))
+                await mc.file_remover(from_where='site')
+                with contextlib.suppress(Exception):
+                    await mc.close_connection()
+            elif task == 'table':
+                await bot.send_message(chat_id=message.chat.id, text="Ваш .csv файл", reply_markup=markup_start)
+                await bot.send_document(chat_id=message.chat.id, document=open(f"{table_name_upd}.csv", "rb"))
+                await mc.file_remover(from_where='table')
+                await mc.delete_update_ad_table()
+                await mc.close_connection()
+        elif message.text == ".xlsx":
+            if task == 'site':
+                await mc.site_parsing_finish(req_res='xlsx')
+                await bot.send_message(chat_id=message.chat.id, text="Ваш .xlsx файл", reply_markup=markup_start)
+                await bot.send_document(chat_id=message.chat.id, document=open(f"{mc.filename_creator}.xlsx", "rb"))
+                await mc.file_remover(from_where='site')
+                with contextlib.suppress(Exception):
+                    await mc.close_connection()
+            elif task == 'table':
+                await mc.convert_csv_to_xlsx(from_where='table')
+                await bot.send_message(chat_id=message.chat.id, text="Ваш .xlsx файл", reply_markup=markup_start)
+                await bot.send_document(chat_id=message.chat.id, document=open(f"{table_name_upd}.xlsx", "rb"))
+                await mc.file_remover(from_where='table')
+                await mc.delete_update_ad_table()
+                await mc.close_connection()
+        elif message.text == ".txt":
+            if task == 'site':
+                await mc.site_parsing_finish(req_res='txt')
+                await bot.send_message(chat_id=message.chat.id, text="Ваш .txt файл", reply_markup=markup_start)
+                await bot.send_document(chat_id=message.chat.id, document=open(f"{mc.filename_creator}.txt", "rb"))
+                await mc.file_remover(from_where='site')
+                with contextlib.suppress(Exception):
+                    await mc.close_connection()
+            elif task == 'table':
+                await mc.convert_csv_to_txt(from_where='table')
+                await bot.send_message(chat_id=message.chat.id, text="Ваш .txt файл", reply_markup=markup_start)
+                await bot.send_document(chat_id=message.chat.id, document=open(f"{table_name_upd}.txt", "rb"))
+                await mc.file_remover(from_where='table')
+                await mc.delete_update_ad_table()
+                await mc.close_connection()
+        elif message.text == "Все форматы":
+            if task == 'site':
+                await mc.site_parsing_finish(req_res='all')
+                await file_sender(message, call=task)
+                await mc.file_remover(from_where='site')
+                with contextlib.suppress(Exception):
+                    await mc.close_connection()
+            elif task == 'table':
+                await mc.convert_csv_to_xlsx(from_where='table')
+                await mc.convert_csv_to_txt(from_where='table')
+                await file_sender(message, call=task)
+                await mc.file_remover(from_where='table')
+                await mc.delete_update_ad_table()
+                await mc.close_connection()
+        else:
+            with contextlib.suppress(Exception):
+                await mc.site_parsing_finish(req_res='error')
+            await bot.send_message(chat_id=message.chat.id, text='Таких команд я не знаю 😔\nПопробуй воспользоваться /help', reply_markup=markup_start)
 
-    elif message.text == ".csv":
-        if task == 'site':
-            await mc.site_parsing_finish(req_res='csv')
-            await bot.send_message(chat_id=message.chat.id, text="Ваш .csv файл", reply_markup=markup_start)
-            await bot.send_document(chat_id=message.chat.id, document=open(f"{mc.filename_creator}.csv", "rb"))
-            await mc.file_remover(from_where='site')
-            with contextlib.suppress(Exception):
-                await mc.close_connection()
-        elif task == 'table':
-            await bot.send_message(chat_id=message.chat.id, text="Ваш .csv файл", reply_markup=markup_start)
-            await bot.send_document(chat_id=message.chat.id, document=open(f"{table_name_upd}.csv", "rb"))
-            await mc.file_remover(from_where='table')
-            await mc.delete_update_ad_table()
-            await mc.close_connection()
-    elif message.text == ".xlsx":
-        if task == 'site':
-            await mc.site_parsing_finish(req_res='xlsx')
-            await bot.send_message(chat_id=message.chat.id, text="Ваш .xlsx файл", reply_markup=markup_start)
-            await bot.send_document(chat_id=message.chat.id, document=open(f"{mc.filename_creator}.xlsx", "rb"))
-            await mc.file_remover(from_where='site')
-            with contextlib.suppress(Exception):
-                await mc.close_connection()
-        elif task == 'table':
-            await mc.convert_csv_to_xlsx(from_where='table')
-            await bot.send_message(chat_id=message.chat.id, text="Ваш .xlsx файл", reply_markup=markup_start)
-            await bot.send_document(chat_id=message.chat.id, document=open(f"{table_name_upd}.xlsx", "rb"))
-            await mc.file_remover(from_where='table')
-            await mc.delete_update_ad_table()
-            await mc.close_connection()
-    elif message.text == ".txt":
-        if task == 'site':
-            await mc.site_parsing_finish(req_res='txt')
-            await bot.send_message(chat_id=message.chat.id, text="Ваш .txt файл", reply_markup=markup_start)
-            await bot.send_document(chat_id=message.chat.id, document=open(f"{mc.filename_creator}.txt", "rb"))
-            await mc.file_remover(from_where='site')
-            with contextlib.suppress(Exception):
-                await mc.close_connection()
-        elif task == 'table':
-            await mc.convert_csv_to_txt(from_where='table')
-            await bot.send_message(chat_id=message.chat.id, text="Ваш .txt файл", reply_markup=markup_start)
-            await bot.send_document(chat_id=message.chat.id, document=open(f"{table_name_upd}.txt", "rb"))
-            await mc.file_remover(from_where='table')
-            await mc.delete_update_ad_table()
-            await mc.close_connection()
-    elif message.text == "Все форматы":
-        if task == 'site':
-            await mc.site_parsing_finish(req_res='all')
-            await file_sender(message, call=task)
-            await mc.file_remover(from_where='site')
-            with contextlib.suppress(Exception):
-                await mc.close_connection()
-        elif task == 'table':
-            await mc.convert_csv_to_xlsx(from_where='table')
-            await mc.convert_csv_to_txt(from_where='table')
-            await file_sender(message, call=task)
-            await mc.file_remover(from_where='table')
-            await mc.delete_update_ad_table()
-            await mc.close_connection()
-    else:
-        with contextlib.suppress(Exception):
-            await mc.site_parsing_finish(req_res='error')
-        await bot.send_message(chat_id=message.chat.id, text='Таких команд я не знаю 😔\nПопробуй воспользоваться /help', reply_markup=markup_start)
+    except Exception as ex:
+        print('[ERROR] [TEXT MESSAGES] - ', ex)
 
 
 if __name__ == '__main__':

@@ -11,6 +11,8 @@ import psycopg2
 import pyexcel
 from aiofiles import os
 from aiogram import Bot, Dispatcher
+from bob_telegram_tools.bot import TelegramBot
+from bob_telegram_tools.utils import TelegramTqdm
 from selenium import webdriver
 
 import site_parser as sp
@@ -145,12 +147,12 @@ async def data_base(adres, price, square, url):
 
     except Exception as ex:
         print("[ERROR] [DATA_BASE] - ", ex)
-        quit()
 
 
 async def add_data_to_data_base():
     try:
-        glob.cursor.execute(f"""COPY update_ad FROM '/Users/user/PycharmProjects/Parser/{table_name_upd}.csv' DELIMITER ';' CSV HEADER;""")
+        with glob.connection.cursor() as glob.cursor:
+            glob.cursor.execute(f"""COPY update_ad FROM '/Users/user/PycharmProjects/Parser/{table_name_upd}.csv' DELIMITER ';' CSV HEADER;""")
 
     except Exception as ex:
         print('[ERROR] [ADD_DATA_TO_TABLE] - ', ex)
@@ -225,19 +227,20 @@ async def table_parsing_main(message):
     try:
         global driver, table_name, table_name_upd
 
-        with contextlib.suppress(Exception):
-            await start_connection()
+        bot_tqdm = TelegramBot('5432400118:AAFgz1QNbckgmQ7X1jbEu87S2ZdhV6vU1m0', message.chat.id)
+        tqdm = TelegramTqdm(bot_tqdm)
 
         await file_format_reformer()
 
         await add_data_to_data_base()
 
-        glob.cursor.execute("""SELECT count(*) FROM update_ad;""")
-        max_row = glob.cursor.fetchall()[0][0]
+        with glob.connection.cursor() as glob.cursor:
+            glob.cursor.execute("""SELECT count(*) FROM update_ad;""")
+            max_row = glob.cursor.fetchall()[0][0]
 
         requirement, driver, counter = False, None, 1
 
-        for row in range(max_row):
+        for row in tqdm(range(max_row)):
             # maybe this stopper work not correctly
             if counter is None:
                 break
@@ -246,12 +249,15 @@ async def table_parsing_main(message):
                     try:
                         global old_price, table_url
 
-                        glob.cursor.execute("""SELECT id FROM update_ad;""")
-                        ad_id = glob.cursor.fetchall()[row][0]
-                        glob.cursor.execute("""SELECT url FROM update_ad;""")
-                        table_url = glob.cursor.fetchall()[row][0]
-                        glob.cursor.execute("""SELECT price FROM update_ad;""")
-                        old_price = glob.cursor.fetchall()[row][0]
+                        with glob.connection.cursor() as glob.cursor:
+                            glob.cursor.execute("""SELECT id FROM update_ad;""")
+                            ad_id = glob.cursor.fetchall()[row][0]
+                        with glob.connection.cursor() as glob.cursor:
+                            glob.cursor.execute("""SELECT url FROM update_ad;""")
+                            table_url = glob.cursor.fetchall()[row][0]
+                        with glob.connection.cursor() as glob.cursor:
+                            glob.cursor.execute("""SELECT price FROM update_ad;""")
+                            old_price = glob.cursor.fetchall()[row][0]
 
                         if ad_id != counter:
                             continue

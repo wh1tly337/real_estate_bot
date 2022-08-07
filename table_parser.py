@@ -22,11 +22,13 @@ async def db_price_updater(new_price, old_price, table_url):
     if change == 0:
         print('[INFO] - Price don`t changed')
     elif change > 0:
-        glob.cursor.execute(f""" UPDATE update_ad SET price = '{f'↓{str(new_price)}'}' WHERE url = '{table_url}';""")
+        with glob.connection.cursor() as glob.cursor:
+            glob.cursor.execute(f""" UPDATE update_ad SET price = '{f'↓{str(new_price)}'}' WHERE url = '{table_url}';""")
 
         print(f"[INFO] - Price update successfully | {f'↓ {str(new_price)}'}")
     else:
-        glob.cursor.execute(f""" UPDATE update_ad SET price = '{f'↑{str(new_price)}'}' WHERE url = '{table_url}';""")
+        with glob.connection.cursor() as glob.cursor:
+            glob.cursor.execute(f""" UPDATE update_ad SET price = '{f'↑{str(new_price)}'}' WHERE url = '{table_url}';""")
 
         print(f"[INFO] - Price update successfully | {f'↑ {str(new_price)}'}")
 
@@ -39,7 +41,8 @@ async def upn_table_parser(table_url, old_price):
     except Exception:
         availability = 1
     if availability == 'ОБЪЕКТ НЕ НАЙДЕН':
-        glob.cursor.execute(f"""UPDATE update_ad SET square = 'DELETED' WHERE url = '{table_url}';""")
+        with glob.connection.cursor() as glob.cursor:
+            glob.cursor.execute(f"""UPDATE update_ad SET square = 'DELETED' WHERE url = '{table_url}';""")
         print('[INFO] - Advertisement deleted')
     else:
         new_price = bs2json().convert(response.find())['html']['body']['div'][4]['main']['div']['div']['div']['span'][0]['meta'][3]['attributes']['content']
@@ -57,7 +60,8 @@ async def cian_table_parser(table_url, old_price, driver):
     except Exception:
         availability = 1
     if availability == 'Объявление снято с публикации':
-        glob.cursor.execute(f"""UPDATE update_ad SET square = 'DELETED' WHERE url = '{table_url}';""")
+        with glob.connection.cursor() as glob.cursor:
+            glob.cursor.execute(f"""UPDATE update_ad SET square = 'DELETED' WHERE url = '{table_url}';""")
         print('[INFO] - Advertisement deleted')
     else:
         new_price = full_page['div'][2]['div'][0]['div'][0]['div'][0]['div'][1]['div'][0]['div'][0]['div'][0]['span'][0]['span'][0]['_value']
@@ -76,7 +80,8 @@ async def yandex_table_parser(table_url, old_price, driver):
     except Exception:
         availability = 1
     if availability == 'объявление снято или устарело':
-        glob.cursor.execute(f"""UPDATE update_ad SET square = 'DELETED' WHERE url = '{table_url}';""")
+        with glob.connection.cursor() as glob.cursor:
+            glob.cursor.execute(f"""UPDATE update_ad SET square = 'DELETED' WHERE url = '{table_url}';""")
         print('[INFO] - Advertisement deleted')
     else:
         new_price = full_page['div'][1]['h1'][0]['span'][0]['_value']
@@ -99,7 +104,8 @@ async def avito_table_parser(table_url, old_price, driver):
         except Exception:
             availability = 1
     if availability in {'Объявление снято с публикации.', 'Ой! Такой страницы на нашем сайте нет :('}:
-        glob.cursor.execute(f"""UPDATE update_ad SET square = 'DELETED' WHERE url = '{table_url}';""")
+        with glob.connection.cursor() as glob.cursor:
+            glob.cursor.execute(f"""UPDATE update_ad SET square = 'DELETED' WHERE url = '{table_url}';""")
         print('[INFO] - Advertisement deleted')
     else:
         new_price = full_page['div'][0]['div'][1]['div'][1]['div'][1]['div'][0]['div'][0]['div'][0]['div'][0]
