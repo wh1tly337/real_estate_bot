@@ -13,7 +13,7 @@ from all_markups import *
 bot = Bot(token='5432400118:AAFgz1QNbckgmQ7X1jbEu87S2ZdhV6vU1m0')
 dp = Dispatcher(bot, storage=MemoryStorage())
 
-global table_name_upd, table_name, id_url, task
+global table_name_upd, table_name, id_url, task, possibility
 
 
 class Answer(StatesGroup):
@@ -51,9 +51,10 @@ async def links(message: types.Message):
 
 @dp.message_handler(commands=['new_table'])
 async def new_table(message: types.Message, call=0):
-    global task
+    global task, possibility
 
     task = 'site'
+    possibility = True
 
     if call == 0:
         await mc.start_connection()
@@ -80,8 +81,7 @@ async def handle_docs(message: types.Message):
         src = f"/Users/user/PycharmProjects/Parser/{message.document.file_name}"
         await message.document.download(destination_file=src)
 
-        await bot.send_message(chat_id=message.chat.id, text="Отлично! Я начал обновлять информацию, это может занять некоторое время", reply_markup=markup_quit, parse_mode="Markdown")
-        await bot.send_message(chat_id=message.chat.id, text="Чем больше объявлений в файле, тем дольше я буду работать")
+        await bot.send_message(chat_id=message.chat.id, text="Отлично! Я начал обновлять информацию.\n\nПрогресс выполнения работы:", reply_markup=markup_quit, parse_mode="Markdown")
 
         table_name, table_name_upd = await mc.table_name_handler(message)
 
@@ -93,30 +93,34 @@ async def handle_docs(message: types.Message):
 
 @dp.message_handler(state=Answer.response_as_link)
 async def get_site_url(message: types.Message, state: FSMContext):
+    global task
+
     user_response = message.text
     await state.update_data(user_response=user_response)
 
     point = 0
+
     if user_response[:14] == 'https://upn.ru' and id_url == 'upn':
-        await bot.send_message(chat_id=message.chat.id, text='Я начал собирать информацию с УПНа, это может занять некоторое время\nПрогресс выполнения работы:')
+        await bot.send_message(chat_id=message.chat.id, text='Я начал собирать информацию с УПНа, это может занять некоторое время.\n\nПрогресс выполнения работы:')
         await mc.site_parsing_main(req_site=1, url_upn=user_response, url_cian=None, url_yandex=None, url_avito=None, message=message)
     elif user_response[:19] == 'https://ekb.cian.ru' and id_url == 'cian':
-        await bot.send_message(chat_id=message.chat.id, text='Я начал собирать информацию с ЦИАНа, это может занять некоторое время\nПрогресс выполнения работы:')
+        await bot.send_message(chat_id=message.chat.id, text='Я начал собирать информацию с ЦИАНа, это может занять некоторое время.\n\nПрогресс выполнения работы:')
         await mc.site_parsing_main(req_site=2, url_upn=None, url_cian=user_response, url_yandex=None, url_avito=None, message=message)
     elif user_response[:24] == 'https://realty.yandex.ru' and id_url == 'yandex':
-        await bot.send_message(chat_id=message.chat.id, text='Я начал собирать информацию с Яндекс Недвижимости, это может занять некоторое время\nПрогресс выполнения работы:')
+        await bot.send_message(chat_id=message.chat.id, text='Я начал собирать информацию с Яндекс Недвижимости, это может занять некоторое время.\n\nПрогресс выполнения работы:')
         await mc.site_parsing_main(req_site=3, url_upn=None, url_cian=None, url_yandex=user_response, url_avito=None, message=message)
     elif user_response[:20] == 'https://www.avito.ru' and id_url == 'avito':
-        await bot.send_message(chat_id=message.chat.id, text='Я начал собирать информацию с Авито, это может занять некоторое время.\nПрогресс выполнения работы:')
+        await bot.send_message(chat_id=message.chat.id, text='Я начал собирать информацию с Авито, это может занять некоторое время.\n\nПрогресс выполнения работы:')
         await mc.site_parsing_main(req_site=4, url_upn=None, url_cian=None, url_yandex=None, url_avito=user_response, message=message)
     elif user_response == 'Завершить работу':
         point = 1
         await bot.send_message(chat_id=message.chat.id, text='Вы уверены?', reply_markup=markup_sure)
     else:
+        task = 'fast_quit'
         point = 1
         await getting_site_link(message, status_url='error')
 
-    if point == 0:
+    if point == 0 and possibility is True:
         await bot.send_message(chat_id=message.chat.id, text="С этим сайтом я закончил, хотите добавить еще сайт для поиска?", reply_markup=markup_continue_question, parse_mode="Markdown")
 
     await state.finish()
@@ -153,7 +157,7 @@ async def getting_site_link(message: types.Message, status_url):
             await Answer.response_as_link.set()
         elif status_url == 'error':
             message_text = 'Введена неверная ссылка. Пожалуйста проверьте правильность ссылки и отправьте ее мне.'
-            await bot.send_message(chat_id=message.chat.id, text=message_text, parse_mode="MarkdownV2", disable_web_page_preview=True, reply_markup=markup_quit)
+            await bot.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", disable_web_page_preview=True, reply_markup=markup_quit)
 
             await Answer.response_as_link.set()
 
@@ -165,7 +169,7 @@ async def file_sender(message: types.Message, call):
     await bot.send_message(chat_id=message.chat.id, text="Ваши файлы", reply_markup=markup_start)
 
     if call == 'site':
-        result_file = mc.filename_creator
+        result_file = await mc.filename_creator(freshness='load')
     else:
         result_file = table_name_upd
 
@@ -203,7 +207,10 @@ async def text(message: types.Message):
                 await bot.send_message(chat_id=message.chat.id, text='Вы уверены?', reply_markup=markup_sure)
 
         elif message.text == "Да, уверен":
+            global possibility
+
             if task == 'site':
+                possibility = False
                 # Before for this cursor i create his personal connection to data base, i think that not necessary
                 with glob.connection.cursor() as glob.cursor:
                     glob.cursor.execute("""SELECT count(*) FROM advertisement;""")
@@ -232,6 +239,7 @@ async def text(message: types.Message):
             elif task == 'table':
                 await bot.send_message(chat_id=message.chat.id, text='Отлично! В каком формате вы хотите получить результат?',
                                        reply_markup=markup_result)
+                await mc.table_parsing_finish()
         elif message.text == "Нет, не хочу":
             if task == 'site':
                 await bot.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_start)
@@ -255,7 +263,7 @@ async def text(message: types.Message):
             if task == 'site':
                 await mc.site_parsing_finish(req_res='csv')
                 await bot.send_message(chat_id=message.chat.id, text="Ваш .csv файл", reply_markup=markup_start)
-                await bot.send_document(chat_id=message.chat.id, document=open(f"{mc.filename_creator}.csv", "rb"))
+                await bot.send_document(chat_id=message.chat.id, document=open(f"{await mc.filename_creator(freshness='load')}.csv", "rb"))
                 await mc.file_remover(from_where='site')
                 with contextlib.suppress(Exception):
                     await mc.close_connection()
@@ -269,7 +277,7 @@ async def text(message: types.Message):
             if task == 'site':
                 await mc.site_parsing_finish(req_res='xlsx')
                 await bot.send_message(chat_id=message.chat.id, text="Ваш .xlsx файл", reply_markup=markup_start)
-                await bot.send_document(chat_id=message.chat.id, document=open(f"{mc.filename_creator}.xlsx", "rb"))
+                await bot.send_document(chat_id=message.chat.id, document=open(f"{await mc.filename_creator(freshness='load')}.xlsx", "rb"))
                 await mc.file_remover(from_where='site')
                 with contextlib.suppress(Exception):
                     await mc.close_connection()
@@ -284,7 +292,7 @@ async def text(message: types.Message):
             if task == 'site':
                 await mc.site_parsing_finish(req_res='txt')
                 await bot.send_message(chat_id=message.chat.id, text="Ваш .txt файл", reply_markup=markup_start)
-                await bot.send_document(chat_id=message.chat.id, document=open(f"{mc.filename_creator}.txt", "rb"))
+                await bot.send_document(chat_id=message.chat.id, document=open(f"{await mc.filename_creator(freshness='load')}.txt", "rb"))
                 await mc.file_remover(from_where='site')
                 with contextlib.suppress(Exception):
                     await mc.close_connection()

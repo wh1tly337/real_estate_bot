@@ -20,15 +20,20 @@ async def db_price_updater(new_price, old_price, table_url):
         change = int(str(old_price)[1:]) - int(new_price)
 
     if change == 0:
+        with glob.connection.cursor() as glob.cursor:
+            glob.cursor.execute(f""" UPDATE update_ad SET status = 'Active_upd' WHERE url = '{table_url}';""")
+
         print('[INFO] - Price don`t changed')
     elif change > 0:
         with glob.connection.cursor() as glob.cursor:
             glob.cursor.execute(f""" UPDATE update_ad SET price = '{f'↓{str(new_price)}'}' WHERE url = '{table_url}';""")
+            glob.cursor.execute(f""" UPDATE update_ad SET status = 'Updated' WHERE url = '{table_url}';""")
 
         print(f"[INFO] - Price update successfully | {f'↓ {str(new_price)}'}")
     else:
         with glob.connection.cursor() as glob.cursor:
             glob.cursor.execute(f""" UPDATE update_ad SET price = '{f'↑{str(new_price)}'}' WHERE url = '{table_url}';""")
+            glob.cursor.execute(f""" UPDATE update_ad SET status = 'Updated' WHERE url = '{table_url}';""")
 
         print(f"[INFO] - Price update successfully | {f'↑ {str(new_price)}'}")
 

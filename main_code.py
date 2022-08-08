@@ -20,14 +20,26 @@ import table_parser as tp
 from all_markups import *
 from req_data import *
 
-global table_name, table_name_upd, filename_creator, driver, old_price, table_url
+global table_name, table_name_upd, filename, driver, old_price, table_url, loaded_filename
 
 bot = Bot(token='5432400118:AAFgz1QNbckgmQ7X1jbEu87S2ZdhV6vU1m0')
 dp = Dispatcher(bot)
 
-today = datetime.now()
-minute = f'0{str(today.minute)}' if int(today.minute) < 10 else today.minute
-filename_creator = f"{today.day}.{today.month}.{today.year} - {today.hour}.{minute}"
+
+async def filename_creator(freshness):
+    global loaded_filename, filename
+
+    if freshness == 'new':
+        today = datetime.now()
+
+        minute = f'0{str(today.minute)}' if int(today.minute) < 10 else today.minute
+        filename = f"{today.day}.{today.month}.{today.year} - {today.hour}.{minute}"
+        loaded_filename = filename
+
+        return filename
+
+    else:
+        return loaded_filename
 
 
 async def add_driver():
@@ -139,14 +151,10 @@ async def convert_txt_to_csv():
 
 
 async def data_base(status, adres, price, square, url):
-    try:
-        with glob.connection.cursor() as glob.cursor:
-            glob.cursor.execute(
-                f"""INSERT INTO advertisement (status, adres, price, square, url) VALUES ('{status}', '{adres}', '{price}', '{square}', '{url}');"""
-            )
-
-    except Exception as ex:
-        print("[ERROR] [DATA_BASE] - ", ex)
+    with glob.connection.cursor() as glob.cursor:
+        glob.cursor.execute(
+            f"""INSERT INTO advertisement (status, adres, price, square, url) VALUES ('{status}', '{adres}', '{price}', '{square}', '{url}');"""
+        )
 
 
 async def add_data_to_data_base():
@@ -351,13 +359,13 @@ async def file_format_reformer():
 async def file_renamer():
     try:
         with contextlib.suppress(Exception):
-            await os.rename('pars_site.txt', f'{filename_creator}.txt')
+            await os.rename('pars_site.txt', f"{await filename_creator(freshness='new')}.txt")
 
         with contextlib.suppress(Exception):
-            await os.rename('pars_site.csv', f'{filename_creator}.csv')
+            await os.rename('pars_site.csv', f"{await filename_creator(freshness='new')}.csv")
 
         with contextlib.suppress(Exception):
-            await os.rename('pars_site.xlsx', f'{filename_creator}.xlsx')
+            await os.rename('pars_site.xlsx', f"{await filename_creator(freshness='new')}.xlsx")
 
         print("[INFO] - Renaming of all files was successful")
 
@@ -369,11 +377,11 @@ async def file_remover(from_where):
     try:
         if from_where == 'site':
             with contextlib.suppress(Exception):
-                await os.remove(f"{filename_creator}.csv")
+                await os.remove(f"{await filename_creator(freshness='load')}.csv")
             with contextlib.suppress(Exception):
-                await os.remove(f"{filename_creator}.xlsx")
+                await os.remove(f"{await filename_creator(freshness='load')}.xlsx")
             with contextlib.suppress(Exception):
-                await os.remove(f"{filename_creator}.txt")
+                await os.remove(f"{await filename_creator(freshness='load')}.txt")
 
         else:
             with contextlib.suppress(Exception):
