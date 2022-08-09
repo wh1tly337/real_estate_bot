@@ -71,7 +71,7 @@ async def update_table(message: types.Message):
 
 @dp.message_handler(content_types=['document'])
 async def handle_docs(message: types.Message):
-    # try:
+    try:
         global table_name, table_name_upd, task
 
         task = 'table'
@@ -87,8 +87,8 @@ async def handle_docs(message: types.Message):
 
         await tc.table_parsing_main(message)
 
-    # except Exception as ex:
-    #     print('[ERROR] [HANDLE_DOCS] - ', ex)
+    except Exception as ex:
+        print('[ERROR] [HANDLE_DOCS] - ', ex)
 
 
 @dp.message_handler(state=Answer.response_as_link)

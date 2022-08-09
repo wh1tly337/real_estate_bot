@@ -13,12 +13,12 @@ async def data_base(status, adres, price, square, url):
 async def add_data_to_data_base():
     from main_code.work_with_files import table_name_upd
 
-    # try:
-    with glob.connection.cursor() as glob.cursor:
-        glob.cursor.execute(f"""COPY update_ad FROM '{table_name_upd}.csv' DELIMITER ';' CSV HEADER;""")
+    try:
+        with glob.connection.cursor() as glob.cursor:
+            glob.cursor.execute(f"""COPY update_ad FROM '{table_name_upd}.csv' DELIMITER ';' CSV HEADER;""")
 
-    # except Exception as ex:
-    #     print('[ERROR] [ADD_DATA_TO_TABLE] - ', ex)
+    except Exception as ex:
+        print('[ERROR] [ADD_DATA_TO_TABLE] - ', ex)
 
 
 async def create_advertisement_table():

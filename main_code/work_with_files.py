@@ -34,21 +34,16 @@ async def table_name_handler(message):
         global table_name, table_name_upd
 
         table_name = message.document.file_name
-        if table_name[-3:] == 'txt':
-            # if table_name.split('.')[-2][-3:] == 'upd':
-            #     table_name_upd = table_name[:-4]
-            # else:
-            table_name_upd = f"{src}{str(table_name)[:-4]}_upd"
+        if table_name[-3:] == 'txt' or table_name[-3:] == 'csv':
+            if table_name.split('.')[-2][-3:] == 'upd':
+                table_name_upd = f"{src}{table_name[:-4]}"
+            else:
+                table_name_upd = f"{src}{table_name[:-4]}_upd"
         elif table_name[-4:] != 'xlsx':
-            # if table_name.split('.')[-2][-3:] == 'upd':
-            #     table_name_upd = table_name[:-4]
-            # else:
-            table_name_upd = f"{src}{str(table_name)[:-4]}_upd"
-        else:
-            # if table_name.split('.')[-2][-3:] == 'upd':
-            #     table_name_upd = table_name[:-5]
-            # else:
-            table_name_upd = f"{src}{str(table_name)[:-5]}_upd"
+            if table_name.split('.')[-2][-3:] == 'upd':
+                table_name_upd = f"{src}{table_name[:-5]}"
+            else:
+                table_name_upd = f"{src}{table_name[:-4]}_upd"
 
         return table_name, table_name_upd
 
