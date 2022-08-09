@@ -23,7 +23,7 @@ async def table_parsing_start():
 
 
 async def table_parsing_main(message):
-    try:
+    # try:
         bot_tqdm = TelegramBot('5432400118:AAFgz1QNbckgmQ7X1jbEu87S2ZdhV6vU1m0', message.chat.id)
         tqdm = TelegramTqdm(bot_tqdm)
 
@@ -108,8 +108,8 @@ async def table_parsing_main(message):
 
             print("[INFO] - Table successfully updated")
 
-    except Exception as ex:
-        print('[ERROR] [TABLE_PARSER_MAIN] - ', ex)
+    # except Exception as ex:
+    #     print('[ERROR] [TABLE_PARSER_MAIN] - ', ex)
 
 
 async def table_parsing_finish():

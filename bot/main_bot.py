@@ -71,7 +71,7 @@ async def update_table(message: types.Message):
 
 @dp.message_handler(content_types=['document'])
 async def handle_docs(message: types.Message):
-    try:
+    # try:
         global table_name, table_name_upd, task
 
         task = 'table'
@@ -79,8 +79,7 @@ async def handle_docs(message: types.Message):
         await ac.start_connection()
         await tc.table_parsing_start()
 
-        src = f"/Users/user/PycharmProjects/Parser/{message.document.file_name}"
-        await message.document.download(destination_file=src)
+        await message.document.download(destination_file=f"{src}{message.document.file_name}")
 
         await bot.send_message(chat_id=message.chat.id, text="Отлично! Я начал обновлять информацию.\n\nПрогресс выполнения работы:", reply_markup=markup_quit, parse_mode="Markdown")
 
@@ -88,8 +87,8 @@ async def handle_docs(message: types.Message):
 
         await tc.table_parsing_main(message)
 
-    except Exception as ex:
-        print('[ERROR] [HANDLE_DOCS] - ', ex)
+    # except Exception as ex:
+    #     print('[ERROR] [HANDLE_DOCS] - ', ex)
 
 
 @dp.message_handler(state=Answer.response_as_link)
@@ -123,7 +122,6 @@ async def get_site_url(message: types.Message, state: FSMContext):
 
     if point == 0 and possibility is True:
         await bot.send_message(chat_id=message.chat.id, text="С этим сайтом я закончил, хотите добавить еще сайт для поиска?", reply_markup=markup_continue_question, parse_mode="Markdown")
-
     await state.finish()
 
 
@@ -171,6 +169,7 @@ async def file_sender(message: types.Message, call):
 
     if call == 'site':
         result_file = await wwf.filename_creator(freshness='load')
+        result_file = f"{src}{result_file}"
     else:
         result_file = table_name_upd
 
@@ -262,7 +261,7 @@ async def text(message: types.Message):
             if task == 'site':
                 await sc.site_parsing_finish(req_res='csv')
                 await bot.send_message(chat_id=message.chat.id, text="Ваш .csv файл", reply_markup=markup_start)
-                await bot.send_document(chat_id=message.chat.id, document=open(f"{await wwf.filename_creator(freshness='load')}.csv", "rb"))
+                await bot.send_document(chat_id=message.chat.id, document=open(f"{src}{await wwf.filename_creator(freshness='load')}.csv", "rb"))
                 await wwf.file_remover(from_where='site')
                 with contextlib.suppress(Exception):
                     await ac.close_connection()
@@ -276,7 +275,7 @@ async def text(message: types.Message):
             if task == 'site':
                 await sc.site_parsing_finish(req_res='xlsx')
                 await bot.send_message(chat_id=message.chat.id, text="Ваш .xlsx файл", reply_markup=markup_start)
-                await bot.send_document(chat_id=message.chat.id, document=open(f"{await wwf.filename_creator(freshness='load')}.xlsx", "rb"))
+                await bot.send_document(chat_id=message.chat.id, document=open(f"{src}{await wwf.filename_creator(freshness='load')}.xlsx", "rb"))
                 await wwf.file_remover(from_where='site')
                 with contextlib.suppress(Exception):
                     await ac.close_connection()
@@ -291,7 +290,7 @@ async def text(message: types.Message):
             if task == 'site':
                 await sc.site_parsing_finish(req_res='txt')
                 await bot.send_message(chat_id=message.chat.id, text="Ваш .txt файл", reply_markup=markup_start)
-                await bot.send_document(chat_id=message.chat.id, document=open(f"{await wwf.filename_creator(freshness='load')}.txt", "rb"))
+                await bot.send_document(chat_id=message.chat.id, document=open(f"{src}{await wwf.filename_creator(freshness='load')}.txt", "rb"))
                 await wwf.file_remover(from_where='site')
                 with contextlib.suppress(Exception):
                     await ac.close_connection()

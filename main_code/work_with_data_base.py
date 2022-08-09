@@ -1,5 +1,7 @@
 import glob
 
+from auxiliary.req_data import src
+
 
 async def data_base(status, adres, price, square, url):
     with glob.connection.cursor() as glob.cursor:
@@ -11,12 +13,12 @@ async def data_base(status, adres, price, square, url):
 async def add_data_to_data_base():
     from main_code.work_with_files import table_name_upd
 
-    try:
-        with glob.connection.cursor() as glob.cursor:
-            glob.cursor.execute(f"""COPY update_ad FROM '/Users/user/PycharmProjects/Parser/{table_name_upd}.csv' DELIMITER ';' CSV HEADER;""")
+    # try:
+    with glob.connection.cursor() as glob.cursor:
+        glob.cursor.execute(f"""COPY update_ad FROM '{table_name_upd}.csv' DELIMITER ';' CSV HEADER;""")
 
-    except Exception as ex:
-        print('[ERROR] [ADD_DATA_TO_TABLE] - ', ex)
+    # except Exception as ex:
+    #     print('[ERROR] [ADD_DATA_TO_TABLE] - ', ex)
 
 
 async def create_advertisement_table():
@@ -81,7 +83,7 @@ async def get_data_from_data_base(from_where, row):
 async def site_data_to_csv():
     with glob.connection.cursor() as glob.cursor:
         glob.cursor.execute(
-            """COPY advertisement TO '/Users/user/PycharmProjects/Parser/pars_site.csv' (FORMAT CSV, HEADER TRUE, DELIMITER ';', ENCODING 'UTF8');"""
+            f"""COPY advertisement TO '{src}pars_site.csv' (FORMAT CSV, HEADER TRUE, DELIMITER ';', ENCODING 'UTF8');"""
         )
     # Скорее всего это не будет работать на сервере, нужно будет менять директорию на серверную
 
@@ -89,7 +91,7 @@ async def site_data_to_csv():
 async def table_data_to_csv(table_name_upd):
     with glob.connection.cursor() as glob.cursor:
         glob.cursor.execute(
-            f"""COPY update_ad TO '/Users/user/PycharmProjects/Parser/{table_name_upd}.csv' (FORMAT CSV, HEADER TRUE, DELIMITER ';', ENCODING 'UTF8');"""
+            f"""COPY update_ad TO '{table_name_upd}.csv' (FORMAT CSV, HEADER TRUE, DELIMITER ';', ENCODING 'UTF8');"""
         )
     # Скорее всего это не будет работать на сервере, нужно будет менять директорию на серверную
 
