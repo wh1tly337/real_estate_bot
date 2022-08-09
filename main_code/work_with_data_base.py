@@ -58,6 +58,12 @@ async def get_data_from_data_base(from_where, row):
             max_row = glob.cursor.fetchall()[0][0]
 
         return max_row
+    elif from_where == 'check' and row is None:
+        with glob.connection.cursor() as glob.cursor:
+            glob.cursor.execute("""SELECT count(*) FROM advertisement;""")
+            check = glob.cursor.fetchall()[0][0]
+
+        return check
     else:
         with glob.connection.cursor() as glob.cursor:
             glob.cursor.execute("""SELECT id FROM update_ad;""")

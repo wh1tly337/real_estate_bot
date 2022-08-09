@@ -1,5 +1,4 @@
 import contextlib
-import glob
 
 from aiogram import executor
 from aiogram.dispatcher import FSMContext
@@ -213,10 +212,8 @@ async def text(message: types.Message):
 
             if task == 'site':
                 possibility = False
-                # Before for this cursor i create his personal connection to data base, i think that not necessary
-                with glob.connection.cursor() as glob.cursor:
-                    glob.cursor.execute("""SELECT count(*) FROM advertisement;""")
-                    check = glob.cursor.fetchall()[0][0]
+                check = await wwdb.get_data_from_data_base(from_where='check', row=None)
+
                 if int(check) != 0:
                     await bot.send_message(chat_id=message.chat.id, text='Хотите получить объявления которые я успел найти?',
                                            reply_markup=markup_save_file)
