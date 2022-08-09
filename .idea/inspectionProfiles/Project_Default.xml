@@ -6,8 +6,6 @@
         <language minSize="417" name="Python" />
       </Languages>
     </inspection_tool>
-    <inspection_tool class="PyArgumentListInspection" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="PyBroadExceptionInspection" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
     <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ignoredPackages">
         <value>
@@ -23,7 +21,6 @@
         <list>
           <option value="E711" />
           <option value="E501" />
-          <option value="E722" />
         </list>
       </option>
     </inspection_tool>
@@ -32,7 +29,6 @@
         <list>
           <option value="N814" />
           <option value="N806" />
-          <option value="N803" />
         </list>
       </option>
     </inspection_tool>
@@ -40,8 +36,6 @@
       <option name="ignoredIdentifiers">
         <list>
           <option value="openpyxl.styles" />
-          <option value="glob.cursor" />
-          <option value="glob.connection" />
         </list>
       </option>
     </inspection_tool>
