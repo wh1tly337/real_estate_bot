@@ -3,14 +3,16 @@ import contextlib
 # import lxml
 import glob
 import random
-# from random import randint
 
 import html_to_json
 import requests
 from bs2json import bs2json
 from bs4 import BeautifulSoup
 
-from req_data import *
+from auxiliary.req_data import *
+
+
+# from random import randint
 
 
 async def db_price_updater(new_price, old_price, table_url):

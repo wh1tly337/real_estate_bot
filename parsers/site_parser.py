@@ -5,22 +5,20 @@ import math
 import random
 import re
 import time
-# from random import randint
 
 import html_to_json
 import requests
-from aiogram import Bot, Dispatcher
 from bob_telegram_tools.bot import TelegramBot
 from bob_telegram_tools.utils import TelegramTqdm
 from bs2json import bs2json
 from bs4 import BeautifulSoup
 from selenium import webdriver
 
-import main_code as mc
-from req_data import *
+from auxiliary.req_data import *
+from main_code import work_with_data_base as wwdb
 
-bot = Bot(token='5432400118:AAFgz1QNbckgmQ7X1jbEu87S2ZdhV6vU1m0')
-dp = Dispatcher(bot)
+
+# from random import randint
 
 
 async def cian_avito_url_cycle_detector(url_next_page, i):
@@ -80,7 +78,7 @@ async def upn_site_parser(message, url_upn):
                     square = round(float("".join((advertisement[i]['div'][1]['div'][2]['div'][0]['div'][1]['text']).split('/')[0])))
 
                     try:
-                        await mc.data_base(status='Active', adres=full_address, price=price, square=square, url=url_ad)
+                        await wwdb.data_base(status='Active', adres=full_address, price=price, square=square, url=url_ad)
                     except Exception as ex:
                         print("[ERROR] [DATA_BASE] - ", ex)
                         possibility = False
@@ -163,7 +161,7 @@ async def cian_site_parser(message, url_cian):
                             continue
 
                     try:
-                        await mc.data_base(status='Active', adres=full_address, price=price, square=square, url=url_ad)
+                        await wwdb.data_base(status='Active', adres=full_address, price=price, square=square, url=url_ad)
                     except Exception as ex:
                         print("[ERROR] [DATA_BASE] - ", ex)
                         possibility = False
@@ -258,7 +256,7 @@ async def yandex_site_parser(message, url_yandex):
                         square = round(float(str(advertisement['div'][0]['div'][0]['a'][0]['span'][0]['_value']).split(',')[0][:3].strip()))
 
                         try:
-                            await mc.data_base(status='Active', adres=full_address, price=price, square=square, url=url_ad)
+                            await wwdb.data_base(status='Active', adres=full_address, price=price, square=square, url=url_ad)
                         except Exception as ex:
                             print("[ERROR] [DATA_BASE] - ", ex)
                             point = True
@@ -359,7 +357,7 @@ async def avito_site_parser(message, url_avito):
                         square = '-'
 
                     try:
-                        await mc.data_base(status='Active', adres=full_address, price=price, square=square, url=url_ad)
+                        await wwdb.data_base(status='Active', adres=full_address, price=price, square=square, url=url_ad)
                     except Exception as ex:
                         print("[ERROR] [DATA_BASE] - ", ex)
                         possibility = False
