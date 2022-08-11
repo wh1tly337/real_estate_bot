@@ -2,6 +2,8 @@ import glob
 
 import psycopg2
 from selenium import webdriver
+from loguru import logger
+
 
 from auxiliary.req_data import *
 
@@ -14,12 +16,12 @@ async def add_driver():
 
         driver = webdriver.Safari()
 
-        print("[INFO] - Driver started")
+        logger.info('Driver started')
 
         return driver
 
     except Exception as ex:
-        print('[ERROR] [ADD_DRIVER] - ', ex)
+        logger.error(ex)
 
 
 async def start_connection():
@@ -29,10 +31,10 @@ async def start_connection():
         glob.connection.autocommit = True
         glob.cursor = glob.connection.cursor()
 
-        print("[INFO] - PostgreSQL connection started")
+        logger.info('PostgreSQL connection started')
 
     except Exception as ex:
-        print('[ERROR] [START_CONNECTION] - ', ex)
+        logger.error(ex)
 
 
 async def close_connection():
@@ -40,16 +42,18 @@ async def close_connection():
         if glob.connection:
             glob.cursor.close()
             glob.connection.close()
-            print("[INFO] - PostgreSQL connection closed")
+
+            logger.info('PostgreSQL connection closed')
 
     except Exception as ex:
-        print('[ERROR] [CLOSE_CONNECTION] - ', ex)
+        logger.error(ex)
 
 
 async def close_driver():
     try:
         driver.quit()
-        print("[INFO] - Driver closed")
+
+        logger.info('Driver closed')
 
     except Exception as ex:
-        print('[ERROR] [CLOSE_DRIVER] - ', ex)
+        logger.error(ex)

@@ -1,6 +1,7 @@
 import contextlib
 
 from aiogram import executor
+from loguru import logger
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 
@@ -15,6 +16,8 @@ from main_code import (
 )
 
 global table_name_upd, table_name, id_url, task, possibility
+
+logger.add(f"{src_logger}logger.txt", format='{time} | {level} | {message}', rotation='00:00', compression='zip')
 
 
 class Answer(StatesGroup):
@@ -88,7 +91,7 @@ async def handle_docs(message: types.Message):
         await tc.table_parsing_main(message)
 
     except Exception as ex:
-        print('[ERROR] [HANDLE_DOCS] - ', ex)
+        logger.error(ex)
 
 
 @dp.message_handler(state=Answer.response_as_link)
@@ -161,7 +164,7 @@ async def getting_site_link(message: types.Message, status_url):
             await Answer.response_as_link.set()
 
     except Exception as ex:
-        print('[ERROR] [GETTING_SITE_LINK] - ', ex)
+        logger.error(ex)
 
 
 async def file_sender(message: types.Message, call):
@@ -321,13 +324,13 @@ async def text(message: types.Message):
             await bot.send_message(chat_id=message.chat.id, text='Таких команд я не знаю 😔\nПопробуй воспользоваться /help', reply_markup=markup_start)
 
     except Exception as ex:
-        print('[ERROR] [TEXT MESSAGES] - ', ex)
+        logger.error(ex)
 
 
 if __name__ == '__main__':
     # while True:
     #     try:
-    print('[INFO] - Bot successfully started')
+    logger.info('Bot successfully started')
     executor.start_polling(dp)
     # except Exception:
     #     continue

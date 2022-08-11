@@ -1,3 +1,5 @@
+from loguru import logger
+
 from main_code import work_with_data_base as wwdb, work_with_files as wwf
 from parsers import site_parser as sp
 
@@ -11,7 +13,7 @@ async def site_parsing_start():
             await wwdb.create_advertisement_table()
 
     except Exception as ex:
-        print('[ERROR] [SITE_PARSING_START] - ', ex)
+        logger.error(ex)
 
 
 async def site_parsing_main(req_site, url_upn, url_cian, url_yandex, url_avito, message):
@@ -48,4 +50,4 @@ async def site_parsing_finish(req_res):
                 await wwf.file_renamer()
 
     except Exception as ex:
-        print('[ERROR] [SITE_PARSING_FINISH] - ', ex)
+        logger.error(ex)

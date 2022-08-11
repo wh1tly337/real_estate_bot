@@ -7,6 +7,7 @@ import openpyxl as op
 import pandas as pd
 import pyexcel
 from aiofiles import os
+from loguru import logger
 
 from auxiliary.req_data import src
 
@@ -48,7 +49,7 @@ async def table_name_handler(message):
         return table_name, table_name_upd
 
     except Exception as ex:
-        print('[ERROR] [TABLE_NAME_HANDLER] - ', ex)
+        logger.error(ex)
 
 
 async def convert_csv_to_xlsx(from_where):
@@ -70,10 +71,10 @@ async def convert_csv_to_xlsx(from_where):
         main_sheet.column_dimensions['F'].width = 40
         table.save(f"{file_name_to_convert}.xlsx")
 
-        print("[INFO] - Copy .csv to .xlsx successfully")
+        logger.info('Copy .csv to .xlsx successfully')
 
     except Exception as ex:
-        print('[ERROR] [CONVERT_CSV_TO_XLSX] - ', ex)
+        logger.error(ex)
 
 
 async def convert_csv_to_txt(from_where):
@@ -95,10 +96,10 @@ async def convert_csv_to_txt(from_where):
         async with aiofiles.open(f"{file_name_to_convert}.txt", 'w') as file:
             await file.write(df)
 
-        print("[INFO] - Copy .csv to .txt successfully")
+        logger.info('Copy .csv to .txt successfully')
 
     except Exception as ex:
-        print('[ERROR] [CONVERT_CSV_TO_XLSX] - ', ex)
+        logger.error(ex)
 
 
 async def convert_txt_to_csv():
@@ -113,10 +114,10 @@ async def convert_txt_to_csv():
         df = pd.read_csv(f"{src}{table_name}")
         df.to_csv(f"{table_name_upd}.csv", index=False, header=True)
 
-        print("[INFO] - Copy .txt to .csv  successfully")
+        logger.info('Copy .txt to .csv  successfully')
 
     except Exception as ex:
-        print('[ERROR] [CONVERTER_TXT_TO_CSV] - ', ex)
+        logger.error(ex)
 
 
 async def file_format_reformer():
@@ -128,14 +129,14 @@ async def file_format_reformer():
             df = pd.read_excel(f"{src}{table_name}")
             df.to_csv(f"{table_name_upd}.csv", index=False, header=True, sep=";")
 
-            print("[INFO] - Copy .xlsx to .csv  successfully")
+            logger.info('Copy .xlsx to .csv  successfully')
         else:
             await os.rename(f"{src}{table_name}", f"{table_name_upd}.csv")
 
-            print('[INFO] - Already .csv file')
+            logger.info('Already .csv file')
 
     except Exception as ex:
-        print('[ERROR] [FILE_FORMAT_REFORMER] - ', ex)
+        logger.error(ex)
 
 
 async def file_renamer():
@@ -149,10 +150,10 @@ async def file_renamer():
         with contextlib.suppress(Exception):
             await os.rename(f"{src}pars_site.xlsx", f"{src}{await filename_creator(freshness='new')}.xlsx")
 
-        print("[INFO] - Renaming of all files was successful")
+        logger.info('Renaming of all files was successful')
 
     except Exception as ex:
-        print('[ERROR] [FILE_RENAMER] - ', ex)
+        logger.error(ex)
 
 
 async def file_remover(from_where):
@@ -175,7 +176,7 @@ async def file_remover(from_where):
             with contextlib.suppress(Exception):
                 await os.remove(f"{table_name_upd}.xlsx")
 
-        print("[INFO] - Removing of all files was successful")
+        logger.info('Removing of all files was successful')
 
     except Exception as ex:
-        print('[ERROR] [FILE_REMOVER] - ', ex)
+        logger.error(ex)

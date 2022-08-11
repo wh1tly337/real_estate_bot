@@ -13,6 +13,7 @@ from bob_telegram_tools.utils import TelegramTqdm
 from bs2json import bs2json
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from loguru import logger
 
 from auxiliary.req_data import *
 from main_code import work_with_data_base as wwdb
@@ -28,7 +29,7 @@ async def cian_avito_url_cycle_detector(url_next_page, i):
     else:
         pos = pos + 3
         url_cycle = f"{url_next_page[:pos]}{i}{url_next_page[pos + 1:]}"
-    print(url_cycle)
+    logger.info(url_cycle)
 
     return url_cycle
 
@@ -37,7 +38,7 @@ async def upn_site_parser(message, url_upn):
     bot_tqdm = TelegramBot('5432400118:AAFgz1QNbckgmQ7X1jbEu87S2ZdhV6vU1m0', message.chat.id)
     tqdm = TelegramTqdm(bot_tqdm)
 
-    print("[INFO] - Start parsing UPN")
+    logger.info(f"{message.chat.id} | Start parsing UPN")
     pos = url_upn.find('?page')
     url = url_upn if pos == -1 else url_upn[:pos]
     request = requests.get(url, headers=headers).text
@@ -58,7 +59,7 @@ async def upn_site_parser(message, url_upn):
                 url_cycle = f'{url}?page={j}'
             else:
                 url_cycle = f'{url}?page={j}'
-            print(url_cycle)
+            logger.info(url_cycle)
             request = requests.get(url_cycle, headers=headers).text
             response = BeautifulSoup(request, 'lxml')
             advertisement = bs2json().convert(response.find())['html']['body']['div'][4]['main']['div']['div'][2]['div'][1]['div'][1]['div']
@@ -80,20 +81,20 @@ async def upn_site_parser(message, url_upn):
                     try:
                         await wwdb.data_base(status='Active', adres=full_address, price=price, square=square, url=url_ad)
                     except Exception as ex:
-                        print("[ERROR] [DATA_BASE] - ", ex)
+                        logger.error(ex)
                         possibility = False
                         break
 
         except Exception as ex:
-            print("[ERROR] [UPN_SITE_PARSER] - ", ex)
-    print("[INFO] - Finish parsing UPN")
+            logger.error(ex)
+    logger.info(f"{message.chat.id} | Finish parsing UPN")
 
 
 async def cian_site_parser(message, url_cian):
     bot_tqdm = TelegramBot('5432400118:AAFgz1QNbckgmQ7X1jbEu87S2ZdhV6vU1m0', message.chat.id)
     tqdm = TelegramTqdm(bot_tqdm)
 
-    print("[INFO] - Start parsing Cian")
+    logger.info(f"{message.chat.id} | Start parsing Cian")
     url = url_cian
     driver = webdriver.Safari()
     try:
@@ -163,24 +164,24 @@ async def cian_site_parser(message, url_cian):
                     try:
                         await wwdb.data_base(status='Active', adres=full_address, price=price, square=square, url=url_ad)
                     except Exception as ex:
-                        print("[ERROR] [DATA_BASE] - ", ex)
+                        logger.error(ex)
                         possibility = False
                         break
 
                     await asyncio.sleep(float('{:.3f}'.format(random.random())))
 
     except Exception as ex:
-        print("[ERROR] [CIAN_SITE_PARSER] - ", ex)
+        logger.error(ex)
     finally:
         driver.quit()
-    print("[INFO] - Finish parsing Cian")
+    logger.info(f"{message.chat.id} | Finish parsing Cian")
 
 
 async def yandex_site_parser(message, url_yandex):
     bot_tqdm = TelegramBot('5432400118:AAFgz1QNbckgmQ7X1jbEu87S2ZdhV6vU1m0', message.chat.id)
     tqdm = TelegramTqdm(bot_tqdm)
 
-    print("[INFO]  - Start parsing Yandex")
+    logger.info(f"{message.chat.id} | Start parsing Yandex")
     url = url_yandex
     driver = webdriver.Safari()
     point = False
@@ -227,7 +228,7 @@ async def yandex_site_parser(message, url_yandex):
                     else:
                         pos = pos + 6
                         url_cycle = f"{url_next_page[:pos]}{j}{url_next_page[pos + 1:]}"
-                    print(url_cycle)
+                    logger.info(url_cycle)
                     driver.get(url=url_cycle)
                     # driver.execute_script(f"window.scrollTo(0, {randint(0, 1080)})")
                     full_page = html_to_json.convert(driver.page_source)
@@ -258,7 +259,7 @@ async def yandex_site_parser(message, url_yandex):
                         try:
                             await wwdb.data_base(status='Active', adres=full_address, price=price, square=square, url=url_ad)
                         except Exception as ex:
-                            print("[ERROR] [DATA_BASE] - ", ex)
+                            logger.error(ex)
                             point = True
                             possibility = False
                             break
@@ -266,17 +267,17 @@ async def yandex_site_parser(message, url_yandex):
                         await asyncio.sleep(float('{:.3f}'.format(random.random())))
 
     except Exception as ex:
-        print("[ERROR] [YANDEX_SITE_PARSER] - ", ex)
+        logger.error(ex)
     finally:
         driver.quit()
-    print("[INFO] - Finish parsing Yandex")
+    logger.info(f"{message.chat.id} | Finish parsing Yandex")
 
 
 async def avito_site_parser(message, url_avito):
     bot_tqdm = TelegramBot('5432400118:AAFgz1QNbckgmQ7X1jbEu87S2ZdhV6vU1m0', message.chat.id)
     tqdm = TelegramTqdm(bot_tqdm)
 
-    print("[INFO] - Start parsing Avito")
+    logger.info(f"{message.chat.id} | Start parsing Avito")
     url = url_avito
     driver = webdriver.Safari()
     try:
@@ -359,14 +360,14 @@ async def avito_site_parser(message, url_avito):
                     try:
                         await wwdb.data_base(status='Active', adres=full_address, price=price, square=square, url=url_ad)
                     except Exception as ex:
-                        print("[ERROR] [DATA_BASE] - ", ex)
+                        logger.error(ex)
                         possibility = False
                         break
 
                     await asyncio.sleep(float('{:.3f}'.format(random.random())))
 
     except Exception as ex:
-        print("[ERROR] [AVITO_SITE_PARSER] - ", ex)
+        logger.error(ex)
     finally:
         driver.quit()
-    print("[INFO] - Finish parsing Avito")
+    logger.info(f"{message.chat.id} | Finish parsing Avito")

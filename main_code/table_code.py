@@ -2,6 +2,7 @@ import asyncio
 
 from bob_telegram_tools.bot import TelegramBot
 from bob_telegram_tools.utils import TelegramTqdm
+from loguru import logger
 
 from auxiliary import req_data as rd
 from auxiliary.all_markups import *
@@ -19,13 +20,15 @@ async def table_parsing_start():
             await wwdb.create_update_ad_table()
 
     except Exception as ex:
-        print('[ERROR] [TABLE_PARSING_START] - ', ex)
+        logger.error(ex)
 
 
 async def table_parsing_main(message):
     try:
         bot_tqdm = TelegramBot('5432400118:AAFgz1QNbckgmQ7X1jbEu87S2ZdhV6vU1m0', message.chat.id)
         tqdm = TelegramTqdm(bot_tqdm)
+
+        logger.info(f"{message.chat.id} | Table update start")
 
         await wwf.file_format_reformer()
 
@@ -52,7 +55,7 @@ async def table_parsing_main(message):
                                     await tp.upn_table_parser(table_url=table_url, old_price=old_price)
 
                                 except Exception as ex:
-                                    print('[ERROR] [UPN_TABLE_PARSER] - ', ex)
+                                    logger.error(ex)
 
                             elif table_url[:19] == 'https://ekb.cian.ru':
                                 if driver is None:
@@ -64,7 +67,7 @@ async def table_parsing_main(message):
                                     await tp.cian_table_parser(table_url=table_url, old_price=old_price, driver=driver)
 
                                 except Exception as ex:
-                                    print('[ERROR] [CIAN_TABLE_PARSER] - ', ex)
+                                    logger.error(ex)
 
                             elif table_url[:24] == 'https://realty.yandex.ru':
                                 if driver is None:
@@ -76,7 +79,7 @@ async def table_parsing_main(message):
                                     await tp.yandex_table_parser(table_url=table_url, old_price=old_price, driver=driver)
 
                                 except Exception as ex:
-                                    print('[ERROR] [YANDEX_TABLE_PARSER] - ', ex)
+                                    logger.error(ex)
 
                             elif table_url[:20] == 'https://www.avito.ru':
                                 if driver is None:
@@ -88,13 +91,13 @@ async def table_parsing_main(message):
                                     await tp.avito_table_parser(table_url=table_url, old_price=old_price, driver=driver)
 
                                 except Exception as ex:
-                                    print('[ERROR] [AVITO_TABLE_PARSER] - ', ex)
+                                    logger.error(ex)
 
                             counter += 1
 
                     except Exception as ex:
                         await asyncio.sleep(5)
-                        print('[ERROR] [TABLE_CYCLE] - ', ex)
+                        logger.error(ex)
                         counter = None
                         break
 
@@ -106,10 +109,10 @@ async def table_parsing_main(message):
 
             await rd.bot.send_message(chat_id=message.chat.id, text="Вся информация обновлена. В каком формате вы хотите получить результат?", reply_markup=markup_result, parse_mode="Markdown")
 
-            print("[INFO] - Table successfully updated")
+            logger.info(f"{message.chat.id} | Table successfully updated")
 
     except Exception as ex:
-        print('[ERROR] [TABLE_PARSER_MAIN] - ', ex)
+        logger.error(ex)
 
 
 async def table_parsing_finish():
@@ -119,4 +122,4 @@ async def table_parsing_finish():
         await wwdb.table_data_to_csv(table_name_upd)
 
     except Exception as ex:
-        print('[ERROR] [TABLE_PARSING_FINISH] - ', ex)
+        logger.error(ex)

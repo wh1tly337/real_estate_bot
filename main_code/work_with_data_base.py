@@ -1,5 +1,7 @@
 import glob
 
+from loguru import logger
+
 from auxiliary.req_data import src
 
 
@@ -18,7 +20,7 @@ async def add_data_to_data_base():
             glob.cursor.execute(f"""COPY update_ad FROM '{table_name_upd}.csv' DELIMITER ';' CSV HEADER;""")
 
     except Exception as ex:
-        print('[ERROR] [ADD_DATA_TO_TABLE] - ', ex)
+        logger.error(ex)
 
 
 async def create_advertisement_table():
@@ -34,7 +36,7 @@ async def create_advertisement_table():
                 url VARCHAR(255));"""
         )
 
-    print("[INFO] - PostgreSQL 'advertisement' table created")
+    logger.info('PostgreSQL "advertisement" table created')
 
 
 async def create_update_ad_table():
@@ -50,13 +52,14 @@ async def create_update_ad_table():
                 url VARCHAR(255));"""
         )
 
-    print("[INFO] - PostgreSQL 'update_ad' table created")
+    logger.info('PostgreSQL "update_ad" table created')
 
 
 async def get_data_from_data_base(from_where, row):
     if from_where == 'max_row' and row is None:
         with glob.connection.cursor() as glob.cursor:
             glob.cursor.execute("""SELECT count(*) FROM update_ad;""")
+            # glob.cursor.execute("""SELECT MAX(id) FROM update_ad;""")
             max_row = glob.cursor.fetchall()[0][0]
 
         return max_row
@@ -103,7 +106,7 @@ async def delete_advertisement_table():
             """DROP TABLE advertisement;"""
         )
 
-    print("[INFO] - PostgreSQL 'advertisement' table deleted")
+    logger.info('PostgreSQL "advertisement" table deleted')
 
 
 async def delete_update_ad_table():
@@ -113,4 +116,4 @@ async def delete_update_ad_table():
             """DROP TABLE update_ad;"""
         )
 
-    print("[INFO] - PostgreSQL 'update_ad' table deleted")
+    logger.info('PostgreSQL "update_ad" table deleted')
