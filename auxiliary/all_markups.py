@@ -8,7 +8,13 @@ markup_start.add(btn1_start, btn2_start)
 markup_admin = types.ReplyKeyboardMarkup(resize_keyboard=True)
 btn1_admin = types.KeyboardButton("Получить базу данных")
 btn2_admin = types.KeyboardButton("Получить логгер")
+btn3_admin = types.KeyboardButton("Написать пользователю")
 markup_admin.add(btn1_admin, btn2_admin)
+markup_admin.add(btn3_admin)
+
+markup_communication = types.ReplyKeyboardMarkup(resize_keyboard=True)
+btn1_communication = types.KeyboardButton("Отмена")
+markup_communication.add(btn1_communication)
 
 markup_feedback = types.ReplyKeyboardMarkup(resize_keyboard=True)
 btn1_feedback = types.KeyboardButton("Нет, обойдемся без отзывов")

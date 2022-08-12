@@ -15,21 +15,17 @@ from main_code import (
     all_connections as ac
 )
 
-global table_name_upd, table_name, id_url, task, possibility
+global table_name_upd, table_name, id_url, task, possibility, communication_id_response
 
 logger.add(f"{src_logger}logger.txt", format='{time} | {level} | {message}', rotation='00:00', compression='zip')
 
 
 class Answer(StatesGroup):
     response_as_link = State()
-
-
-class Password(StatesGroup):
-    password = State()
-
-
-class Feedback(StatesGroup):
+    response_as_password = State()
     user_feedback = State()
+    communication_id = State()
+    communication_message = State()
 
 
 @dp.message_handler(commands=['start'])
@@ -70,10 +66,10 @@ async def help_message(message: types.Message):
 async def admin(message: types.Message):
     await bot.send_message(chat_id=message.chat.id, text='Введите пароль', parse_mode="Markdown", reply_markup=markup_start)
 
-    await Password.password.set()
+    await Answer.response_as_password.set()
 
 
-@dp.message_handler(state=Password.password)
+@dp.message_handler(state=Answer.response_as_password)
 async def password_handler(message: types.Message, state: FSMContext):
     password_response = message.text
     await state.update_data(user_response=password_response)
@@ -88,6 +84,63 @@ async def password_handler(message: types.Message, state: FSMContext):
     await state.finish()
 
 
+@dp.message_handler(commands=['feedback'])
+async def feedback(message: types.Message):
+    await bot.send_message(chat_id=message.chat.id, text='Если хотите, можете оставить отзыв', parse_mode="Markdown", reply_markup=markup_feedback)
+
+    await Answer.user_feedback.set()
+
+
+@dp.message_handler(state=Answer.user_feedback)
+async def feedback_handler(message: types.Message, state: FSMContext):
+    feedback_response = message.text
+    await state.update_data(user_response=feedback_response)
+
+    if feedback_response == 'Нет, обойдемся без отзывов':
+        await bot.send_message(chat_id=message.chat.id, text='Хорошо', parse_mode="Markdown", reply_markup=markup_start)
+        await state.finish()
+    else:
+        message_text = f"Отзыв от {message.from_user.full_name} / {message.from_user.username}\nid: {message.chat.id}"
+        await bot.send_message(chat_id=admin_id, text=message_text, parse_mode="Markdown")
+        await bot.send_message(chat_id=admin_id, text=feedback_response, parse_mode="Markdown")
+        await bot.send_message(chat_id=message.chat.id, text='Спасибо за отзыв!', parse_mode="Markdown", reply_markup=markup_start)
+
+    await state.finish()
+
+
+@dp.message_handler(state=Answer.communication_id)
+async def communication_id(message: types.Message, state: FSMContext):
+    global communication_id_response
+
+    communication_id_response = message.text
+    await state.update_data(user_response=communication_id_response)
+
+    if communication_id_response == 'Отмена':
+        await bot.send_message(chat_id=message.chat.id, text='Хорошо', parse_mode="Markdown", reply_markup=markup_start)
+        await state.finish()
+    else:
+        message_text = 'Введите сообщение для пользователя'
+        await bot.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_communication)
+
+        await Answer.communication_message.set()
+
+
+@dp.message_handler(state=Answer.communication_message)
+async def communication_message(message: types.Message, state: FSMContext):
+    communication_message_response = message.text
+    await state.update_data(user_response=communication_message_response)
+
+    if communication_id_response == 'Отмена':
+        await bot.send_message(chat_id=message.chat.id, text='Хорошо', parse_mode="Markdown", reply_markup=markup_start)
+        await state.finish()
+    else:
+        message_text = f"Сообщение от админа этого бота:\n\n{communication_message_response}"
+        await bot.send_message(chat_id=communication_id_response, text=message_text, parse_mode="Markdown", reply_markup=markup_communication)
+        await bot.send_message(chat_id=message.chat.id, text='Сообщение отправлено', parse_mode="Markdown", reply_markup=markup_start)
+
+    await state.finish()
+
+
 @dp.message_handler(commands=['links'])
 async def links(message: types.Message):
     await bot.send_message(chat_id=message.chat.id, text="На данный момент я работаю с сайтами:\
@@ -95,29 +148,6 @@ async def links(message: types.Message):
             \n• [ЦИАН](https://ekb.cian.ru)\
             \n• [Яндекс Недвижимость](https://realty.yandex.ru/ekaterinburg)\
             \n• [Авито](https://www.avito.ru/ekaterinburg/nedvizhimost)", disable_web_page_preview=True, parse_mode="MarkdownV2")
-
-
-@dp.message_handler(commands=['feedback'])
-async def feedback(message: types.Message):
-    await bot.send_message(chat_id=message.chat.id, text='Если хотите, можете оставить отзыв', parse_mode="Markdown", reply_markup=markup_feedback)
-
-    await Feedback.user_feedback.set()
-
-
-@dp.message_handler(state=Feedback.user_feedback)
-async def feedback_handler(message: types.Message, state: FSMContext):
-    feedback_response = message.text
-    await state.update_data(user_response=feedback_response)
-
-    if feedback_response == 'Нет, обойдемся без отзывов':
-        await bot.send_message(chat_id=message.chat.id, text='Хорошо', parse_mode="Markdown", reply_markup=markup_start)
-    else:
-        message_text = f"Отзыв от {message.from_user.full_name} / {message.from_user.username}\nid: {message.chat.id}"
-        await bot.send_message(chat_id=726420734, text=message_text, parse_mode="Markdown")
-        await bot.send_message(chat_id=726420734, text=feedback_response, parse_mode="Markdown")
-        await bot.send_message(chat_id=message.chat.id, text='Спасибо за отзыв!', parse_mode="Markdown", reply_markup=markup_start)
-
-    await state.finish()
 
 
 @dp.message_handler(commands=['new_table'])
@@ -308,6 +338,11 @@ async def text(message: types.Message):
         elif message.text == "Получить логгер":
             logger.info('Admin get logg file')
             await bot.send_document(chat_id=message.chat.id, document=open(f"{src_logger}logger.txt"), reply_markup=markup_start)
+        elif message.text == "Написать пользователю":
+            message_text = 'Введите id пользователя которому хотите написать'
+            await bot.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_communication)
+
+            await Answer.communication_id.set()
 
         elif message.text == "УПН":
             await getting_site_link(message, status_url='upn')
