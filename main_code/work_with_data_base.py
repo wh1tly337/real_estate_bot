@@ -62,6 +62,13 @@ async def update_user_data(user_id, num_site_req, num_table_req, date_last_site_
         )
 
 
+async def get_user_data_table():
+    with glob.connection.cursor() as glob.cursor:
+        glob.cursor.execute(
+            f"""COPY user_data TO '{src}user_data.csv' (FORMAT CSV, HEADER TRUE, DELIMITER ';', ENCODING 'UTF8');"""
+        )
+
+
 async def add_data_to_data_base():
     from main_code.work_with_files import table_name_upd
 

@@ -166,6 +166,10 @@ async def file_remover(from_where):
             with contextlib.suppress(Exception):
                 await os.remove(f"{src}{await filename_creator(freshness='load')}.txt")
 
+        elif from_where == 'admin':
+            with contextlib.suppress(Exception):
+                await os.remove(f"{src}user_data.csv")
+
         else:
             with contextlib.suppress(Exception):
                 await os.remove(f"{src}{table_name}")

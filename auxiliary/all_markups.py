@@ -5,6 +5,11 @@ btn1_start = types.KeyboardButton("За работу")
 btn2_start = types.KeyboardButton("/help")
 markup_start.add(btn1_start, btn2_start)
 
+markup_admin = types.ReplyKeyboardMarkup(resize_keyboard=True)
+btn1_admin = types.KeyboardButton("Получить базу данных")
+btn2_admin = types.KeyboardButton("Получить логгер")
+markup_admin.add(btn1_admin, btn2_admin)
+
 markup_site_question = types.ReplyKeyboardMarkup(resize_keyboard=True)
 btn1_site_question = types.KeyboardButton("УПН")
 btn2_site_question = types.KeyboardButton("ЦИАН")
