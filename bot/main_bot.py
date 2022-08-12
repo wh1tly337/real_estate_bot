@@ -75,9 +75,16 @@ async def password_handler(message: types.Message, state: FSMContext):
     await state.update_data(user_response=password_response)
 
     if password_response == admin_password:
-        logger.info('Admin logged in')
-        message_text = 'Добро пожаловать. Что вы хотите сделать?'
-        await bot.send_message(chat_id=admin_id, text=message_text, parse_mode="Markdown", reply_markup=markup_admin)
+        if message.chat.id == admin_id:
+            logger.info('Admin logged in')
+            message_text = 'Добро пожаловать. Что вы хотите сделать?'
+            await bot.send_message(chat_id=admin_id, text=message_text, parse_mode="Markdown", reply_markup=markup_admin)
+        else:
+            logger.info('Fake admin logged in. Need to change password!')
+            message_text = 'Попытка хорошая, но вы не админ, так что даже не пытайтесь)'
+            await bot.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_start)
+            message_text = 'Нас взломали! Нужно менять пароль!'
+            await bot.send_message(chat_id=admin_id, text=message_text, parse_mode="Markdown", reply_markup=markup_admin)
     else:
         message_text = 'Неверный пароль. Чтобы попробовать заново введите /admin'
         await bot.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_start)
@@ -461,7 +468,7 @@ async def text(message: types.Message):
         else:
             with contextlib.suppress(Exception):
                 await sc.site_parsing_finish(req_res='error')
-            await bot.send_message(chat_id=message.chat.id, text='Таких команд я не знаю 😔\nПопробуй воспользоваться /help', reply_markup=markup_start)
+            await bot.send_message(chat_id=message.chat.id, text='Таких команд я не знаю.\nПопробуй воспользоваться /help', reply_markup=markup_start)
 
     except Exception as ex:
         logger.error(ex)
