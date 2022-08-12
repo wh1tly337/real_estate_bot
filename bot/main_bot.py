@@ -26,6 +26,21 @@ class Answer(StatesGroup):
 
 @dp.message_handler(commands=['start'])
 async def start_message(message: types.Message):
+
+    await ac.start_connection()
+    all_users = await wwdb.get_data_from_data_base(from_where='start', row=None)
+    if message.chat.id not in all_users:
+        await wwdb.user_data(
+            user_id=message.chat.id,
+            user_name=message.from_user.full_name,
+            num_site_req=0,
+            num_table_req=0,
+            date_last_site_req=0,
+            date_last_table_req=0
+        )
+        logger.info('New user add')
+    await ac.close_connection()
+
     await bot.send_message(chat_id=message.chat.id, text=f"{message.from_user.full_name}, добро пожаловать в бот помощник по недвижимости!\
                      \nЯ в любое время могу собирать информацию о необходимых тебе объектах.\
                      \nТакже я могу подыскать информацию по любым указанными тобой параметрам.\

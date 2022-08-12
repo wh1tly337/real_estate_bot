@@ -12,6 +12,14 @@ async def data_base(status, adres, price, square, url):
         )
 
 
+async def user_data(user_id, user_name, num_site_req, num_table_req, date_last_site_req, date_last_table_req):
+    with glob.connection.cursor() as glob.cursor:
+        glob.cursor.execute(
+            f"""INSERT INTO user_data (user_id, user_name, num_site_req, num_table_req, date_last_site_req, date_last_table_req) 
+            VALUES ('{user_id}', '{user_name}', '{num_site_req}', '{num_table_req}', '{date_last_site_req}', '{date_last_table_req}');"""
+        )
+
+
 async def add_data_to_data_base():
     from main_code.work_with_files import table_name_upd
 
@@ -62,6 +70,16 @@ async def get_data_from_data_base(from_where, row):
             max_row = glob.cursor.fetchall()[0][0]
 
         return max_row
+    elif from_where == 'start' and row is None:
+        user_ids = []
+        with glob.connection.cursor() as glob.cursor:
+            glob.cursor.execute("""SELECT count(*) FROM user_data;""")
+            max_row = glob.cursor.fetchall()[0][0]
+            glob.cursor.execute("""SELECT user_id FROM user_data;""")
+            for i in range(max_row):
+                user_ids.append(int(glob.cursor.fetchone()[0]))
+
+        return user_ids
     elif from_where == 'check' and row is None:
         with glob.connection.cursor() as glob.cursor:
             glob.cursor.execute("""SELECT count(*) FROM advertisement;""")
