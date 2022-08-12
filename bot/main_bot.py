@@ -74,9 +74,10 @@ async def password_handler(message: types.Message, state: FSMContext):
     password_response = message.text
     await state.update_data(user_response=password_response)
 
-    if password_response == '13579001Ivan+':
+    if password_response == admin_password:
+        logger.info('Admin logged in')
         message_text = 'Добро пожаловать. Что вы хотите сделать?'
-        await bot.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_admin)
+        await bot.send_message(chat_id=admin_id, text=message_text, parse_mode="Markdown", reply_markup=markup_admin)
     else:
         message_text = 'Неверный пароль. Чтобы попробовать заново введите /admin'
         await bot.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_start)
@@ -100,10 +101,10 @@ async def feedback_handler(message: types.Message, state: FSMContext):
         await bot.send_message(chat_id=message.chat.id, text='Хорошо', parse_mode="Markdown", reply_markup=markup_start)
         await state.finish()
     else:
-        message_text = f"Отзыв от {message.from_user.full_name} / {message.from_user.username}\nid: {message.chat.id}"
-        await bot.send_message(chat_id=admin_id, text=message_text, parse_mode="Markdown")
-        await bot.send_message(chat_id=admin_id, text=feedback_response, parse_mode="Markdown")
         await bot.send_message(chat_id=message.chat.id, text='Спасибо за отзыв!', parse_mode="Markdown", reply_markup=markup_start)
+        message_text = f"Отзыв от {message.from_user.full_name} / {message.from_user.username}\nid: {message.chat.id}\n\n{feedback_response}"
+        await bot.send_message(chat_id=admin_id, text=message_text, parse_mode="Markdown")
+        logger.info('Received a review')
 
     await state.finish()
 
@@ -134,9 +135,10 @@ async def communication_message(message: types.Message, state: FSMContext):
         await bot.send_message(chat_id=message.chat.id, text='Хорошо', parse_mode="Markdown", reply_markup=markup_start)
         await state.finish()
     else:
+        await bot.send_message(chat_id=message.chat.id, text='Сообщение отправлено', parse_mode="Markdown", reply_markup=markup_start)
         message_text = f"Сообщение от админа этого бота:\n\n{communication_message_response}"
         await bot.send_message(chat_id=communication_id_response, text=message_text, parse_mode="Markdown", reply_markup=markup_communication)
-        await bot.send_message(chat_id=message.chat.id, text='Сообщение отправлено', parse_mode="Markdown", reply_markup=markup_start)
+        logger.info(f"Communication has been made with {communication_id_response}")
 
     await state.finish()
 
