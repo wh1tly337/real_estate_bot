@@ -10,6 +10,10 @@ btn1_admin = types.KeyboardButton("Получить базу данных")
 btn2_admin = types.KeyboardButton("Получить логгер")
 markup_admin.add(btn1_admin, btn2_admin)
 
+markup_feedback = types.ReplyKeyboardMarkup(resize_keyboard=True)
+btn1_feedback = types.KeyboardButton("Нет, обойдемся без отзывов")
+markup_feedback.add(btn1_feedback)
+
 markup_site_question = types.ReplyKeyboardMarkup(resize_keyboard=True)
 btn1_site_question = types.KeyboardButton("УПН")
 btn2_site_question = types.KeyboardButton("ЦИАН")
