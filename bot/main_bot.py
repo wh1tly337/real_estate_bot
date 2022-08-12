@@ -26,7 +26,6 @@ class Answer(StatesGroup):
 
 @dp.message_handler(commands=['start'])
 async def start_message(message: types.Message):
-
     await ac.start_connection()
     all_users = await wwdb.get_data_from_data_base(from_where='start', row=None)
     if message.chat.id not in all_users:
@@ -182,10 +181,10 @@ async def getting_site_link(message: types.Message, status_url):
         logger.error(ex)
 
 
-async def file_sender(message: types.Message, call):
+async def file_sender(message: types.Message):
     await bot.send_message(chat_id=message.chat.id, text="Ваши файлы", reply_markup=markup_start)
 
-    if call == 'site':
+    if task == 'site':
         result_file = await wwf.filename_creator(freshness='load')
         result_file = f"{src}{result_file}"
     else:
@@ -195,151 +194,174 @@ async def file_sender(message: types.Message, call):
     await bot.send_document(chat_id=message.chat.id, document=open(f"{result_file}.xlsx", "rb"))
     await bot.send_document(chat_id=message.chat.id, document=open(f"{result_file}.txt", "rb"))
 
+    await req_to_upd_db(message)
+
+
+async def end_of_work(message: types.Message):
+    await req_to_upd_db(message)
+
+    if task == 'site':
+        await wwf.file_remover(from_where=task)
+    elif task == 'table':
+        await wwf.file_remover(from_where=task)
+        await wwdb.delete_update_ad_table()
+
+    with contextlib.suppress(Exception):
+        await ac.close_connection()
+
+
+async def req_to_upd_db(message: types.Message):
+    if task == 'site':
+        await wwdb.update_user_data(
+            user_id=message.chat.id,
+            num_site_req=True,
+            num_table_req=False,
+            date_last_site_req=await wwf.filename_creator(freshness='load'),
+            date_last_table_req=False
+        )
+    else:
+        await wwdb.update_user_data(
+            user_id=message.chat.id,
+            num_site_req=False,
+            num_table_req=True,
+            date_last_site_req=False,
+            date_last_table_req=await wwf.filename_creator(freshness='new')
+        )
+
 
 @dp.message_handler(content_types=['text'])
 async def text(message: types.Message):
     global task
 
-    try:
-        if message.text == "За работу":
-            await bot.send_message(chat_id=message.chat.id, text='Что вы хотите сделать?', reply_markup=markup_first_question)
-        elif message.text == "Собрать новую информацию":
-            task = 'fast_quit'
-            await new_table(message, call=0)
-        elif message.text == "Обновить старую информацию":
-            task = 'fast_quit'
-            await update_table(message)
+    # try:
+    if message.text == "За работу":
+        await bot.send_message(chat_id=message.chat.id, text='Что вы хотите сделать?', reply_markup=markup_first_question)
+    elif message.text == "Собрать новую информацию":
+        task = 'fast_quit'
+        await new_table(message, call=0)
+    elif message.text == "Обновить старую информацию":
+        task = 'fast_quit'
+        await update_table(message)
 
-        elif message.text == "УПН":
-            await getting_site_link(message, status_url='upn')
-        elif message.text == "ЦИАН":
-            await getting_site_link(message, status_url='cian')
-        elif message.text == "Яндекс Недвижимость":
-            await getting_site_link(message, status_url='yandex')
-        elif message.text == "Авито":
-            await getting_site_link(message, status_url='avito')
-        elif message.text == "Завершить работу":
-            if task == 'fast_quit':
-                await bot.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_start)
-            else:
-                await bot.send_message(chat_id=message.chat.id, text='Вы уверены?', reply_markup=markup_sure)
+    elif message.text == "УПН":
+        await getting_site_link(message, status_url='upn')
+    elif message.text == "ЦИАН":
+        await getting_site_link(message, status_url='cian')
+    elif message.text == "Яндекс Недвижимость":
+        await getting_site_link(message, status_url='yandex')
+    elif message.text == "Авито":
+        await getting_site_link(message, status_url='avito')
+    elif message.text == "Завершить работу":
+        if task == 'fast_quit':
+            await bot.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_start)
+        else:
+            await bot.send_message(chat_id=message.chat.id, text='Вы уверены?', reply_markup=markup_sure)
 
-        elif message.text == "Да, уверен":
-            global possibility
+    elif message.text == "Да, уверен":
+        global possibility
 
-            if task == 'site':
-                possibility = False
-                check = await wwdb.get_data_from_data_base(from_where='check', row=None)
+        if task == 'site':
+            possibility = False
+            check = await wwdb.get_data_from_data_base(from_where='check', row=None)
 
-                if int(check) != 0:
-                    await bot.send_message(chat_id=message.chat.id, text='Хотите получить объявления которые я успел найти?',
-                                           reply_markup=markup_save_file)
-                else:
-                    await bot.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_start)
-                    await wwdb.delete_advertisement_table()
-                    await wwf.file_remover(from_where='site')
-                    with contextlib.suppress(Exception):
-                        await ac.close_connection()
-                    with contextlib.suppress(Exception):
-                        await ac.close_driver()
-            elif task == 'table':
-                await bot.send_message(chat_id=message.chat.id, text='Хотите получить таблицу с не до конца обновленными данными?',
+            if int(check) != 0:
+                await bot.send_message(chat_id=message.chat.id, text='Хотите получить объявления которые я успел найти?',
                                        reply_markup=markup_save_file)
-        elif message.text == "Нет, давай продолжим":
-            await bot.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_quit)
-
-        elif message.text == "Да, хочу":
-            if task == 'site':
-                await bot.send_message(chat_id=message.chat.id, text='Отлично! В каком формате вы хотите получить результат?',
-                                       reply_markup=markup_result)
-            elif task == 'table':
-                await bot.send_message(chat_id=message.chat.id, text='Отлично! В каком формате вы хотите получить результат?',
-                                       reply_markup=markup_result)
-                await tc.table_parsing_finish()
-        elif message.text == "Нет, не хочу":
-            if task == 'site':
+            else:
                 await bot.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_start)
                 await wwdb.delete_advertisement_table()
-                await wwf.file_remover(from_where='site')
+                await wwf.file_remover(from_where=task)
                 with contextlib.suppress(Exception):
                     await ac.close_connection()
-            elif task == 'table':
-                await bot.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_start)
-                await wwf.file_remover(from_where='table')
-                await wwdb.delete_update_ad_table()
-                await ac.close_connection()
+                with contextlib.suppress(Exception):
+                    await ac.close_driver()
+        elif task == 'table':
+            await bot.send_message(chat_id=message.chat.id, text='Хотите получить таблицу с не до конца обновленными данными?',
+                                   reply_markup=markup_save_file)
+    elif message.text == "Нет, давай продолжим":
+        await bot.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_quit)
 
-        elif message.text == "Да":
-            await new_table(message, call=1)
-        elif message.text == "Нет":
+    elif message.text == "Да, хочу":
+        if task == 'site':
             await bot.send_message(chat_id=message.chat.id, text='Отлично! В каком формате вы хотите получить результат?',
                                    reply_markup=markup_result)
-
-        elif message.text == ".csv":
-            if task == 'site':
-                await sc.site_parsing_finish(req_res='csv')
-                await bot.send_message(chat_id=message.chat.id, text="Ваш .csv файл", reply_markup=markup_start)
-                await bot.send_document(chat_id=message.chat.id, document=open(f"{src}{await wwf.filename_creator(freshness='load')}.csv", "rb"))
-                await wwf.file_remover(from_where='site')
-                with contextlib.suppress(Exception):
-                    await ac.close_connection()
-            elif task == 'table':
-                await bot.send_message(chat_id=message.chat.id, text="Ваш .csv файл", reply_markup=markup_start)
-                await bot.send_document(chat_id=message.chat.id, document=open(f"{table_name_upd}.csv", "rb"))
-                await wwf.file_remover(from_where='table')
-                await wwdb.delete_update_ad_table()
-                await ac.close_connection()
-        elif message.text == ".xlsx":
-            if task == 'site':
-                await sc.site_parsing_finish(req_res='xlsx')
-                await bot.send_message(chat_id=message.chat.id, text="Ваш .xlsx файл", reply_markup=markup_start)
-                await bot.send_document(chat_id=message.chat.id, document=open(f"{src}{await wwf.filename_creator(freshness='load')}.xlsx", "rb"))
-                await wwf.file_remover(from_where='site')
-                with contextlib.suppress(Exception):
-                    await ac.close_connection()
-            elif task == 'table':
-                await wwf.convert_csv_to_xlsx(from_where='table')
-                await bot.send_message(chat_id=message.chat.id, text="Ваш .xlsx файл", reply_markup=markup_start)
-                await bot.send_document(chat_id=message.chat.id, document=open(f"{table_name_upd}.xlsx", "rb"))
-                await wwf.file_remover(from_where='table')
-                await wwdb.delete_update_ad_table()
-                await ac.close_connection()
-        elif message.text == ".txt":
-            if task == 'site':
-                await sc.site_parsing_finish(req_res='txt')
-                await bot.send_message(chat_id=message.chat.id, text="Ваш .txt файл", reply_markup=markup_start)
-                await bot.send_document(chat_id=message.chat.id, document=open(f"{src}{await wwf.filename_creator(freshness='load')}.txt", "rb"))
-                await wwf.file_remover(from_where='site')
-                with contextlib.suppress(Exception):
-                    await ac.close_connection()
-            elif task == 'table':
-                await wwf.convert_csv_to_txt(from_where='table')
-                await bot.send_message(chat_id=message.chat.id, text="Ваш .txt файл", reply_markup=markup_start)
-                await bot.send_document(chat_id=message.chat.id, document=open(f"{table_name_upd}.txt", "rb"))
-                await wwf.file_remover(from_where='table')
-                await wwdb.delete_update_ad_table()
-                await ac.close_connection()
-        elif message.text == "Все форматы":
-            if task == 'site':
-                await sc.site_parsing_finish(req_res='all')
-                await file_sender(message, call=task)
-                await wwf.file_remover(from_where='site')
-                with contextlib.suppress(Exception):
-                    await ac.close_connection()
-            elif task == 'table':
-                await wwf.convert_csv_to_xlsx(from_where='table')
-                await wwf.convert_csv_to_txt(from_where='table')
-                await file_sender(message, call=task)
-                await wwf.file_remover(from_where='table')
-                await wwdb.delete_update_ad_table()
-                await ac.close_connection()
-        else:
+        elif task == 'table':
+            await bot.send_message(chat_id=message.chat.id, text='Отлично! В каком формате вы хотите получить результат?',
+                                   reply_markup=markup_result)
+            await tc.table_parsing_finish()
+    elif message.text == "Нет, не хочу":
+        if task == 'site':
+            await bot.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_start)
+            await wwdb.delete_advertisement_table()
+            await wwf.file_remover(from_where=task)
             with contextlib.suppress(Exception):
-                await sc.site_parsing_finish(req_res='error')
-            await bot.send_message(chat_id=message.chat.id, text='Таких команд я не знаю 😔\nПопробуй воспользоваться /help', reply_markup=markup_start)
+                await ac.close_connection()
+        elif task == 'table':
+            await bot.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_start)
+            await wwf.file_remover(from_where=task)
+            await wwdb.delete_update_ad_table()
+            await ac.close_connection()
 
-    except Exception as ex:
-        logger.error(ex)
+    elif message.text == "Да":
+        await new_table(message, call=1)
+    elif message.text == "Нет":
+        await bot.send_message(chat_id=message.chat.id, text='Отлично! В каком формате вы хотите получить результат?',
+                               reply_markup=markup_result)
+
+    elif message.text == ".csv":
+        if task == 'site':
+            await sc.site_parsing_finish(req_res='csv')
+            await bot.send_message(chat_id=message.chat.id, text="Ваш .csv файл", reply_markup=markup_start)
+            await bot.send_document(chat_id=message.chat.id, document=open(f"{src}{await wwf.filename_creator(freshness='load')}.csv", "rb"))
+            await end_of_work(message)
+        elif task == 'table':
+            await bot.send_message(chat_id=message.chat.id, text="Ваш .csv файл", reply_markup=markup_start)
+            await bot.send_document(chat_id=message.chat.id, document=open(f"{table_name_upd}.csv", "rb"))
+            await end_of_work(message)
+    elif message.text == ".xlsx":
+        if task == 'site':
+            await sc.site_parsing_finish(req_res='xlsx')
+            await bot.send_message(chat_id=message.chat.id, text="Ваш .xlsx файл", reply_markup=markup_start)
+            await bot.send_document(chat_id=message.chat.id, document=open(f"{src}{await wwf.filename_creator(freshness='load')}.xlsx", "rb"))
+            await end_of_work(message)
+        elif task == 'table':
+            await wwf.convert_csv_to_xlsx(from_where=task)
+            await bot.send_message(chat_id=message.chat.id, text="Ваш .xlsx файл", reply_markup=markup_start)
+            await bot.send_document(chat_id=message.chat.id, document=open(f"{table_name_upd}.xlsx", "rb"))
+            await end_of_work(message)
+    elif message.text == ".txt":
+        if task == 'site':
+            await sc.site_parsing_finish(req_res='txt')
+            await bot.send_message(chat_id=message.chat.id, text="Ваш .txt файл", reply_markup=markup_start)
+            await bot.send_document(chat_id=message.chat.id, document=open(f"{src}{await wwf.filename_creator(freshness='load')}.txt", "rb"))
+            await end_of_work(message)
+        elif task == 'table':
+            await wwf.convert_csv_to_txt(from_where=task)
+            await bot.send_message(chat_id=message.chat.id, text="Ваш .txt файл", reply_markup=markup_start)
+            await bot.send_document(chat_id=message.chat.id, document=open(f"{table_name_upd}.txt", "rb"))
+            await end_of_work(message)
+    elif message.text == "Все форматы":
+        if task == 'site':
+            await sc.site_parsing_finish(req_res='all')
+            await file_sender(message)
+            await wwf.file_remover(from_where=task)
+            with contextlib.suppress(Exception):
+                await ac.close_connection()
+        elif task == 'table':
+            await wwf.convert_csv_to_xlsx(from_where=task)
+            await wwf.convert_csv_to_txt(from_where=task)
+            await file_sender(message)
+            await wwf.file_remover(from_where=task)
+            await wwdb.delete_update_ad_table()
+            with contextlib.suppress(Exception):
+                await ac.close_connection()
+    else:
+        with contextlib.suppress(Exception):
+            await sc.site_parsing_finish(req_res='error')
+        await bot.send_message(chat_id=message.chat.id, text='Таких команд я не знаю 😔\nПопробуй воспользоваться /help', reply_markup=markup_start)
+
+    # except Exception as ex:
+    #     logger.error(ex)
 
 
 if __name__ == '__main__':

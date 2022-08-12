@@ -20,6 +20,48 @@ async def user_data(user_id, user_name, num_site_req, num_table_req, date_last_s
         )
 
 
+async def update_user_data(user_id, num_site_req, num_table_req, date_last_site_req, date_last_table_req):
+    with glob.connection.cursor() as glob.cursor:
+        if num_site_req:
+            glob.cursor.execute(f"""SELECT num_site_req FROM user_data WHERE user_id = '{user_id}';""")
+            num_site = int(glob.cursor.fetchall()[0][0]) + 1
+
+            glob.cursor.execute(f"""SELECT num_table_req FROM user_data WHERE user_id = '{user_id}';""")
+            num_table = glob.cursor.fetchall()[0][0]
+
+            date_last_site = str(date_last_site_req).split('-')
+            date = date_last_site[0].replace('.', '-')
+            time = date_last_site[1].replace('.', '-')
+            date_last_site = f"{date}/{time}".replace(' ', '')
+
+            glob.cursor.execute(f"""SELECT date_last_table_req FROM user_data WHERE user_id = '{user_id}';""")
+            date_last_table = glob.cursor.fetchall()[0][0]
+
+        elif num_table_req:
+            glob.cursor.execute(f"""SELECT num_site_req FROM user_data WHERE user_id = '{user_id}';""")
+            num_site = glob.cursor.fetchall()[0][0]
+
+            glob.cursor.execute(f"""SELECT num_table_req FROM user_data WHERE user_id = '{user_id}';""")
+            num_table = int(glob.cursor.fetchall()[0][0]) + 1
+
+            glob.cursor.execute(f"""SELECT date_last_site_req FROM user_data WHERE user_id = '{user_id}';""")
+            date_last_site = glob.cursor.fetchall()[0][0]
+
+            date_last_table = str(date_last_table_req).split('-')
+            date = date_last_table[0].replace('.', '-')
+            time = date_last_table[1].replace('.', '-')
+            date_last_table = f"{date}/{time}".replace(' ', '')
+
+        glob.cursor.execute(
+            f"""UPDATE user_data SET 
+            num_site_req = '{num_site}', 
+            num_table_req = '{num_table}', 
+            date_last_site_req = '{date_last_site}', 
+            date_last_table_req = '{date_last_table}' 
+            WHERE user_id = '{user_id}';"""
+        )
+
+
 async def add_data_to_data_base():
     from main_code.work_with_files import table_name_upd
 
