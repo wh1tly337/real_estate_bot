@@ -36,75 +36,68 @@ async def table_parsing_main(message):
 
         max_row = await wwdb.get_data_from_data_base(from_where='max_row', row=None)
 
-        requirement, driver, counter = False, None, 1
+        requirement, driver, flag = False, None, True
 
         for row in tqdm(range(max_row)):
+            ad_id, table_url, old_price = await wwdb.get_data_from_data_base(from_where='else', row=row)
             # maybe this stopper work not correctly
-            if counter is None:
+            if flag is False:
                 break
             else:
-                for id_handler in range(max_row):
-                    try:
-                        ad_id, table_url, old_price = await wwdb.get_data_from_data_base(from_where='else', row=row)
+                try:
+                    if table_url[:14] == 'https://upn.ru':
+                        try:
+                            await tp.upn_table_parser(table_url=table_url, old_price=old_price)
 
-                        if ad_id != counter:
-                            continue
-                        else:
-                            if table_url[:14] == 'https://upn.ru':
-                                try:
-                                    await tp.upn_table_parser(table_url=table_url, old_price=old_price)
+                        except Exception as ex:
+                            logger.error(ex)
 
-                                except Exception as ex:
-                                    logger.error(ex)
+                    elif table_url[:19] == 'https://ekb.cian.ru':
+                        if driver is None:
+                            driver = await ac.add_driver()
 
-                            elif table_url[:19] == 'https://ekb.cian.ru':
-                                if driver is None:
-                                    driver = await ac.add_driver()
+                        requirement = True
 
-                                requirement = True
+                        try:
+                            await tp.cian_table_parser(table_url=table_url, old_price=old_price, driver=driver)
 
-                                try:
-                                    await tp.cian_table_parser(table_url=table_url, old_price=old_price, driver=driver)
+                        except Exception as ex:
+                            logger.error(ex)
 
-                                except Exception as ex:
-                                    logger.error(ex)
+                    elif table_url[:24] == 'https://realty.yandex.ru':
+                        if driver is None:
+                            driver = await ac.add_driver()
 
-                            elif table_url[:24] == 'https://realty.yandex.ru':
-                                if driver is None:
-                                    driver = await ac.add_driver()
+                        requirement = True
 
-                                requirement = True
+                        try:
+                            await tp.yandex_table_parser(table_url=table_url, old_price=old_price, driver=driver)
 
-                                try:
-                                    await tp.yandex_table_parser(table_url=table_url, old_price=old_price, driver=driver)
+                        except Exception as ex:
+                            logger.error(ex)
 
-                                except Exception as ex:
-                                    logger.error(ex)
+                    elif table_url[:20] == 'https://www.avito.ru':
+                        if driver is None:
+                            driver = await ac.add_driver()
 
-                            elif table_url[:20] == 'https://www.avito.ru':
-                                if driver is None:
-                                    driver = await ac.add_driver()
+                        requirement = True
 
-                                requirement = True
+                        try:
+                            await tp.avito_table_parser(table_url=table_url, old_price=old_price, driver=driver)
 
-                                try:
-                                    await tp.avito_table_parser(table_url=table_url, old_price=old_price, driver=driver)
+                        except Exception as ex:
+                            logger.error(ex)
 
-                                except Exception as ex:
-                                    logger.error(ex)
-
-                            counter += 1
-
-                    except Exception as ex:
-                        await asyncio.sleep(5)
-                        logger.error(ex)
-                        counter = None
-                        break
+                except Exception as ex:
+                    await asyncio.sleep(5)
+                    logger.error(ex)
+                    flag = False
+                    break
 
         if requirement:
             await ac.close_driver()
 
-        if counter is not None:
+        if flag:
             await table_parsing_finish()
 
             await rd.bot.send_message(chat_id=message.chat.id, text="Вся информация обновлена. В каком формате вы хотите получить результат?", reply_markup=markup_result, parse_mode="Markdown")

@@ -59,7 +59,6 @@ async def get_data_from_data_base(from_where, row):
     if from_where == 'max_row' and row is None:
         with glob.connection.cursor() as glob.cursor:
             glob.cursor.execute("""SELECT count(*) FROM update_ad;""")
-            # glob.cursor.execute("""SELECT MAX(id) FROM update_ad;""")
             max_row = glob.cursor.fetchall()[0][0]
 
         return max_row
@@ -71,13 +70,13 @@ async def get_data_from_data_base(from_where, row):
         return check
     else:
         with glob.connection.cursor() as glob.cursor:
-            glob.cursor.execute("""SELECT id FROM update_ad;""")
+            glob.cursor.execute("""SELECT id FROM update_ad ORDER BY id;""")
             ad_id = glob.cursor.fetchall()[row][0]
         with glob.connection.cursor() as glob.cursor:
-            glob.cursor.execute("""SELECT url FROM update_ad;""")
+            glob.cursor.execute("""SELECT url FROM update_ad ORDER BY id;""")
             table_url = glob.cursor.fetchall()[row][0]
         with glob.connection.cursor() as glob.cursor:
-            glob.cursor.execute("""SELECT price FROM update_ad;""")
+            glob.cursor.execute("""SELECT price FROM update_ad ORDER BY id;""")
             old_price = glob.cursor.fetchall()[row][0]
 
         return ad_id, table_url, old_price
