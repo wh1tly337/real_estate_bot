@@ -12,11 +12,11 @@ async def data_base(status, adres, price, square, url):
         )
 
 
-async def user_data(user_id, user_name, num_site_req, num_table_req, date_last_site_req, date_last_table_req):
+async def user_data(user_id, user_full_name, user_username, settings, num_site_req, num_table_req, date_last_site_req, date_last_table_req):
     with glob.connection.cursor() as glob.cursor:
         glob.cursor.execute(
-            f"""INSERT INTO user_data (user_id, user_name, num_site_req, num_table_req, date_last_site_req, date_last_table_req) 
-            VALUES ('{user_id}', '{user_name}', '{num_site_req}', '{num_table_req}', '{date_last_site_req}', '{date_last_table_req}');"""
+            f"""INSERT INTO user_data (user_id, user_full_name, user_username, settings, num_site_req, num_table_req, date_last_site_req, date_last_table_req) 
+            VALUES ('{user_id}', '{user_full_name}', '{user_username}', '{settings}', '{num_site_req}', '{num_table_req}', '{date_last_site_req}', '{date_last_table_req}');"""
         )
 
 

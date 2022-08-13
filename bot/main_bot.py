@@ -35,7 +35,9 @@ async def start_message(message: types.Message):
     if message.chat.id not in all_users:
         await wwdb.user_data(
             user_id=message.chat.id,
-            user_name=message.from_user.full_name,
+            user_full_name=message.from_user.full_name,
+            user_username=message.from_user.username,
+            settings=None,
             num_site_req=0,
             num_table_req=0,
             date_last_site_req=0,
@@ -110,8 +112,8 @@ async def feedback_handler(message: types.Message, state: FSMContext):
     else:
         await bot.send_message(chat_id=message.chat.id, text='Спасибо за отзыв!', parse_mode="Markdown", reply_markup=markup_start)
         message_text = f"Отзыв от {message.from_user.full_name} / {message.from_user.username}\nid: {message.chat.id}\n\n{feedback_response}"
-        await bot.send_message(chat_id=admin_id, text=message_text, parse_mode="Markdown")
-        logger.info('Received a review')
+        await bot.send_message(chat_id=admin_id, text=message_text, parse_mode="Markdown", reply_markup=markup_start)
+        logger.info('Received a feedback')
 
     await state.finish()
 
@@ -148,6 +150,11 @@ async def communication_message(message: types.Message, state: FSMContext):
         logger.info(f"Communication has been made with {communication_id_response}")
 
     await state.finish()
+
+
+@dp.message_handler(commands=['settings'])
+async def settings(message: types.Message):
+    await bot.send_message(chat_id=message.chat.id, text='Функция пока не готова', parse_mode="Markdown", reply_markup=markup_start)
 
 
 @dp.message_handler(commands=['links'])
