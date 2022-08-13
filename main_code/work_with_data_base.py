@@ -62,6 +62,12 @@ async def update_user_data(user_id, num_site_req, num_table_req, date_last_site_
         )
 
 
+async def update_user_data_settings(settings_format, user_id):
+    glob.cursor.execute(
+        f"""UPDATE user_data SET settings = '{settings_format}' WHERE user_id = '{user_id}';"""
+    )
+
+
 async def get_user_data_table():
     with glob.connection.cursor() as glob.cursor:
         glob.cursor.execute(

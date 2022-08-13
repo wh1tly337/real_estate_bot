@@ -60,3 +60,13 @@ btn2_result = types.KeyboardButton(".xlsx")
 btn3_result = types.KeyboardButton(".txt")
 btn4_result = types.KeyboardButton("Все форматы")
 markup_result.add(btn1_result, btn2_result, btn3_result, btn4_result)
+
+markup_settings = types.ReplyKeyboardMarkup(resize_keyboard=True)
+btn1_settings = types.KeyboardButton(".csv")
+btn2_settings = types.KeyboardButton(".xlsx")
+btn3_settings = types.KeyboardButton(".txt")
+btn4_settings = types.KeyboardButton("Все форматы")
+btn5_settings = types.KeyboardButton("Буду выбирать каждый раз")
+markup_settings.add(btn1_settings, btn2_settings, btn3_settings),
+markup_settings.add(btn4_settings)
+markup_settings.add(btn5_settings)

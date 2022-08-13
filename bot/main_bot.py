@@ -26,11 +26,13 @@ class Answer(StatesGroup):
     user_feedback = State()
     communication_id = State()
     communication_message = State()
+    res_file_settings = State()
 
 
 @dp.message_handler(commands=['start'])
 async def start_message(message: types.Message):
-    await ac.start_connection()
+    with contextlib.suppress(Exception):
+        await ac.start_connection()
     all_users = await wwdb.get_data_from_data_base(from_where='start', row=None)
     if message.chat.id not in all_users:
         await wwdb.user_data(
@@ -44,7 +46,8 @@ async def start_message(message: types.Message):
             date_last_table_req=0
         )
         logger.info('New user add')
-    await ac.close_connection()
+    with contextlib.suppress(Exception):
+        await ac.close_connection()
 
     await bot.send_message(chat_id=message.chat.id, text=f"{message.from_user.full_name}, добро пожаловать в бот помощник по недвижимости!\
                      \nЯ в любое время могу собирать информацию о необходимых тебе объектах.\
@@ -82,10 +85,10 @@ async def password_handler(message: types.Message, state: FSMContext):
             message_text = 'Добро пожаловать. Что вы хотите сделать?'
             await bot.send_message(chat_id=admin_id, text=message_text, parse_mode="Markdown", reply_markup=markup_admin)
         else:
-            logger.info('Fake admin logged in. Need to change password!')
+            logger.info(f"Fake admin ({message.chat.id}) logged in. Need to change password!")
             message_text = 'Попытка хорошая, но вы не админ, так что даже не пытайтесь)'
             await bot.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_start)
-            message_text = 'Нас взломали! Нужно менять пароль!'
+            message_text = f"Нас взломали! Нужно менять пароль!\nВзломщик - {message.chat.id}"
             await bot.send_message(chat_id=admin_id, text=message_text, parse_mode="Markdown", reply_markup=markup_admin)
     else:
         message_text = 'Неверный пароль. Чтобы попробовать заново введите /admin'
@@ -154,7 +157,58 @@ async def communication_message(message: types.Message, state: FSMContext):
 
 @dp.message_handler(commands=['settings'])
 async def settings(message: types.Message):
-    await bot.send_message(chat_id=message.chat.id, text='Функция пока не готова', parse_mode="Markdown", reply_markup=markup_start)
+    message_text = \
+        'Вы можете выбрать в каком формате будете получать результаты работы, чтобы каждый раз не выбирать его во время работы.\
+        \nПотом этот выбор можно будет всегда поменять или отменить в этих же настройках.'
+    await bot.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_settings)
+
+    await Answer.res_file_settings.set()
+
+
+@dp.message_handler(state=Answer.res_file_settings)
+async def communication_id(message: types.Message, state: FSMContext):
+    res_file_settings = message.text
+    await state.update_data(user_response=res_file_settings)
+
+    point = True
+
+    with contextlib.suppress(Exception):
+        await ac.start_connection()
+
+    if res_file_settings == '.csv':
+        await wwdb.update_user_data_settings(settings_format=res_file_settings, user_id=message.chat.id)
+        message_text = 'Отлично! Теперь все результаты моей работы будут приходить в .csv формате.\nВы всегда можете это поменять в настройках'
+        await bot.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_start)
+    elif res_file_settings == '.xlsx':
+        await wwdb.update_user_data_settings(settings_format=res_file_settings, user_id=message.chat.id)
+        message_text = 'Отлично! Теперь все результаты моей работы будут приходить в .xlsx формате.\nВы всегда можете это поменять в настройках'
+        await bot.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_start)
+    elif res_file_settings == '.txt':
+        await wwdb.update_user_data_settings(settings_format=res_file_settings, user_id=message.chat.id)
+        message_text = 'Отлично! Теперь все результаты моей работы будут приходить в .txt формате.\nВы всегда можете это поменять в настройках'
+        await bot.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_start)
+    elif res_file_settings == 'Все форматы':
+        res_file_settings = 'all'
+        await wwdb.update_user_data_settings(settings_format=res_file_settings, user_id=message.chat.id)
+        message_text = 'Отлично! Теперь по окончании работы я буду присылать вам файлы во всех форматах.\nВы всегда можете это поменять в настройках'
+        await bot.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_start)
+    elif res_file_settings == 'Буду выбирать каждый раз':
+        res_file_settings = None
+        await wwdb.update_user_data_settings(settings_format=res_file_settings, user_id=message.chat.id)
+        message_text = 'Отлично! Теперь по окончании работы я каждый раз буду спрашивать у вас в каком формате отправить файл.\nВы всегда можете это поменять в настройках'
+        await bot.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_start)
+    else:
+        point = False
+        message_text = 'Такой настойки нет. Попробуйте воспользоваться функцией еще раз. Лучше всего полбзоваться кнопками внизу клавиатуры'
+        await bot.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_start)
+
+    with contextlib.suppress(Exception):
+        await ac.close_connection()
+
+    await state.finish()
+
+    if point:
+        logger.info(f"User - {message.chat.id} update his settings to {res_file_settings}")
 
 
 @dp.message_handler(commands=['links'])
@@ -174,7 +228,8 @@ async def new_table(message: types.Message, call=0):
     possibility = True
 
     if call == 0:
-        await ac.start_connection()
+        with contextlib.suppress(Exception):
+            await ac.start_connection()
         await sc.site_parsing_start()
 
     await bot.send_message(chat_id=message.chat.id, text="С какого сайта Вы хотите получить информацию?", reply_markup=markup_site_question, parse_mode="Markdown")
@@ -192,7 +247,8 @@ async def handle_docs(message: types.Message):
 
         task = 'table'
 
-        await ac.start_connection()
+        with contextlib.suppress(Exception):
+            await ac.start_connection()
         await tc.table_parsing_start()
 
         await message.document.download(destination_file=f"{src}{message.document.file_name}")
@@ -417,7 +473,8 @@ async def text(message: types.Message):
                 await bot.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_start)
                 await wwf.file_remover(from_where=task)
                 await wwdb.delete_update_ad_table()
-                await ac.close_connection()
+                with contextlib.suppress(Exception):
+                    await ac.close_connection()
 
         elif message.text == "Да":
             await new_table(message, call=1)
