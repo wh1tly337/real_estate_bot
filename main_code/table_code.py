@@ -46,55 +46,60 @@ async def table_parsing_main(message):
             if flag is False:
                 break
             else:
-                try:
-                    if table_url[:14] == 'https://upn.ru':
-                        try:
-                            await tp.upn_table_parser(table_url=table_url, old_price=old_price)
+                if table_url[:14] == 'https://upn.ru':
+                    try:
+                        await tp.upn_table_parser(table_url=table_url, old_price=old_price)
 
-                        except Exception as ex:
-                            logger.error(ex)
+                    except Exception as ex:
+                        await asyncio.sleep(5)
+                        logger.error(ex)
+                        flag = False
+                        break
 
-                    elif table_url[:19] == 'https://ekb.cian.ru':
-                        if driver is None:
-                            driver = await ac.add_driver()
+                elif table_url[:19] == 'https://ekb.cian.ru':
+                    if driver is None:
+                        driver = await ac.add_driver()
 
-                        requirement = True
+                    requirement = True
 
-                        try:
-                            await tp.cian_table_parser(table_url=table_url, old_price=old_price, driver=driver)
+                    try:
+                        await tp.cian_table_parser(table_url=table_url, old_price=old_price, driver=driver)
 
-                        except Exception as ex:
-                            logger.error(ex)
+                    except Exception as ex:
+                        await asyncio.sleep(5)
+                        logger.error(ex)
+                        flag = False
+                        break
 
-                    elif table_url[:24] == 'https://realty.yandex.ru':
-                        if driver is None:
-                            driver = await ac.add_driver()
+                elif table_url[:24] == 'https://realty.yandex.ru':
+                    if driver is None:
+                        driver = await ac.add_driver()
 
-                        requirement = True
+                    requirement = True
 
-                        try:
-                            await tp.yandex_table_parser(table_url=table_url, old_price=old_price, driver=driver)
+                    try:
+                        await tp.yandex_table_parser(table_url=table_url, old_price=old_price, driver=driver)
 
-                        except Exception as ex:
-                            logger.error(ex)
+                    except Exception as ex:
+                        await asyncio.sleep(5)
+                        logger.error(ex)
+                        flag = False
+                        break
 
-                    elif table_url[:20] == 'https://www.avito.ru':
-                        if driver is None:
-                            driver = await ac.add_driver()
+                elif table_url[:20] == 'https://www.avito.ru':
+                    if driver is None:
+                        driver = await ac.add_driver()
 
-                        requirement = True
+                    requirement = True
 
-                        try:
-                            await tp.avito_table_parser(table_url=table_url, old_price=old_price, driver=driver)
+                    try:
+                        await tp.avito_table_parser(table_url=table_url, old_price=old_price, driver=driver)
 
-                        except Exception as ex:
-                            logger.error(ex)
-
-                except Exception as ex:
-                    await asyncio.sleep(5)
-                    logger.error(ex)
-                    flag = False
-                    break
+                    except Exception as ex:
+                        await asyncio.sleep(5)
+                        logger.error(ex)
+                        flag = False
+                        break
 
         if requirement:
             await ac.close_driver()

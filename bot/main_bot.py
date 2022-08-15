@@ -198,47 +198,48 @@ async def settings(message: types.Message):
 async def settings_response(message: types.Message, state: FSMContext):
     res_file_settings = message.text
     await state.update_data(user_response=res_file_settings)
-
     point = True
-
     with contextlib.suppress(Exception):
         await ac.start_connection()
-
     if res_file_settings == '.csv':
         res_file_settings = 'csv'
         await wwdb.update_user_data_settings(settings_format=res_file_settings, user_id=message.chat.id)
+
         message_text = 'Отлично! Теперь все результаты моей работы будут приходить в .csv формате.\nВы всегда можете это поменять в настройках'
-        await bot.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_start)
+
     elif res_file_settings == '.xlsx':
         res_file_settings = 'xlsx'
         await wwdb.update_user_data_settings(settings_format=res_file_settings, user_id=message.chat.id)
+
         message_text = 'Отлично! Теперь все результаты моей работы будут приходить в .xlsx формате.\nВы всегда можете это поменять в настройках'
-        await bot.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_start)
+
     elif res_file_settings == '.txt':
         res_file_settings = 'txt'
         await wwdb.update_user_data_settings(settings_format=res_file_settings, user_id=message.chat.id)
+
         message_text = 'Отлично! Теперь все результаты моей работы будут приходить в .txt формате.\nВы всегда можете это поменять в настройках'
-        await bot.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_start)
+
     elif res_file_settings == 'Все форматы':
         res_file_settings = 'all'
         await wwdb.update_user_data_settings(settings_format=res_file_settings, user_id=message.chat.id)
+
         message_text = 'Отлично! Теперь по окончании работы я буду присылать вам файлы во всех форматах.\nВы всегда можете это поменять в настройках'
-        await bot.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_start)
+
     elif res_file_settings == 'Буду выбирать каждый раз':
         res_file_settings = None
         await wwdb.update_user_data_settings(settings_format=res_file_settings, user_id=message.chat.id)
+
         message_text = 'Отлично! Теперь по окончании работы я каждый раз буду спрашивать у вас в каком формате отправить файл.\nВы всегда можете это поменять в настройках'
-        await bot.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_start)
+
     else:
         point = False
         message_text = 'Такой настойки нет. Попробуйте воспользоваться функцией еще раз. Лучше всего полбзоваться кнопками внизу клавиатуры'
-        await bot.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_start)
+
+    await bot.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_start)
 
     with contextlib.suppress(Exception):
         await ac.close_connection()
-
     await state.finish()
-
     if point:
         logger.info(f"User - {message.chat.id} update his settings to {res_file_settings}")
 
@@ -391,13 +392,8 @@ async def table_parser_end_with_settings(message: types.Message):
                                reply_markup=markup_result, parse_mode="Markdown")
     elif task == 'table':
         if user_settings == 'all':
-            await wwf.convert_csv_to_xlsx(from_where=task)
-            await wwf.convert_csv_to_txt(from_where=task)
-            await file_sender(message)
-            await wwf.file_remover(from_where=task)
-            await wwdb.delete_update_ad_table()
-            with contextlib.suppress(Exception):
-                await ac.close_connection()
+            await table_all_res_finish(message)
+
         else:
             if user_settings == 'txt':
                 await wwf.convert_csv_to_txt(from_where=task)
@@ -406,6 +402,26 @@ async def table_parser_end_with_settings(message: types.Message):
 
             await bot.send_message(chat_id=message.chat.id, text=f"Ваш .{user_settings} файл", reply_markup=markup_start)
             await bot.send_document(chat_id=message.chat.id, document=open(f"{table_name_upd}.{user_settings}", "rb"))
+            await end_of_work(message)
+
+
+async def site_parser_end_with_settings(message: types.Message):
+    user_settings = await wwdb.get_user_settings(user_id=message.chat.id)
+    if user_settings == "None":
+        await bot.send_message(chat_id=message.chat.id, text='Отлично! В каком формате вы хотите получить результат?',
+                               reply_markup=markup_result)
+    elif task == 'site':
+        await sc.site_parsing_finish(req_res=user_settings)
+        if user_settings == 'all':
+            await sc.site_parsing_finish(req_res='all')
+            await file_sender(message)
+            await wwf.file_remover(from_where=task)
+            await wwdb.delete_advertisement_table()
+            with contextlib.suppress(Exception):
+                await ac.close_connection()
+        else:
+            await bot.send_message(chat_id=message.chat.id, text=f"Ваш .{user_settings} файл", reply_markup=markup_start)
+            await bot.send_document(chat_id=message.chat.id, document=open(f"{src}{await wwf.filename_creator(freshness='load')}.{user_settings}", "rb"))
             await end_of_work(message)
 
 
@@ -418,6 +434,16 @@ async def end_of_work(message: types.Message):
         await wwf.file_remover(from_where=task)
         await wwdb.delete_update_ad_table()
 
+    with contextlib.suppress(Exception):
+        await ac.close_connection()
+
+
+async def table_all_res_finish(message):
+    await wwf.convert_csv_to_xlsx(from_where=task)
+    await wwf.convert_csv_to_txt(from_where=task)
+    await file_sender(message)
+    await wwf.file_remover(from_where=task)
+    await wwdb.delete_update_ad_table()
     with contextlib.suppress(Exception):
         await ac.close_connection()
 
@@ -490,17 +516,17 @@ async def text(message: types.Message):
             elif task == 'table':
                 await bot.send_message(chat_id=message.chat.id, text='Хотите получить таблицу с не до конца обновленными данными?',
                                        reply_markup=markup_save_file)
+                with contextlib.suppress(Exception):
+                    await ac.close_driver()
         elif message.text == "Нет, давай продолжим":
             await bot.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_quit)
 
         elif message.text == "Да, хочу":
             if task == 'site':
-                await bot.send_message(chat_id=message.chat.id, text='Отлично! В каком формате вы хотите получить результат?',
-                                       reply_markup=markup_result)
+                await site_parser_end_with_settings(message)
             elif task == 'table':
-                await bot.send_message(chat_id=message.chat.id, text='Отлично! В каком формате вы хотите получить результат?',
-                                       reply_markup=markup_result)
                 await tc.table_parsing_finish()
+                await table_parser_end_with_settings(message)
         elif message.text == "Нет, не хочу":
             if task == 'site':
                 await bot.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_start)
@@ -518,23 +544,7 @@ async def text(message: types.Message):
         elif message.text == "Да":
             await new_table(message, call=1)
         elif message.text == "Нет":
-            user_settings = await wwdb.get_user_settings(user_id=message.chat.id)
-            if user_settings == "None":
-                await bot.send_message(chat_id=message.chat.id, text='Отлично! В каком формате вы хотите получить результат?',
-                                       reply_markup=markup_result)
-            elif task == 'site':
-                await sc.site_parsing_finish(req_res=user_settings)
-                if user_settings == 'all':
-                    await sc.site_parsing_finish(req_res='all')
-                    await file_sender(message)
-                    await wwf.file_remover(from_where=task)
-                    await wwdb.delete_advertisement_table()
-                    with contextlib.suppress(Exception):
-                        await ac.close_connection()
-                else:
-                    await bot.send_message(chat_id=message.chat.id, text=f"Ваш .{user_settings} файл", reply_markup=markup_start)
-                    await bot.send_document(chat_id=message.chat.id, document=open(f"{src}{await wwf.filename_creator(freshness='load')}.{user_settings}", "rb"))
-                    await end_of_work(message)
+            await site_parser_end_with_settings(message)
 
         elif message.text == ".csv":
             if task == 'site':
@@ -577,13 +587,7 @@ async def text(message: types.Message):
                 with contextlib.suppress(Exception):
                     await ac.close_connection()
             elif task == 'table':
-                await wwf.convert_csv_to_xlsx(from_where=task)
-                await wwf.convert_csv_to_txt(from_where=task)
-                await file_sender(message)
-                await wwf.file_remover(from_where=task)
-                await wwdb.delete_update_ad_table()
-                with contextlib.suppress(Exception):
-                    await ac.close_connection()
+                await table_all_res_finish(message)
         else:
             with contextlib.suppress(Exception):
                 await sc.site_parsing_finish(req_res='error')

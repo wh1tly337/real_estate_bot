@@ -29,11 +29,8 @@ async def site_parsing_main(req_site, url_upn, url_cian, url_yandex, url_avito, 
 
 async def site_parsing_finish(req_res):
     try:
-        if req_res == 'error':
-            pass
-        else:
+        if req_res != 'error':
             await wwdb.site_data_to_csv()
-
             if req_res == 'csv':
                 await wwf.file_renamer()
             elif req_res == 'xlsx':
@@ -46,6 +43,5 @@ async def site_parsing_finish(req_res):
                 await wwf.convert_csv_to_xlsx(from_where='site')
                 await wwf.convert_csv_to_txt(from_where='site')
                 await wwf.file_renamer()
-
     except Exception as ex:
         logger.error(ex)
