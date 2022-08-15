@@ -68,6 +68,14 @@ async def update_user_data_settings(settings_format, user_id):
     )
 
 
+async def get_user_settings(user_id):
+    with glob.connection.cursor() as glob.cursor:
+        glob.cursor.execute(f"""SELECT settings FROM user_data WHERE user_id = '{user_id}';""")
+        user_settings = glob.cursor.fetchall()[0][0]
+
+    return user_settings
+
+
 async def get_user_data_table():
     with glob.connection.cursor() as glob.cursor:
         glob.cursor.execute(

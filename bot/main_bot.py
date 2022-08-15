@@ -115,7 +115,7 @@ async def feedback_handler(message: types.Message, state: FSMContext):
     else:
         await bot.send_message(chat_id=message.chat.id, text='Спасибо за отзыв!', parse_mode="Markdown", reply_markup=markup_start)
         message_text = f"Отзыв от {message.from_user.full_name} / {message.from_user.username}\nid: {message.chat.id}\n\n{feedback_response}"
-        await bot.send_message(chat_id=admin_id, text=message_text, parse_mode="Markdown", reply_markup=markup_start)
+        await bot.send_message(chat_id=admin_id, text=message_text, parse_mode="HTML", reply_markup=markup_start)
         logger.info('Received a feedback')
 
     await state.finish()
@@ -166,7 +166,7 @@ async def settings(message: types.Message):
 
 
 @dp.message_handler(state=Answer.res_file_settings)
-async def communication_id(message: types.Message, state: FSMContext):
+async def settings_response(message: types.Message, state: FSMContext):
     res_file_settings = message.text
     await state.update_data(user_response=res_file_settings)
 
@@ -176,14 +176,17 @@ async def communication_id(message: types.Message, state: FSMContext):
         await ac.start_connection()
 
     if res_file_settings == '.csv':
+        res_file_settings = 'csv'
         await wwdb.update_user_data_settings(settings_format=res_file_settings, user_id=message.chat.id)
         message_text = 'Отлично! Теперь все результаты моей работы будут приходить в .csv формате.\nВы всегда можете это поменять в настройках'
         await bot.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_start)
     elif res_file_settings == '.xlsx':
+        res_file_settings = 'xlsx'
         await wwdb.update_user_data_settings(settings_format=res_file_settings, user_id=message.chat.id)
         message_text = 'Отлично! Теперь все результаты моей работы будут приходить в .xlsx формате.\nВы всегда можете это поменять в настройках'
         await bot.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_start)
     elif res_file_settings == '.txt':
+        res_file_settings = 'txt'
         await wwdb.update_user_data_settings(settings_format=res_file_settings, user_id=message.chat.id)
         message_text = 'Отлично! Теперь все результаты моей работы будут приходить в .txt формате.\nВы всегда можете это поменять в настройках'
         await bot.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_start)
@@ -479,8 +482,22 @@ async def text(message: types.Message):
         elif message.text == "Да":
             await new_table(message, call=1)
         elif message.text == "Нет":
-            await bot.send_message(chat_id=message.chat.id, text='Отлично! В каком формате вы хотите получить результат?',
-                                   reply_markup=markup_result)
+            user_settings = await wwdb.get_user_settings(user_id=message.chat.id)
+            if user_settings is None:
+                await bot.send_message(chat_id=message.chat.id, text='Отлично! В каком формате вы хотите получить результат?',
+                                       reply_markup=markup_result)
+            elif task == 'site':
+                await sc.site_parsing_finish(req_res=user_settings)
+                if user_settings == 'all':
+                    await sc.site_parsing_finish(req_res='all')
+                    await file_sender(message)
+                    await wwf.file_remover(from_where=task)
+                    with contextlib.suppress(Exception):
+                        await ac.close_connection()
+                else:
+                    await bot.send_message(chat_id=message.chat.id, text=f"Ваш .{user_settings} файл", reply_markup=markup_start)
+                    await bot.send_document(chat_id=message.chat.id, document=open(f"{src}{await wwf.filename_creator(freshness='load')}.{user_settings}", "rb"))
+                    await end_of_work(message)
 
         elif message.text == ".csv":
             if task == 'site':
