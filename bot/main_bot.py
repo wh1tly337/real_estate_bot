@@ -22,6 +22,7 @@ logger.add(f"{src_logger}logger.txt", format='{time} | {level} | {message}', rot
 
 class Answer(StatesGroup):
     response_as_link = State()
+    admin_panel = State()
     response_as_password = State()
     user_feedback = State()
     communication_id = State()
@@ -84,6 +85,8 @@ async def password_handler(message: types.Message, state: FSMContext):
             logger.info('Admin logged in')
             message_text = 'Добро пожаловать. Что вы хотите сделать?'
             await bot.send_message(chat_id=admin_id, text=message_text, parse_mode="Markdown", reply_markup=markup_admin)
+
+            await Answer.admin_panel.set()
         else:
             logger.info(f"Fake admin ({message.chat.id}) logged in. Need to change password!")
             message_text = 'Попытка хорошая, но вы не админ, так что даже не пытайтесь)'
@@ -93,6 +96,32 @@ async def password_handler(message: types.Message, state: FSMContext):
     else:
         message_text = 'Неверный пароль. Чтобы попробовать заново введите /admin'
         await bot.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_start)
+
+
+@dp.message_handler(state=Answer.admin_panel)
+async def admin_panel(message: types.Message, state: FSMContext):
+    admin_response = message.text
+    await state.update_data(user_response=admin_response)
+
+    if admin_response == "Получить базу данных":
+        with contextlib.suppress(Exception):
+            await ac.start_connection()
+        await wwdb.get_user_data_table()
+        await bot.send_document(chat_id=message.chat.id, document=open(f"{src}user_data.csv"), reply_markup=markup_start)
+        logger.info('Admin get user-data table')
+        await wwf.file_remover(from_where='admin')
+        with contextlib.suppress(Exception):
+            await ac.close_connection()
+
+    elif admin_response == "Получить логгер":
+        logger.info('Admin get logg file')
+        await bot.send_document(chat_id=message.chat.id, document=open(f"{src_logger}logger.txt"), reply_markup=markup_start)
+
+    elif admin_response == "Написать пользователю":
+        message_text = 'Введите id пользователя которому хотите написать'
+        await bot.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_communication)
+
+        await Answer.communication_id.set()
 
     await state.finish()
 
@@ -425,24 +454,6 @@ async def text(message: types.Message):
         elif message.text == "Обновить старую информацию":
             task = 'fast_quit'
             await update_table(message)
-
-        elif message.text == "Получить базу данных":
-            with contextlib.suppress(Exception):
-                await ac.start_connection()
-            await wwdb.get_user_data_table()
-            await bot.send_document(chat_id=message.chat.id, document=open(f"{src}user_data.csv"), reply_markup=markup_start)
-            logger.info('Admin get user-data table')
-            await wwf.file_remover(from_where='admin')
-            with contextlib.suppress(Exception):
-                await ac.close_connection()
-        elif message.text == "Получить логгер":
-            logger.info('Admin get logg file')
-            await bot.send_document(chat_id=message.chat.id, document=open(f"{src_logger}logger.txt"), reply_markup=markup_start)
-        elif message.text == "Написать пользователю":
-            message_text = 'Введите id пользователя которому хотите написать'
-            await bot.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_communication)
-
-            await Answer.communication_id.set()
 
         elif message.text == "УПН":
             await getting_site_link(message, status_url='upn')
