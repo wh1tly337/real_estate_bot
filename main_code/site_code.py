@@ -34,8 +34,6 @@ async def site_parsing_finish(req_res):
         else:
             await wwdb.site_data_to_csv()
 
-            await wwdb.delete_advertisement_table()
-
             if req_res == 'csv':
                 await wwf.file_renamer()
             elif req_res == 'xlsx':

@@ -4,10 +4,12 @@ from bob_telegram_tools.bot import TelegramBot
 from bob_telegram_tools.utils import TelegramTqdm
 from loguru import logger
 
-from auxiliary import req_data as rd
-from auxiliary.all_markups import *
-from main_code import all_connections as ac
-from main_code import work_with_data_base as wwdb, work_with_files as wwf
+from bot import main_bot as mb
+from main_code import (
+    all_connections as ac,
+    work_with_data_base as wwdb,
+    work_with_files as wwf
+)
 from parsers import table_parser as tp
 
 
@@ -100,7 +102,7 @@ async def table_parsing_main(message):
         if flag:
             await table_parsing_finish()
 
-            await rd.bot.send_message(chat_id=message.chat.id, text="Вся информация обновлена. В каком формате вы хотите получить результат?", reply_markup=markup_result, parse_mode="Markdown")
+            await mb.table_parser_end_with_settings(message)
 
             logger.info(f"{message.chat.id} | Table successfully updated")
 
