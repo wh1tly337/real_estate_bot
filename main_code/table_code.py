@@ -4,7 +4,7 @@ from bob_telegram_tools.bot import TelegramBot
 from bob_telegram_tools.utils import TelegramTqdm
 from loguru import logger
 
-from bot import main_bot as mb
+from real_estate_bot import main_bot as mb
 from main_code import (
     all_connections as ac,
     work_with_data_base as wwdb,

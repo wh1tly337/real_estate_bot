@@ -48,7 +48,7 @@ async def upn_site_parser(message, url_upn):
         bs2json().convert(response.find())['html']['head']['title']['text']).split('|')[1]))) / 25)
     if num_of_pages > 15:
         num_of_pages = 15
-        await bot.send_message(chat_id=message.chat.id, text='Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только 15 '
+        await bot_aiogram.send_message(chat_id=message.chat.id, text='Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только 15 '
                                                              'страниц.')
 
     possibility = True
@@ -109,7 +109,7 @@ async def cian_site_parser(message, url_cian):
                 continue
         if num_of_pages > 15:
             num_of_pages = 15
-            await bot.send_message(chat_id=message.chat.id, text='Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только '
+            await bot_aiogram.send_message(chat_id=message.chat.id, text='Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только '
                                                                  '15 страниц.')
 
         url_next_page = 1
@@ -206,7 +206,7 @@ async def yandex_site_parser(message, url_yandex):
             url_next_page = url
         if num_of_pages > 15:
             num_of_pages = 15
-            await bot.send_message(chat_id=message.chat.id, text='Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только '
+            await bot_aiogram.send_message(chat_id=message.chat.id, text='Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только '
                                                                  '15 страниц.')
         possibility = True
 
@@ -297,7 +297,7 @@ async def avito_site_parser(message, url_avito):
                     continue
         if num_of_pages > 15:
             num_of_pages = 15
-            await bot.send_message(chat_id=message.chat.id, text='Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только '
+            await bot_aiogram.send_message(chat_id=message.chat.id, text='Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только '
                                                                  '15 страниц.')
         possibility = True
 

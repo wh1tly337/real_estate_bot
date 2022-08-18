@@ -4,8 +4,8 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 admin_id = 726420734
 admin_password = '8361'
 
-bot = Bot(token='5432400118:AAFgz1QNbckgmQ7X1jbEu87S2ZdhV6vU1m0')
-dp = Dispatcher(bot, storage=MemoryStorage())
+bot_aiogram = Bot(token='5432400118:AAFgz1QNbckgmQ7X1jbEu87S2ZdhV6vU1m0')
+dp = Dispatcher(bot_aiogram, storage=MemoryStorage())
 
 src = '/Users/user/PycharmProjects/Parser/'
 src_logger = '/Users/user/PycharmProjects/Parser/logger/'
