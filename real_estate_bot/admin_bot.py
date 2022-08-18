@@ -1,0 +1,78 @@
+import contextlib
+
+from aiogram.dispatcher import FSMContext
+from loguru import logger
+
+from auxiliary.all_markups import *
+from auxiliary.req_data import *
+from main_code import (
+    work_with_data_base as wwdb,
+    work_with_files as wwf,
+    all_connections as ac
+)
+from real_estate_bot import (
+    main_bot as mb,
+)
+
+
+async def admin(message: types.Message):
+    await bot_aiogram.send_message(chat_id=message.chat.id, text='Введите пароль', parse_mode="Markdown", reply_markup=markup_start)
+
+    await mb.Answer.response_as_password.set()
+
+
+async def password_handler(message: types.Message, state: FSMContext):
+    password_response = message.text
+    await state.update_data(user_response=password_response)
+
+    if password_response == admin_password:
+        if message.chat.id == admin_id:
+            logger.info('Admin logged in')
+            message_text = 'Добро пожаловать. Что вы хотите сделать?'
+            await bot_aiogram.send_message(chat_id=admin_id, text=message_text, parse_mode="Markdown", reply_markup=markup_admin)
+
+            await mb.Answer.admin_panel.set()
+        else:
+            logger.info(f"Fake admin ({message.chat.id}) logged in. Need to change password!")
+            message_text = 'Попытка хорошая, но вы не админ, так что даже не пытайтесь)'
+            await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_start)
+            message_text = f"Нас взломали! Нужно менять пароль!\nВзломщик - {message.chat.id}"
+            await bot_aiogram.send_message(chat_id=admin_id, text=message_text, parse_mode="Markdown", reply_markup=markup_admin)
+    else:
+        message_text = 'Неверный пароль. Чтобы попробовать заново введите /admin'
+        await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_start)
+
+
+async def admin_panel(message: types.Message, state: FSMContext):
+    admin_response = message.text
+    await state.update_data(user_response=admin_response)
+
+    if admin_response == "Получить базу данных":
+        with contextlib.suppress(Exception):
+            await ac.start_connection()
+        await wwdb.get_user_data_table()
+        await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{src}user_data.csv"), reply_markup=markup_start)
+        logger.info('Admin get user-data table')
+        await wwf.file_remover(from_where='admin')
+        with contextlib.suppress(Exception):
+            await ac.close_connection()
+
+        await state.finish()
+
+    elif admin_response == "Получить логгер":
+        logger.info('Admin get logg file')
+        await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{src_logger}logger.txt"), reply_markup=markup_start)
+
+        await state.finish()
+
+    elif admin_response == "Написать пользователю":
+        message_text = 'Введите id пользователя которому хотите написать'
+        await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_communication)
+
+        await mb.Answer.communication_id.set()
+
+
+def register_handlers_admin(dp: Dispatcher):
+    dp.register_message_handler(admin, commands=['admin'])
+    dp.register_message_handler(password_handler, state=mb.Answer.response_as_password)
+    dp.register_message_handler(admin_panel, state=mb.Answer.admin_panel)
