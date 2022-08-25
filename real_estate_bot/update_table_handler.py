@@ -12,11 +12,11 @@ from main_code.connectors import all_connections as ac
 from real_estate_bot import variables
 
 
-async def update_table(message: types.Message):
+async def update_table_start(message: types.Message):
     await bot_aiogram.send_message(chat_id=message.chat.id, text="Отправьте мне файл, информацию в котором Вы хотите обновить", reply_markup=markup_quit, parse_mode="Markdown")
 
 
-async def handle_docs(message: types.Message):
+async def docs_handler(message: types.Message):
     try:
         variables.task = 'table'
 
@@ -35,5 +35,5 @@ async def handle_docs(message: types.Message):
 
 
 def register_handlers_update_table(dp: Dispatcher):  # noqa
-    dp.register_message_handler(update_table, commands=['update_table'])
-    dp.register_message_handler(handle_docs, content_types=['document'])
+    dp.register_message_handler(update_table_start, commands=['update_table'])
+    dp.register_message_handler(docs_handler, content_types=['document'])

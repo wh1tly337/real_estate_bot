@@ -6,13 +6,13 @@ from auxiliary.all_markups import *
 from auxiliary.req_data import *
 
 
-class Answer(StatesGroup):
-    user_feedback = State()
+class Response(StatesGroup):
+    feedback_handler = State()
 
 
-async def feedback(message: types.Message):
+async def feedback_start(message: types.Message):
     await bot_aiogram.send_message(chat_id=message.chat.id, text='Если хотите, можете оставить отзыв', parse_mode="Markdown", reply_markup=markup_feedback)
-    await Answer.user_feedback.set()
+    await Response.feedback_handler.set()
 
 
 async def feedback_handler(message: types.Message, state: FSMContext):
@@ -32,5 +32,5 @@ async def feedback_handler(message: types.Message, state: FSMContext):
 
 
 def register_handlers_feedback(dp: Dispatcher):  # noqa
-    dp.register_message_handler(feedback, commands=['feedback'])
-    dp.register_message_handler(feedback_handler, state=Answer.user_feedback)
+    dp.register_message_handler(feedback_start, commands=['feedback'])
+    dp.register_message_handler(feedback_handler, state=Response.feedback_handler)

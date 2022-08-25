@@ -52,7 +52,7 @@ async def help_message(message: types.Message):
 
 
 @dp.message_handler(commands=['links'])
-async def links(message: types.Message):
+async def getting_links(message: types.Message):
     await bot_aiogram.send_message(chat_id=message.chat.id, text="На данный момент я работаю с сайтами:\
             \n• [УПН](https://upn.ru)\
             \n• [ЦИАН](https://ekb.cian.ru)\
@@ -63,4 +63,4 @@ async def links(message: types.Message):
 def register_handlers_default_commands(dp: Dispatcher):  # noqa
     dp.register_message_handler(start_message, commands=['start'])
     dp.register_message_handler(help_message, commands=['help'])
-    dp.register_message_handler(links, commands=['links'])
+    dp.register_message_handler(getting_links, commands=['links'])

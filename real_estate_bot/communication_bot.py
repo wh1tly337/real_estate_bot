@@ -8,12 +8,12 @@ from auxiliary.req_data import *
 global communication_id_response
 
 
-class Answer(StatesGroup):
-    communication_id = State()
-    communication_message = State()
+class Response(StatesGroup):
+    communication_id_handler = State()
+    communication_message_handler = State()
 
 
-async def communication_id(message: types.Message, state: FSMContext):
+async def communication_id_handler(message: types.Message, state: FSMContext):
     global communication_id_response
 
     communication_id_response = message.text
@@ -25,10 +25,10 @@ async def communication_id(message: types.Message, state: FSMContext):
     else:
         message_text = 'Введите сообщение для пользователя'
         await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_communication)
-        await Answer.communication_message.set()
+        await Response.communication_message_handler.set()
 
 
-async def communication_message(message: types.Message, state: FSMContext):
+async def communication_message_handler(message: types.Message, state: FSMContext):
     communication_message_response = message.text
     await state.update_data(user_response=communication_message_response)
 
@@ -45,5 +45,5 @@ async def communication_message(message: types.Message, state: FSMContext):
 
 
 def register_handlers_communication(dp: Dispatcher):  # noqa
-    dp.register_message_handler(communication_id, state=Answer.communication_id)
-    dp.register_message_handler(communication_message, state=Answer.communication_message)
+    dp.register_message_handler(communication_id_handler, state=Response.communication_id_handler)
+    dp.register_message_handler(communication_message_handler, state=Response.communication_message_handler)

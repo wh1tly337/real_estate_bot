@@ -8,18 +8,6 @@ from auxiliary.req_data import *
 from real_estate_bot import variables
 
 
-async def add_driver():
-    try:
-        variables.driver = webdriver.Safari()
-
-        logger.info('Driver started')
-
-        return variables.driver
-
-    except Exception as ex:
-        logger.error(ex)
-
-
 async def start_connection():
     try:
         glob.connection = psycopg2.connect(host=host, user=user, password=password, database=db_name)
@@ -39,6 +27,18 @@ async def close_connection():
             glob.connection.close()
 
             logger.info('PostgreSQL connection closed')
+
+    except Exception as ex:
+        logger.error(ex)
+
+
+async def add_driver():
+    try:
+        variables.driver = webdriver.Safari()
+
+        logger.info('Driver started')
+
+        return variables.driver
 
     except Exception as ex:
         logger.error(ex)

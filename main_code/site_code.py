@@ -33,17 +33,17 @@ async def site_parsing_finish(req_res):
         if req_res != 'error':
             await wwdb.site_data_to_csv()
             if req_res == 'csv':
-                await wwf.file_renamer()
+                await wwf.file_renaming()
             elif req_res == 'xlsx':
-                await wwf.convert_csv_to_xlsx(from_where='site')
-                await wwf.file_renamer()
+                await wwf.converting_csv_to_xlsx(from_where='site')
+                await wwf.file_renaming()
             elif req_res == 'txt':
-                await wwf.convert_csv_to_txt(from_where='site')
-                await wwf.file_renamer()
+                await wwf.converting_csv_to_txt(from_where='site')
+                await wwf.file_renaming()
             elif req_res == 'all':
-                await wwf.convert_csv_to_xlsx(from_where='site')
-                await wwf.convert_csv_to_txt(from_where='site')
-                await wwf.file_renamer()
+                await wwf.converting_csv_to_xlsx(from_where='site')
+                await wwf.converting_csv_to_txt(from_where='site')
+                await wwf.file_renaming()
 
     except Exception as ex:
         logger.error(ex)

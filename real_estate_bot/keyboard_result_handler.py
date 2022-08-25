@@ -18,41 +18,41 @@ from real_estate_bot import (
 )
 
 
-class Answer(StatesGroup):
-    continue_response = State()
-    sure_response = State()
-    safe_file_response = State()
+class Response(StatesGroup):
+    continuation_handler = State()
+    confidence_handler = State()
+    safe_files_handler = State()
     # quit_response = State()
 
 
-async def continue_response_handler(message: types.Message, state: FSMContext):
+async def continuation_handler(message: types.Message, state: FSMContext):
     continue_response = message.text
     await state.update_data(user_response=continue_response)
 
     if continue_response == "Да":
-        await nth.new_table(message, call=1)
+        await nth.new_table_creating(message, call=1)
     elif continue_response == "Нет":
         await h.site_parser_end_with_settings(message)
         await state.finish()
 
 
 # noinspection DuplicatedCode
-async def sure_response_handler(message: types.Message, state: FSMContext):
-    sure_response = message.text
-    await state.update_data(user_response=sure_response)
+async def confidence_handler(message: types.Message, state: FSMContext):
+    confidence_response = message.text
+    await state.update_data(user_response=confidence_response)
 
-    if sure_response == "Да, уверен":
+    if confidence_response == "Да, уверен":
         if variables.task == 'site':
             variables.possibility = False
             check = await wwdb.get_data_from_data_base(from_where='check', row=None)
 
             if int(check) != 0:
                 await bot_aiogram.send_message(chat_id=message.chat.id, text='Хотите получить объявления которые я успел найти?', reply_markup=markup_save_file)
-                await Answer.safe_file_response.set()
+                await Response.safe_files_handler.set()
             else:
                 await bot_aiogram.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_start)
                 await wwdb.delete_advertisement_table()
-                await wwf.file_remover(from_where=variables.task)
+                await wwf.file_deleting(from_where=variables.task)
                 await state.finish()
                 with contextlib.suppress(Exception):
                     await ac.close_connection()
@@ -60,17 +60,17 @@ async def sure_response_handler(message: types.Message, state: FSMContext):
                     await ac.close_driver()
         elif variables.task == 'table':
             await bot_aiogram.send_message(chat_id=message.chat.id, text='Хотите получить таблицу с не до конца обновленными данными?', reply_markup=markup_save_file)
-            await Answer.safe_file_response.set()
+            await Response.safe_files_handler.set()
 
             with contextlib.suppress(Exception):
                 await ac.close_driver()
 
-    elif sure_response == "Нет, давай продолжим":
+    elif confidence_response == "Нет, давай продолжим":
         await bot_aiogram.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_quit)
 
 
 # noinspection DuplicatedCode
-async def safe_files_response_handler(message: types.Message, state: FSMContext):
+async def safe_files_handler(message: types.Message, state: FSMContext):
     safe_file_response = message.text
     await state.update_data(user_response=safe_file_response)
 
@@ -82,18 +82,17 @@ async def safe_files_response_handler(message: types.Message, state: FSMContext)
             await tc.table_parsing_finish()
             await h.table_parser_end_with_settings(message)
             await state.finish()
-
     elif safe_file_response == "Нет, не хочу":
         if variables.task == 'site':
             await bot_aiogram.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_start)
             await wwdb.delete_advertisement_table()
-            await wwf.file_remover(from_where=variables.task)
+            await wwf.file_deleting(from_where=variables.task)
             await state.finish()
             with contextlib.suppress(Exception):
                 await ac.close_connection()
         elif variables.task == 'table':
             await bot_aiogram.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_start)
-            await wwf.file_remover(from_where=variables.task)
+            await wwf.file_deleting(from_where=variables.task)
             await wwdb.delete_update_ad_table()
             await state.finish()
             with contextlib.suppress(Exception):
@@ -111,7 +110,7 @@ async def safe_files_response_handler(message: types.Message, state: FSMContext)
 
 
 def register_handlers_new_table(dp: Dispatcher):  # noqa
-    dp.register_message_handler(sure_response_handler, state=Answer.sure_response)
-    dp.register_message_handler(safe_files_response_handler, state=Answer.safe_file_response)
-    dp.register_message_handler(continue_response_handler, state=Answer.continue_response)
+    dp.register_message_handler(confidence_handler, state=Response.confidence_handler)
+    dp.register_message_handler(safe_files_handler, state=Response.safe_files_handler)
+    dp.register_message_handler(continuation_handler, state=Response.continuation_handler)
     # dp.register_message_handler(force_quit, state=Answer.quit_response)

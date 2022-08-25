@@ -13,7 +13,7 @@ from auxiliary.req_data import src
 from real_estate_bot import variables
 
 
-async def filename_creator(freshness):
+async def creating_filename(freshness):
     if freshness == 'new':
         today = datetime.now()
 
@@ -43,7 +43,7 @@ async def table_name_handler(message):
         logger.error(ex)
 
 
-async def convert_csv_to_xlsx(from_where):
+async def converting_csv_to_xlsx(from_where):
     try:
         if from_where == 'site':
             file_name_to_convert = 'pars_site'
@@ -67,7 +67,7 @@ async def convert_csv_to_xlsx(from_where):
         logger.error(ex)
 
 
-async def convert_csv_to_txt(from_where):
+async def converting_csv_to_txt(from_where):
     try:
         if from_where == 'site':
             file_name_to_convert = 'pars_site'
@@ -92,7 +92,7 @@ async def convert_csv_to_txt(from_where):
         logger.error(ex)
 
 
-async def convert_txt_to_csv():
+async def converting_txt_to_csv():
     try:
         async with aiofiles.open(f"{src}{variables.table_name}", 'r') as file:
             df = await file.read()
@@ -110,10 +110,10 @@ async def convert_txt_to_csv():
         logger.error(ex)
 
 
-async def file_format_reformer():
+async def file_format_reformatting():
     try:
         if variables.table_name[-3:] == 'txt':
-            await convert_txt_to_csv()
+            await converting_txt_to_csv()
         elif variables.table_name[-4:] == 'xlsx':
             # noinspection PyArgumentList
             df = pd.read_excel(f"{src}{variables.table_name}")
@@ -129,16 +129,16 @@ async def file_format_reformer():
         logger.error(ex)
 
 
-async def file_renamer():
+async def file_renaming():
     try:
         with contextlib.suppress(Exception):
-            await os.rename(f"{src}pars_site.txt", f"{src}{await filename_creator(freshness='new')}.txt")
+            await os.rename(f"{src}pars_site.txt", f"{src}{await creating_filename(freshness='new')}.txt")
 
         with contextlib.suppress(Exception):
-            await os.rename(f"{src}pars_site.csv", f"{src}{await filename_creator(freshness='new')}.csv")
+            await os.rename(f"{src}pars_site.csv", f"{src}{await creating_filename(freshness='new')}.csv")
 
         with contextlib.suppress(Exception):
-            await os.rename(f"{src}pars_site.xlsx", f"{src}{await filename_creator(freshness='new')}.xlsx")
+            await os.rename(f"{src}pars_site.xlsx", f"{src}{await creating_filename(freshness='new')}.xlsx")
 
         logger.info('Renaming of all files was successful')
 
@@ -146,15 +146,15 @@ async def file_renamer():
         logger.error(ex)
 
 
-async def file_remover(from_where):
+async def file_deleting(from_where):
     try:
         if from_where == 'site':
             with contextlib.suppress(Exception):
-                await os.remove(f"{src}{await filename_creator(freshness='load')}.csv")
+                await os.remove(f"{src}{await creating_filename(freshness='load')}.csv")
             with contextlib.suppress(Exception):
-                await os.remove(f"{src}{await filename_creator(freshness='load')}.xlsx")
+                await os.remove(f"{src}{await creating_filename(freshness='load')}.xlsx")
             with contextlib.suppress(Exception):
-                await os.remove(f"{src}{await filename_creator(freshness='load')}.txt")
+                await os.remove(f"{src}{await creating_filename(freshness='load')}.txt")
         elif from_where == 'admin':
             with contextlib.suppress(Exception):
                 await os.remove(f"{src}user_data.csv")

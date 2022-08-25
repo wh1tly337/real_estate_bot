@@ -15,7 +15,7 @@ from auxiliary.req_data import *
 from real_estate_bot import variables
 
 
-async def db_price_updater(new_price, old_price, table_url):
+async def database_price_updater(new_price, old_price, table_url):
     try:
         change = int(old_price) - int(new_price)
 
@@ -57,7 +57,7 @@ async def upn_table_parser(table_url, old_price):
     else:
         new_price = bs2json().convert(response.find())['html']['body']['div'][4]['main']['div']['div']['div']['span'][0]['meta'][3]['attributes']['content']
 
-        await db_price_updater(new_price=new_price, old_price=old_price, table_url=table_url)
+        await database_price_updater(new_price=new_price, old_price=old_price, table_url=table_url)
 
     await asyncio.sleep(1)
 
@@ -81,7 +81,7 @@ async def cian_table_parser(table_url, old_price, driver):
         new_price = full_page['div'][2]['div'][0]['div'][0]['div'][0]['div'][1]['div'][0]['div'][0]['div'][0]['span'][0]['span'][0]['_value']
         new_price = str(new_price).replace(' ', '')[:-1]
 
-        await db_price_updater(new_price=new_price, old_price=old_price, table_url=table_url)
+        await database_price_updater(new_price=new_price, old_price=old_price, table_url=table_url)
 
     await asyncio.sleep(float('{:.3f}'.format(random.random())))
 
@@ -105,7 +105,7 @@ async def yandex_table_parser(table_url, old_price, driver):
         new_price = full_page['div'][1]['h1'][0]['span'][0]['_value']
         new_price = str(new_price).replace(' ', '')[:-1]
 
-        await db_price_updater(new_price=new_price, old_price=old_price, table_url=table_url)
+        await database_price_updater(new_price=new_price, old_price=old_price, table_url=table_url)
 
     await asyncio.sleep(float('{:.3f}'.format(random.random())))
 
@@ -135,6 +135,6 @@ async def avito_table_parser(table_url, old_price, driver):
         new_price = new_price['div'][0]['div'][0]['div'][0]['div'][0]['span'][0]['span'][0]['span'][0]['_value']
         new_price = str(new_price).replace(' ', '')
 
-        await db_price_updater(new_price=new_price, old_price=old_price, table_url=table_url)
+        await database_price_updater(new_price=new_price, old_price=old_price, table_url=table_url)
 
     await asyncio.sleep(float('{:.3f}'.format(random.random())))

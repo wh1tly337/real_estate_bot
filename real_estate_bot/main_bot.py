@@ -33,25 +33,25 @@ krh.register_handlers_new_table(dp)
 
 
 @dp.message_handler(content_types=['text'])
-async def text(message: types.Message):
+async def text_handler(message: types.Message):
     try:
         if message.text == "За работу":
             await bot_aiogram.send_message(chat_id=message.chat.id, text='Что вы хотите сделать?', reply_markup=markup_first_question)
         elif message.text == "Собрать новую информацию":
             variables.task = 'fast_quit'
-            await nth.new_table(message, call=0)
+            await nth.new_table_creating(message, call=0)
         elif message.text == "Обновить старую информацию":
             variables.task = 'fast_quit'
-            await uth.update_table(message)
+            await uth.update_table_start(message)
         elif message.text == "Завершить работу":
             if variables.task == 'fast_quit':
                 await bot_aiogram.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_start)
             elif variables.task is None:
                 await bot_aiogram.send_message(chat_id=message.chat.id, text='Вам еще нечего завершать. Если не знаете как начать, то напишите /help', reply_markup=markup_start)
             else:
-                await bot_aiogram.send_message(chat_id=message.chat.id, text='Вы уверены?', reply_markup=markup_sure)
+                await bot_aiogram.send_message(chat_id=message.chat.id, text='Вы уверены?', reply_markup=markup_confidence)
 
-                await krh.Answer.sure_response.set()
+                await krh.Response.confidence_handler.set()
         else:
             with contextlib.suppress(Exception):
                 await sc.site_parsing_finish(req_res='error')

@@ -36,7 +36,7 @@ async def table_parsing_main(message):
 
         logger.info(f"{message.chat.id} | Table update start")
 
-        await wwf.file_format_reformer()
+        await wwf.file_format_reformatting()
         await wwdb.add_data_to_data_base()
 
         max_row = await wwdb.get_data_from_data_base(from_where='max_row', row=None)

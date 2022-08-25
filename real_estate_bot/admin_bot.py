@@ -16,26 +16,26 @@ from real_estate_bot import (
 )
 
 
-class Answer(StatesGroup):
-    admin_panel = State()
-    response_as_password = State()
+class Response(StatesGroup):
+    admin_panel_main = State()
+    admin_password_handler = State()
 
 
-async def admin(message: types.Message):
+async def admin_panel_start(message: types.Message):
     await bot_aiogram.send_message(chat_id=message.chat.id, text='Введите пароль', parse_mode="Markdown", reply_markup=markup_start)
-    await Answer.response_as_password.set()
+    await Response.admin_password_handler.set()
 
 
-async def password_handler(message: types.Message, state: FSMContext):
-    password_response = message.text
-    await state.update_data(user_response=password_response)
+async def admin_password_handler(message: types.Message, state: FSMContext):
+    admin_password_response = message.text
+    await state.update_data(user_response=admin_password_response)
 
-    if password_response == admin_password:
+    if admin_password_response == admin_password:
         if message.chat.id == admin_id:
             logger.info('Admin logged in')
             message_text = 'Добро пожаловать. Что вы хотите сделать?'
             await bot_aiogram.send_message(chat_id=admin_id, text=message_text, parse_mode="Markdown", reply_markup=markup_admin)
-            await Answer.admin_panel.set()
+            await Response.admin_panel_main.set()
         else:
             logger.info(f"Fake admin ({message.chat.id}) logged in. Need to change password!")
             message_text = 'Попытка хорошая, но вы не админ, так что даже не пытайтесь)'
@@ -47,7 +47,7 @@ async def password_handler(message: types.Message, state: FSMContext):
         await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_start)
 
 
-async def admin_panel(message: types.Message, state: FSMContext):
+async def admin_panel_main(message: types.Message, state: FSMContext):
     admin_response = message.text
     await state.update_data(user_response=admin_response)
 
@@ -57,23 +57,21 @@ async def admin_panel(message: types.Message, state: FSMContext):
         await wwdb.get_user_data_table()
         await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{src}user_data.csv"), reply_markup=markup_start)
         logger.info('Admin get user-data table')
-        await wwf.file_remover(from_where='admin')
+        await wwf.file_deleting(from_where='admin')
         with contextlib.suppress(Exception):
             await ac.close_connection()
         await state.finish()
-
     elif admin_response == "Получить логгер":
         logger.info('Admin get logg file')
         await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{src_logger}logger.txt"), reply_markup=markup_start)
         await state.finish()
-
     elif admin_response == "Написать пользователю":
         message_text = 'Введите id пользователя которому хотите написать'
         await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_communication)
-        await cb.Answer.communication_id.set()
+        await cb.Response.communication_id_handler.set()
 
 
 def register_handlers_admin(dp: Dispatcher):  # noqa
-    dp.register_message_handler(admin, commands=['admin'])
-    dp.register_message_handler(password_handler, state=Answer.response_as_password)
-    dp.register_message_handler(admin_panel, state=Answer.admin_panel)
+    dp.register_message_handler(admin_panel_start, commands=['admin'])
+    dp.register_message_handler(admin_password_handler, state=Response.admin_password_handler)
+    dp.register_message_handler(admin_panel_main, state=Response.admin_panel_main)
