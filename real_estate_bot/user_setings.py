@@ -1,17 +1,19 @@
 import contextlib
 
 from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters.state import StatesGroup, State
 from loguru import logger
 
 from auxiliary.all_markups import *
 from auxiliary.req_data import *
 from main_code import (
-    work_with_data_base as wwdb,
-    all_connections as ac
+    work_with_data_base as wwdb
 )
-from real_estate_bot import (
-    main_bot as mb,
-)
+from main_code.connectors import all_connections as ac
+
+
+class Answer(StatesGroup):
+    res_file_settings = State()
 
 
 async def settings(message: types.Message):
@@ -20,7 +22,7 @@ async def settings(message: types.Message):
         \nПотом этот выбор можно будет всегда поменять или отменить в этих же настройках.'
     await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_settings)
 
-    await mb.Answer.res_file_settings.set()
+    await Answer.res_file_settings.set()
 
 
 async def settings_response(message: types.Message, state: FSMContext):
@@ -74,4 +76,4 @@ async def settings_response(message: types.Message, state: FSMContext):
 
 def register_handlers_settings(dp: Dispatcher):
     dp.register_message_handler(settings, commands=['settings'])
-    dp.register_message_handler(settings_response, state=mb.Answer.res_file_settings)
+    dp.register_message_handler(settings_response, state=Answer.res_file_settings)

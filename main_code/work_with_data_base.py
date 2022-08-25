@@ -84,11 +84,11 @@ async def get_user_data_table():
 
 
 async def add_data_to_data_base():
-    from main_code.work_with_files import table_name_upd
+    from real_estate_bot import variables
 
     try:
         with glob.connection.cursor() as glob.cursor:
-            glob.cursor.execute(f"""COPY update_ad FROM '{table_name_upd}.csv' DELIMITER ';' CSV HEADER;""")
+            glob.cursor.execute(f"""COPY update_ad FROM '{variables.table_name_upd}.csv' DELIMITER ';' CSV HEADER;""")
 
     except Exception as ex:
         logger.error(ex)

@@ -11,6 +11,7 @@ from bs4 import BeautifulSoup
 from loguru import logger
 
 from auxiliary.req_data import *
+from real_estate_bot import variables
 
 
 # from random import randint
@@ -62,9 +63,9 @@ async def upn_table_parser(table_url, old_price):
 async def cian_table_parser(table_url, old_price, driver):
     driver.get(url=table_url)
     await asyncio.sleep(float('{:.3f}'.format(random.random())))
-    # driver.execute_script(f"window.scrollTo(0, {randint(0, 1080)})")
+    # variables.driver.execute_script(f"window.scrollTo(0, {randint(0, 1080)})")
 
-    full_page = html_to_json.convert(driver.page_source)['html'][0]['body'][0]['div'][1]['main'][0]
+    full_page = html_to_json.convert(variables.driver.page_source)['html'][0]['body'][0]['div'][1]['main'][0]
     try:
         availability = full_page['div'][0]['div'][2]['_value']
     except Exception:
@@ -84,9 +85,9 @@ async def cian_table_parser(table_url, old_price, driver):
 async def yandex_table_parser(table_url, old_price, driver):
     driver.get(url=table_url)
     await asyncio.sleep(float('{:.3f}'.format(random.random())))
-    # driver.execute_script(f"window.scrollTo(0, {randint(0, 1080)})")
+    # variables.driver.execute_script(f"window.scrollTo(0, {randint(0, 1080)})")
 
-    full_page = html_to_json.convert(driver.page_source)['html'][0]['body'][0]['div'][1]['div'][0]['div'][1]['div'][0]['div'][3]['div'][0]['div'][0]
+    full_page = html_to_json.convert(variables.driver.page_source)['html'][0]['body'][0]['div'][1]['div'][0]['div'][1]['div'][0]['div'][3]['div'][0]['div'][0]
     try:
         availability = full_page['div'][2]['div'][0]['div'][0]['div'][0]['_value']
     except Exception:
@@ -106,15 +107,15 @@ async def yandex_table_parser(table_url, old_price, driver):
 async def avito_table_parser(table_url, old_price, driver):
     driver.get(url=table_url)
     await asyncio.sleep(float('{:.3f}'.format(random.random())))
-    # driver.execute_script(f"window.scrollTo(0, {randint(0, 1080)})")
+    # variables.driver.execute_script(f"window.scrollTo(0, {randint(0, 1080)})")
 
     with contextlib.suppress(Exception):
-        full_page = html_to_json.convert(driver.page_source)['html'][0]['body'][0]['div'][2]['div'][0]['div'][0]
+        full_page = html_to_json.convert(variables.driver.page_source)['html'][0]['body'][0]['div'][2]['div'][0]['div'][0]
     try:
         availability = full_page['div'][0]['div'][0]['div'][1]['div'][0]['a'][0]['span'][0]['_value']
     except Exception:
         try:
-            availability = html_to_json.convert(driver.page_source)['html'][0]['body'][0]['div'][1]['div'][0]['div'][0]['h1'][0]['_value']
+            availability = html_to_json.convert(variables.driver.page_source)['html'][0]['body'][0]['div'][1]['div'][0]['div'][0]['h1'][0]['_value']
         except Exception:
             availability = 1
     if availability in {'Объявление снято с публикации.', 'Ой! Такой страницы на нашем сайте нет :('}:

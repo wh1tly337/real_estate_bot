@@ -1,24 +1,30 @@
 import contextlib
 
 from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters.state import StatesGroup, State
 from loguru import logger
 
 from auxiliary.all_markups import *
 from auxiliary.req_data import *
 from main_code import (
     work_with_data_base as wwdb,
-    work_with_files as wwf,
-    all_connections as ac
+    work_with_files as wwf
 )
+from main_code.connectors import all_connections as ac
 from real_estate_bot import (
-    main_bot as mb,
+    communication_bot as cb
 )
+
+
+class Answer(StatesGroup):
+    admin_panel = State()
+    response_as_password = State()
 
 
 async def admin(message: types.Message):
     await bot_aiogram.send_message(chat_id=message.chat.id, text='Введите пароль', parse_mode="Markdown", reply_markup=markup_start)
 
-    await mb.Answer.response_as_password.set()
+    await Answer.response_as_password.set()
 
 
 async def password_handler(message: types.Message, state: FSMContext):
@@ -31,7 +37,7 @@ async def password_handler(message: types.Message, state: FSMContext):
             message_text = 'Добро пожаловать. Что вы хотите сделать?'
             await bot_aiogram.send_message(chat_id=admin_id, text=message_text, parse_mode="Markdown", reply_markup=markup_admin)
 
-            await mb.Answer.admin_panel.set()
+            await Answer.admin_panel.set()
         else:
             logger.info(f"Fake admin ({message.chat.id}) logged in. Need to change password!")
             message_text = 'Попытка хорошая, но вы не админ, так что даже не пытайтесь)'
@@ -69,10 +75,10 @@ async def admin_panel(message: types.Message, state: FSMContext):
         message_text = 'Введите id пользователя которому хотите написать'
         await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_communication)
 
-        await mb.Answer.communication_id.set()
+        await cb.Answer.communication_id.set()
 
 
 def register_handlers_admin(dp: Dispatcher):
     dp.register_message_handler(admin, commands=['admin'])
-    dp.register_message_handler(password_handler, state=mb.Answer.response_as_password)
-    dp.register_message_handler(admin_panel, state=mb.Answer.admin_panel)
+    dp.register_message_handler(password_handler, state=Answer.response_as_password)
+    dp.register_message_handler(admin_panel, state=Answer.admin_panel)

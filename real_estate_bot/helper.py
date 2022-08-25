@@ -1,25 +1,81 @@
 import contextlib
 
+from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters.state import StatesGroup, State
+
 from auxiliary.all_markups import *
 from auxiliary.req_data import *
 from main_code import (
     work_with_data_base as wwdb,
     work_with_files as wwf,
-    site_code as sc,
-    all_connections as ac
+    site_code as sc
 )
+from main_code.connectors import all_connections as ac
+from real_estate_bot import variables
 
-global table_name_upd, table_name, task, possibility
+
+class Answer(StatesGroup):
+    result_response = State()
+
+
+async def result_response_handler(message: types.Message, state: FSMContext):
+    result_response = message.text
+    await state.update_data(user_response=result_response)
+
+    if message.text == ".csv":
+        if variables.task == 'site':
+            await sc.site_parsing_finish(req_res='csv')
+            await bot_aiogram.send_message(chat_id=message.chat.id, text="Ваш .csv файл", reply_markup=markup_start)
+            await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{src}{await wwf.filename_creator(freshness='load')}.csv", "rb"))
+            await end_of_work(message)
+        elif variables.task == 'table':
+            await bot_aiogram.send_message(chat_id=message.chat.id, text="Ваш .csv файл", reply_markup=markup_start)
+            await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{variables.table_name_upd}.csv", "rb"))
+            await end_of_work(message)
+    elif message.text == ".xlsx":
+        if variables.task == 'site':
+            await sc.site_parsing_finish(req_res='xlsx')
+            await bot_aiogram.send_message(chat_id=message.chat.id, text="Ваш .xlsx файл", reply_markup=markup_start)
+            await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{src}{await wwf.filename_creator(freshness='load')}.xlsx", "rb"))
+            await end_of_work(message)
+        elif variables.task == 'table':
+            await wwf.convert_csv_to_xlsx(from_where=variables.task)
+            await bot_aiogram.send_message(chat_id=message.chat.id, text="Ваш .xlsx файл", reply_markup=markup_start)
+            await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{variables.table_name_upd}.xlsx", "rb"))
+            await end_of_work(message)
+    elif message.text == ".txt":
+        if variables.task == 'site':
+            await sc.site_parsing_finish(req_res='txt')
+            await bot_aiogram.send_message(chat_id=message.chat.id, text="Ваш .txt файл", reply_markup=markup_start)
+            await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{src}{await wwf.filename_creator(freshness='load')}.txt", "rb"))
+            await end_of_work(message)
+        elif variables.task == 'table':
+            await wwf.convert_csv_to_txt(from_where=variables.task)
+            await bot_aiogram.send_message(chat_id=message.chat.id, text="Ваш .txt файл", reply_markup=markup_start)
+            await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{variables.table_name_upd}.txt", "rb"))
+            await end_of_work(message)
+    elif message.text == "Все форматы":
+        if variables.task == 'site':
+            await sc.site_parsing_finish(req_res='all')
+            await file_sender(message)
+            await wwf.file_remover(from_where=variables.task)
+            await wwdb.delete_advertisement_table()
+            with contextlib.suppress(Exception):
+                await ac.close_connection()
+        elif variables.task == 'table':
+            await table_all_res_finish(message)
+
+    await state.finish()
 
 
 async def file_sender(message: types.Message):
     await bot_aiogram.send_message(chat_id=message.chat.id, text="Ваши файлы", reply_markup=markup_start)
 
-    if task == 'site':
+    if variables.task == 'site':
         result_file = await wwf.filename_creator(freshness='load')
         result_file = f"{src}{result_file}"
     else:
-        result_file = table_name_upd
+        result_file = variables.table_name_upd
 
     await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{result_file}.csv", "rb"))
     await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{result_file}.xlsx", "rb"))
@@ -33,18 +89,20 @@ async def table_parser_end_with_settings(message: types.Message):
     if user_settings == "None":
         await bot_aiogram.send_message(chat_id=message.chat.id, text='Вся информация обновлена. В каком формате вы хотите получить результат?',
                                        reply_markup=markup_result, parse_mode="Markdown")
-    elif task == 'table':
+
+        await Answer.result_response.set()
+    elif variables.task == 'table':
         if user_settings == 'all':
             await table_all_res_finish(message)
 
         else:
             if user_settings == 'txt':
-                await wwf.convert_csv_to_txt(from_where=task)
+                await wwf.convert_csv_to_txt(from_where=variables.task)
             elif user_settings == 'xlsx':
-                await wwf.convert_csv_to_xlsx(from_where=task)
+                await wwf.convert_csv_to_xlsx(from_where=variables.task)
 
             await bot_aiogram.send_message(chat_id=message.chat.id, text=f"Ваш .{user_settings} файл", reply_markup=markup_start)
-            await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{table_name_upd}.{user_settings}", "rb"))
+            await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{variables.table_name_upd}.{user_settings}", "rb"))
             await end_of_work(message)
 
 
@@ -53,12 +111,13 @@ async def site_parser_end_with_settings(message: types.Message):
     if user_settings == "None":
         await bot_aiogram.send_message(chat_id=message.chat.id, text='Отлично! В каком формате вы хотите получить результат?',
                                        reply_markup=markup_result)
-    elif task == 'site':
+        await Answer.result_response.set()
+    elif variables.task == 'site':
         await sc.site_parsing_finish(req_res=user_settings)
         if user_settings == 'all':
             await sc.site_parsing_finish(req_res='all')
             await file_sender(message)
-            await wwf.file_remover(from_where=task)
+            await wwf.file_remover(from_where=variables.task)
             await wwdb.delete_advertisement_table()
             with contextlib.suppress(Exception):
                 await ac.close_connection()
@@ -71,10 +130,10 @@ async def site_parser_end_with_settings(message: types.Message):
 async def end_of_work(message: types.Message):
     await req_to_upd_db(message)
 
-    if task == 'site':
-        await wwf.file_remover(from_where=task)
-    elif task == 'table':
-        await wwf.file_remover(from_where=task)
+    if variables.task == 'site':
+        await wwf.file_remover(from_where=variables.task)
+    elif variables.task == 'table':
+        await wwf.file_remover(from_where=variables.task)
         await wwdb.delete_update_ad_table()
 
     with contextlib.suppress(Exception):
@@ -82,17 +141,17 @@ async def end_of_work(message: types.Message):
 
 
 async def table_all_res_finish(message):
-    await wwf.convert_csv_to_xlsx(from_where=task)
-    await wwf.convert_csv_to_txt(from_where=task)
+    await wwf.convert_csv_to_xlsx(from_where=variables.task)
+    await wwf.convert_csv_to_txt(from_where=variables.task)
     await file_sender(message)
-    await wwf.file_remover(from_where=task)
+    await wwf.file_remover(from_where=variables.task)
     await wwdb.delete_update_ad_table()
     with contextlib.suppress(Exception):
         await ac.close_connection()
 
 
 async def req_to_upd_db(message: types.Message):
-    if task == 'site':
+    if variables.task == 'site':
         await wwdb.update_user_data(
             user_id=message.chat.id,
             num_site_req=True,
@@ -108,3 +167,7 @@ async def req_to_upd_db(message: types.Message):
             date_last_site_req=False,
             date_last_table_req=await wwf.filename_creator(freshness='new')
         )
+
+
+def register_handlers_helper(dp: Dispatcher):
+    dp.register_message_handler(result_response_handler, state=Answer.result_response)

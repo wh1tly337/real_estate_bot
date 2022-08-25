@@ -5,9 +5,9 @@ from loguru import logger
 from auxiliary.all_markups import *
 from auxiliary.req_data import *
 from main_code import (
-    work_with_data_base as wwdb,
-    all_connections as ac
+    work_with_data_base as wwdb
 )
+from main_code.connectors import all_connections as ac
 
 
 @dp.message_handler(commands=['start'])
@@ -45,7 +45,7 @@ async def help_message(message: types.Message):
             \n/new_table - собрать новую информацию по вашим параметрам\
             \n/update_table - обновить информацию уже по имеющейся базе данных\
             \n/feedback - отправка отзыва, пожелания, замечания или бага\
-            \n/settings - мои настройки')
+            \n/settings - мои настройки', reply_markup=markup_start)
 
 
 @dp.message_handler(commands=['links'])
@@ -54,7 +54,7 @@ async def links(message: types.Message):
             \n• [УПН](https://upn.ru)\
             \n• [ЦИАН](https://ekb.cian.ru)\
             \n• [Яндекс Недвижимость](https://realty.yandex.ru/ekaterinburg)\
-            \n• [Авито](https://www.avito.ru/ekaterinburg/nedvizhimost)", disable_web_page_preview=True, parse_mode="MarkdownV2")
+            \n• [Авито](https://www.avito.ru/ekaterinburg/nedvizhimost)", disable_web_page_preview=True, parse_mode="MarkdownV2", reply_markup=markup_start)
 
 
 def register_handlers_default_commands(dp: Dispatcher):

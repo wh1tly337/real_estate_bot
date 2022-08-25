@@ -1,15 +1,19 @@
 from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters.state import StatesGroup, State
 from loguru import logger
 
 from auxiliary.all_markups import *
 from auxiliary.req_data import *
-from real_estate_bot import main_bot as mb
+
+
+class Answer(StatesGroup):
+    user_feedback = State()
 
 
 async def feedback(message: types.Message):
     await bot_aiogram.send_message(chat_id=message.chat.id, text='Если хотите, можете оставить отзыв', parse_mode="Markdown", reply_markup=markup_feedback)
 
-    await mb.Answer.user_feedback.set()
+    await Answer.user_feedback.set()
 
 
 async def feedback_handler(message: types.Message, state: FSMContext):
@@ -30,4 +34,4 @@ async def feedback_handler(message: types.Message, state: FSMContext):
 
 def register_handlers_feedback(dp: Dispatcher):
     dp.register_message_handler(feedback, commands=['feedback'])
-    dp.register_message_handler(feedback_handler, state=mb.Answer.user_feedback)
+    dp.register_message_handler(feedback_handler, state=Answer.user_feedback)

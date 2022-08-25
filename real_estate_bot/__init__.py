@@ -7,3 +7,5 @@ from real_estate_bot import default_bot_commands
 from real_estate_bot import new_table_handler
 from real_estate_bot import update_table_handler
 from real_estate_bot import helper
+from real_estate_bot import keyboard_result_handler
+from real_estate_bot import variables

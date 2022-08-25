@@ -1,24 +1,20 @@
 import glob
 
 import psycopg2
-from selenium import webdriver
 from loguru import logger
-
+from selenium import webdriver
 
 from auxiliary.req_data import *
-
-global driver
+from real_estate_bot import variables
 
 
 async def add_driver():
     try:
-        global driver
-
-        driver = webdriver.Safari()
+        variables.driver = webdriver.Safari()
 
         logger.info('Driver started')
 
-        return driver
+        return variables.driver
 
     except Exception as ex:
         logger.error(ex)
@@ -51,7 +47,7 @@ async def close_connection():
 
 async def close_driver():
     try:
-        driver.quit()
+        variables.driver.quit()
 
         logger.info('Driver closed')
 

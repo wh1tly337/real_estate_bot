@@ -10,43 +10,37 @@ from aiofiles import os
 from loguru import logger
 
 from auxiliary.req_data import src
-
-global loaded_filename, table_name, table_name_upd
+from real_estate_bot import variables
 
 
 async def filename_creator(freshness):
-    global loaded_filename
-
     if freshness == 'new':
         today = datetime.now()
 
         minute = f'0{str(today.minute)}' if int(today.minute) < 10 else today.minute
-        filename = f"{today.day}.{today.month}.{today.year} - {today.hour}.{minute}"
-        loaded_filename = filename
+        variables.filename = f"{today.day}.{today.month}.{today.year} - {today.hour}.{minute}"
 
-        return filename
+        return variables.filename
 
     else:
-        return loaded_filename
+        return variables.filename
 
 
 async def table_name_handler(message):
     try:
-        global table_name, table_name_upd
-
-        table_name = message.document.file_name
-        if table_name[-3:] == 'txt' or table_name[-3:] == 'csv':
-            if table_name.split('.')[-2][-3:] == 'upd':
-                table_name_upd = f"{src}{table_name[:-4]}"
+        variables.table_name = message.document.file_name
+        if variables.table_name[-3:] == 'txt' or variables.table_name[-3:] == 'csv':
+            if variables.table_name.split('.')[-2][-3:] == 'upd':
+                variables.table_name_upd = f"{src}{variables.table_name[:-4]}"
             else:
-                table_name_upd = f"{src}{table_name[:-4]}_upd"
-        elif table_name[-4:] != 'xlsx':
-            if table_name.split('.')[-2][-3:] == 'upd':
-                table_name_upd = f"{src}{table_name[:-5]}"
+                variables.table_name_upd = f"{src}{variables.table_name[:-4]}_upd"
+        elif variables.table_name[-4:] != 'xlsx':
+            if variables.table_name.split('.')[-2][-3:] == 'upd':
+                variables.table_name_upd = f"{src}{variables.table_name[:-5]}"
             else:
-                table_name_upd = f"{src}{table_name[:-4]}_upd"
+                variables.table_name_upd = f"{src}{variables.table_name[:-4]}_upd"
 
-        return table_name, table_name_upd
+        return variables.table_name, variables.table_name_upd
 
     except Exception as ex:
         logger.error(ex)
@@ -58,7 +52,7 @@ async def convert_csv_to_xlsx(from_where):
             file_name_to_convert = 'pars_site'
             file_name_to_convert = f"{src}{file_name_to_convert}"
         else:
-            file_name_to_convert = table_name_upd
+            file_name_to_convert = variables.table_name_upd
 
         sheet = pyexcel.get_sheet(file_name=f"{file_name_to_convert}.csv", delimiter=";")
         sheet.save_as(f"{file_name_to_convert}.xlsx")
@@ -83,7 +77,7 @@ async def convert_csv_to_txt(from_where):
             file_name_to_convert = 'pars_site'
             file_name_to_convert = f"{src}{file_name_to_convert}"
         else:
-            file_name_to_convert = table_name_upd
+            file_name_to_convert = variables.table_name_upd
 
         shutil.copyfile(f"{file_name_to_convert}.csv", f"{src}garages_table_4txt.csv")
         await os.rename(f"{src}garages_table_4txt.csv", f"{file_name_to_convert}.txt")
@@ -104,15 +98,15 @@ async def convert_csv_to_txt(from_where):
 
 async def convert_txt_to_csv():
     try:
-        async with aiofiles.open(f"{src}{table_name}", 'r') as file:
+        async with aiofiles.open(f"{src}{variables.table_name}", 'r') as file:
             df = await file.read()
             df = df.replace(' | ', ';')
 
-        async with aiofiles.open(f"{src}{table_name}", 'w') as file:
+        async with aiofiles.open(f"{src}{variables.table_name}", 'w') as file:
             await file.write(df)
 
-        df = pd.read_csv(f"{src}{table_name}")
-        df.to_csv(f"{table_name_upd}.csv", index=False, header=True)
+        df = pd.read_csv(f"{src}{variables.table_name}")
+        df.to_csv(f"{variables.table_name_upd}.csv", index=False, header=True)
 
         logger.info('Copy .txt to .csv  successfully')
 
@@ -122,16 +116,16 @@ async def convert_txt_to_csv():
 
 async def file_format_reformer():
     try:
-        if table_name[-3:] == 'txt':
+        if variables.table_name[-3:] == 'txt':
             await convert_txt_to_csv()
-        elif table_name[-4:] == 'xlsx':
+        elif variables.table_name[-4:] == 'xlsx':
             # noinspection PyArgumentList
-            df = pd.read_excel(f"{src}{table_name}")
-            df.to_csv(f"{table_name_upd}.csv", index=False, header=True, sep=";")
+            df = pd.read_excel(f"{src}{variables.table_name}")
+            df.to_csv(f"{variables.table_name_upd}.csv", index=False, header=True, sep=";")
 
             logger.info('Copy .xlsx to .csv  successfully')
         else:
-            await os.rename(f"{src}{table_name}", f"{table_name_upd}.csv")
+            await os.rename(f"{src}{variables.table_name}", f"{variables.table_name_upd}.csv")
 
             logger.info('Already .csv file')
 
@@ -172,13 +166,13 @@ async def file_remover(from_where):
 
         else:
             with contextlib.suppress(Exception):
-                await os.remove(f"{src}{table_name}")
+                await os.remove(f"{src}{variables.table_name}")
             with contextlib.suppress(Exception):
-                await os.remove(f"{table_name_upd}.csv")
+                await os.remove(f"{variables.table_name_upd}.csv")
             with contextlib.suppress(Exception):
-                await os.remove(f"{table_name_upd}.txt")
+                await os.remove(f"{variables.table_name_upd}.txt")
             with contextlib.suppress(Exception):
-                await os.remove(f"{table_name_upd}.xlsx")
+                await os.remove(f"{variables.table_name_upd}.xlsx")
 
         logger.info('Removing of all files was successful')
 

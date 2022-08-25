@@ -1,11 +1,16 @@
 from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters.state import StatesGroup, State
 from loguru import logger
 
 from auxiliary.all_markups import *
 from auxiliary.req_data import *
-from real_estate_bot import main_bot as mb
 
 global communication_id_response
+
+
+class Answer(StatesGroup):
+    communication_id = State()
+    communication_message = State()
 
 
 async def communication_id(message: types.Message, state: FSMContext):
@@ -21,7 +26,7 @@ async def communication_id(message: types.Message, state: FSMContext):
         message_text = 'Введите сообщение для пользователя'
         await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_communication)
 
-        await mb.Answer.communication_message.set()
+        await Answer.communication_message.set()
 
 
 async def communication_message(message: types.Message, state: FSMContext):
@@ -41,5 +46,5 @@ async def communication_message(message: types.Message, state: FSMContext):
 
 
 def register_handlers_communication(dp: Dispatcher):
-    dp.register_message_handler(communication_id, state=mb.Answer.communication_id)
-    dp.register_message_handler(communication_message, state=mb.Answer.communication_message)
+    dp.register_message_handler(communication_id, state=Answer.communication_id)
+    dp.register_message_handler(communication_message, state=Answer.communication_message)

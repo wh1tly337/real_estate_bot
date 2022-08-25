@@ -1,5 +1,6 @@
 import asyncio
 import itertools
+# from random import randint
 # import lxml
 import math
 import random
@@ -17,9 +18,7 @@ from loguru import logger
 
 from auxiliary.req_data import *
 from main_code import work_with_data_base as wwdb
-
-
-# from random import randint
+from real_estate_bot import variables
 
 
 async def cian_avito_url_cycle_detector(url_next_page, i):
@@ -51,7 +50,7 @@ async def upn_site_parser(message, url_upn):
         await bot_aiogram.send_message(chat_id=message.chat.id, text='Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только 15 '
                                                              'страниц.')
 
-    possibility = True
+    variables.possibility = True
 
     for j in tqdm(range(1, num_of_pages + 1)):
         try:
@@ -65,7 +64,7 @@ async def upn_site_parser(message, url_upn):
             advertisement = bs2json().convert(response.find())['html']['body']['div'][4]['main']['div']['div'][2]['div'][1]['div'][1]['div']
             num_of_ads = len(advertisement)
             for i in range(num_of_ads):
-                if possibility is False:
+                if variables.possibility is False:
                     break
                 else:
                     if len(advertisement[i]) == 1:
@@ -82,7 +81,7 @@ async def upn_site_parser(message, url_upn):
                         await wwdb.data_base(status='Active', adres=full_address, price=price, square=square, url=url_ad)
                     except Exception as ex:
                         logger.error(ex)
-                        possibility = False
+                        variables.possibility = False
                         break
 
         except Exception as ex:
@@ -96,11 +95,11 @@ async def cian_site_parser(message, url_cian):
 
     logger.info(f"{message.chat.id} | Start parsing Cian")
     url = url_cian
-    driver = webdriver.Safari()
+    variables.driver = webdriver.Safari()
     try:
         time.sleep(1)
-        driver.get(url=url)
-        full_page = html_to_json.convert(driver.page_source)['html'][0]['body'][0]
+        variables.driver.get(url=url)
+        full_page = html_to_json.convert(variables.driver.page_source)['html'][0]['body'][0]
         for i in range(20):
             try:
                 num_of_pages = math.ceil(int("".join(re.findall(r'\d+', full_page['div'][0]['div'][0]['div'][i]['div'][0]['div'][0]['h5'][0]['_value']))) / 28)
@@ -122,16 +121,16 @@ async def cian_site_parser(message, url_cian):
         if url_next_page == 1:
             url_next_page = url
 
-        possibility = True
+        variables.possibility = True
 
         for i in tqdm(range(1, num_of_pages + 1)):
-            if possibility is False:
+            if variables.possibility is False:
                 break
             else:
                 url_cycle = await cian_avito_url_cycle_detector(url_next_page, i)
-                driver.get(url=url_cycle)
-                # driver.execute_script(f"window.scrollTo(0, {randint(0, 1080)})")
-                full_page = html_to_json.convert(driver.page_source)['html'][0]['body'][0]
+                variables.driver.get(url=url_cycle)
+                # variables.driver.execute_script(f"window.scrollTo(0, {randint(0, 1080)})")
+                full_page = html_to_json.convert(variables.driver.page_source)['html'][0]['body'][0]
                 for j in range(20):
                     try:
                         sp = j
@@ -165,7 +164,7 @@ async def cian_site_parser(message, url_cian):
                         await wwdb.data_base(status='Active', adres=full_address, price=price, square=square, url=url_ad)
                     except Exception as ex:
                         logger.error(ex)
-                        possibility = False
+                        variables.possibility = False
                         break
 
                     await asyncio.sleep(float('{:.3f}'.format(random.random())))
@@ -173,7 +172,7 @@ async def cian_site_parser(message, url_cian):
     except Exception as ex:
         logger.error(ex)
     finally:
-        driver.quit()
+        variables.driver.quit()
     logger.info(f"{message.chat.id} | Finish parsing Cian")
 
 
@@ -183,12 +182,12 @@ async def yandex_site_parser(message, url_yandex):
 
     logger.info(f"{message.chat.id} | Start parsing Yandex")
     url = url_yandex
-    driver = webdriver.Safari()
+    variables.driver = webdriver.Safari()
     point = False
     try:
         time.sleep(1)
-        driver.get(url=url)
-        full_page = html_to_json.convert(driver.page_source)
+        variables.driver.get(url=url)
+        full_page = html_to_json.convert(variables.driver.page_source)
         num_of_pages = \
             full_page['html'][0]['body'][0]['div'][1]['div'][1]['div'][0]['div'][0]['div'][1]['div'][1]['div'][0]['form'][0]['div'][0]['div'][2]['div'][0]['div'][0]['div'][0]['fieldset']
         num_of_pages = num_of_pages[len(num_of_pages) - 1]['div'][0]['div'][4]['div'][0]['button'][0]['span'][0]['_value']
@@ -208,10 +207,10 @@ async def yandex_site_parser(message, url_yandex):
             num_of_pages = 15
             await bot_aiogram.send_message(chat_id=message.chat.id, text='Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только '
                                                                  '15 страниц.')
-        possibility = True
+        variables.possibility = True
 
         for j in tqdm(range(num_of_pages)):
-            if possibility is False:
+            if variables.possibility is False:
                 break
             else:
                 if point is True:
@@ -229,9 +228,9 @@ async def yandex_site_parser(message, url_yandex):
                         pos = pos + 6
                         url_cycle = f"{url_next_page[:pos]}{j}{url_next_page[pos + 1:]}"
                     logger.info(url_cycle)
-                    driver.get(url=url_cycle)
-                    # driver.execute_script(f"window.scrollTo(0, {randint(0, 1080)})")
-                    full_page = html_to_json.convert(driver.page_source)
+                    variables.driver.get(url=url_cycle)
+                    # variables.driver.execute_script(f"window.scrollTo(0, {randint(0, 1080)})")
+                    full_page = html_to_json.convert(variables.driver.page_source)
                     num_of_ads = len(full_page['html'][0]['body'][0]['div'][1]['div'][1]['div'][0]['div'][0]['div'][1]['div'][3]['ol'][0]['li'])
                     for i in range(num_of_ads):
                         advertisement = full_page['html'][0]['body'][0]['div'][1]['div'][1]['div'][0]['div'][0]['div'][1]['div'][3]['ol'][0]['li'][i]
@@ -261,7 +260,7 @@ async def yandex_site_parser(message, url_yandex):
                         except Exception as ex:
                             logger.error(ex)
                             point = True
-                            possibility = False
+                            variables.possibility = False
                             break
 
                         await asyncio.sleep(float('{:.3f}'.format(random.random())))
@@ -269,7 +268,7 @@ async def yandex_site_parser(message, url_yandex):
     except Exception as ex:
         logger.error(ex)
     finally:
-        driver.quit()
+        variables.driver.quit()
     logger.info(f"{message.chat.id} | Finish parsing Yandex")
 
 
@@ -279,11 +278,11 @@ async def avito_site_parser(message, url_avito):
 
     logger.info(f"{message.chat.id} | Start parsing Avito")
     url = url_avito
-    driver = webdriver.Safari()
+    variables.driver = webdriver.Safari()
     try:
         time.sleep(1)
-        driver.get(url=url)
-        full_page = html_to_json.convert(driver.page_source)['html'][0]['body'][0]['div'][0]['div'][0]
+        variables.driver.get(url=url)
+        full_page = html_to_json.convert(variables.driver.page_source)['html'][0]['body'][0]['div'][0]['div'][0]
         num_of_pages = math.ceil(int("".join(re.findall(r'\d+', full_page['div'][2]['div'][1]['div'][0]['span'][0]['_value']))) / 50)
         if num_of_pages == 1:
             url_next_page = url
@@ -299,16 +298,16 @@ async def avito_site_parser(message, url_avito):
             num_of_pages = 15
             await bot_aiogram.send_message(chat_id=message.chat.id, text='Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только '
                                                                  '15 страниц.')
-        possibility = True
+        variables.possibility = True
 
         for i in tqdm(range(1, num_of_pages + 1)):
-            if possibility is False:
+            if variables.possibility is False:
                 break
             else:
                 url_cycle = await cian_avito_url_cycle_detector(url_next_page, i)
-                driver.get(url=url_cycle)
-                # driver.execute_script(f"window.scrollTo(0, {randint(0, 1080)})")
-                full_page = html_to_json.convert(driver.page_source)['html'][0]['body'][0]['div'][0]['div'][0]
+                variables.driver.get(url=url_cycle)
+                # variables.driver.execute_script(f"window.scrollTo(0, {randint(0, 1080)})")
+                full_page = html_to_json.convert(variables.driver.page_source)['html'][0]['body'][0]['div'][0]['div'][0]
                 for n in range(10):
                     try:
                         num_of_ads = len(full_page['div'][2]['div'][2]['div'][2]['div'][n]['div'][0]['div'])
@@ -361,7 +360,7 @@ async def avito_site_parser(message, url_avito):
                         await wwdb.data_base(status='Active', adres=full_address, price=price, square=square, url=url_ad)
                     except Exception as ex:
                         logger.error(ex)
-                        possibility = False
+                        variables.possibility = False
                         break
 
                     await asyncio.sleep(float('{:.3f}'.format(random.random())))
@@ -369,5 +368,5 @@ async def avito_site_parser(message, url_avito):
     except Exception as ex:
         logger.error(ex)
     finally:
-        driver.quit()
+        variables.driver.quit()
     logger.info(f"{message.chat.id} | Finish parsing Avito")
