@@ -28,7 +28,7 @@ async def filename_creator(freshness):
 async def table_name_handler(message):
     try:
         variables.table_name = message.document.file_name
-        if variables.table_name[-3:] == 'txt' or variables.table_name[-3:] == 'csv':
+        if variables.table_name[-3:] in ['txt', 'csv']:
             if variables.table_name.split('.')[-2][-3:] == 'upd':
                 variables.table_name_upd = f"{src}{variables.table_name[:-4]}"
             else:
@@ -38,9 +38,7 @@ async def table_name_handler(message):
                 variables.table_name_upd = f"{src}{variables.table_name[:-5]}"
             else:
                 variables.table_name_upd = f"{src}{variables.table_name[:-4]}_upd"
-
         return variables.table_name, variables.table_name_upd
-
     except Exception as ex:
         logger.error(ex)
 
