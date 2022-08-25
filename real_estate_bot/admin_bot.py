@@ -23,7 +23,6 @@ class Answer(StatesGroup):
 
 async def admin(message: types.Message):
     await bot_aiogram.send_message(chat_id=message.chat.id, text='Введите пароль', parse_mode="Markdown", reply_markup=markup_start)
-
     await Answer.response_as_password.set()
 
 
@@ -36,7 +35,6 @@ async def password_handler(message: types.Message, state: FSMContext):
             logger.info('Admin logged in')
             message_text = 'Добро пожаловать. Что вы хотите сделать?'
             await bot_aiogram.send_message(chat_id=admin_id, text=message_text, parse_mode="Markdown", reply_markup=markup_admin)
-
             await Answer.admin_panel.set()
         else:
             logger.info(f"Fake admin ({message.chat.id}) logged in. Need to change password!")
@@ -62,19 +60,16 @@ async def admin_panel(message: types.Message, state: FSMContext):
         await wwf.file_remover(from_where='admin')
         with contextlib.suppress(Exception):
             await ac.close_connection()
-
         await state.finish()
 
     elif admin_response == "Получить логгер":
         logger.info('Admin get logg file')
         await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{src_logger}logger.txt"), reply_markup=markup_start)
-
         await state.finish()
 
     elif admin_response == "Написать пользователю":
         message_text = 'Введите id пользователя которому хотите написать'
         await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_communication)
-
         await cb.Answer.communication_id.set()
 
 

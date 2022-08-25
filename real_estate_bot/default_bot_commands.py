@@ -14,7 +14,9 @@ from main_code.connectors import all_connections as ac
 async def start_message(message: types.Message):
     with contextlib.suppress(Exception):
         await ac.start_connection()
+
     all_users = await wwdb.get_data_from_data_base(from_where='start', row=None)
+
     if message.chat.id not in all_users:
         await wwdb.user_data(
             user_id=message.chat.id,
@@ -27,6 +29,7 @@ async def start_message(message: types.Message):
             date_last_table_req=0
         )
         logger.info('New user add')
+
     with contextlib.suppress(Exception):
         await ac.close_connection()
 

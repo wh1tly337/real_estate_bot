@@ -12,7 +12,6 @@ class Answer(StatesGroup):
 
 async def feedback(message: types.Message):
     await bot_aiogram.send_message(chat_id=message.chat.id, text='Если хотите, можете оставить отзыв', parse_mode="Markdown", reply_markup=markup_feedback)
-
     await Answer.user_feedback.set()
 
 

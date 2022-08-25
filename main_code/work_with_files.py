@@ -21,7 +21,6 @@ async def filename_creator(freshness):
         variables.filename = f"{today.day}.{today.month}.{today.year} - {today.hour}.{minute}"
 
         return variables.filename
-
     else:
         return variables.filename
 
@@ -56,7 +55,6 @@ async def convert_csv_to_xlsx(from_where):
 
         sheet = pyexcel.get_sheet(file_name=f"{file_name_to_convert}.csv", delimiter=";")
         sheet.save_as(f"{file_name_to_convert}.xlsx")
-
         table = op.load_workbook(f"{file_name_to_convert}.xlsx")
         main_sheet = table[f"{file_name_to_convert.split('/')[-1]}.csv"]
         main_sheet.column_dimensions['B'].width = 10
@@ -159,11 +157,9 @@ async def file_remover(from_where):
                 await os.remove(f"{src}{await filename_creator(freshness='load')}.xlsx")
             with contextlib.suppress(Exception):
                 await os.remove(f"{src}{await filename_creator(freshness='load')}.txt")
-
         elif from_where == 'admin':
             with contextlib.suppress(Exception):
                 await os.remove(f"{src}user_data.csv")
-
         else:
             with contextlib.suppress(Exception):
                 await os.remove(f"{src}{variables.table_name}")

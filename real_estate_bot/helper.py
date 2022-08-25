@@ -80,7 +80,6 @@ async def file_sender(message: types.Message):
     await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{result_file}.csv", "rb"))
     await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{result_file}.xlsx", "rb"))
     await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{result_file}.txt", "rb"))
-
     await req_to_upd_db(message)
 
 
@@ -89,12 +88,10 @@ async def table_parser_end_with_settings(message: types.Message):
     if user_settings == "None":
         await bot_aiogram.send_message(chat_id=message.chat.id, text='Вся информация обновлена. В каком формате вы хотите получить результат?',
                                        reply_markup=markup_result, parse_mode="Markdown")
-
         await Answer.result_response.set()
     elif variables.task == 'table':
         if user_settings == 'all':
             await table_all_res_finish(message)
-
         else:
             if user_settings == 'txt':
                 await wwf.convert_csv_to_txt(from_where=variables.task)
@@ -109,8 +106,7 @@ async def table_parser_end_with_settings(message: types.Message):
 async def site_parser_end_with_settings(message: types.Message):
     user_settings = await wwdb.get_user_settings(user_id=message.chat.id)
     if user_settings == "None":
-        await bot_aiogram.send_message(chat_id=message.chat.id, text='Отлично! В каком формате вы хотите получить результат?',
-                                       reply_markup=markup_result)
+        await bot_aiogram.send_message(chat_id=message.chat.id, text='Отлично! В каком формате вы хотите получить результат?', reply_markup=markup_result)
         await Answer.result_response.set()
     elif variables.task == 'site':
         await sc.site_parsing_finish(req_res=user_settings)

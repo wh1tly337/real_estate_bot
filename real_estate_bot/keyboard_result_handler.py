@@ -33,10 +33,10 @@ async def continue_response_handler(message: types.Message, state: FSMContext):
         await nth.new_table(message, call=1)
     elif continue_response == "Нет":
         await h.site_parser_end_with_settings(message)
-
         await state.finish()
 
 
+# noinspection DuplicatedCode
 async def sure_response_handler(message: types.Message, state: FSMContext):
     sure_response = message.text
     await state.update_data(user_response=sure_response)
@@ -47,24 +47,19 @@ async def sure_response_handler(message: types.Message, state: FSMContext):
             check = await wwdb.get_data_from_data_base(from_where='check', row=None)
 
             if int(check) != 0:
-                await bot_aiogram.send_message(chat_id=message.chat.id, text='Хотите получить объявления которые я успел найти?',
-                                               reply_markup=markup_save_file)
-
+                await bot_aiogram.send_message(chat_id=message.chat.id, text='Хотите получить объявления которые я успел найти?', reply_markup=markup_save_file)
                 await Answer.safe_file_response.set()
             else:
                 await bot_aiogram.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_start)
                 await wwdb.delete_advertisement_table()
                 await wwf.file_remover(from_where=variables.task)
+                await state.finish()
                 with contextlib.suppress(Exception):
                     await ac.close_connection()
                 with contextlib.suppress(Exception):
                     await ac.close_driver()
-
-                await state.finish()
         elif variables.task == 'table':
-            await bot_aiogram.send_message(chat_id=message.chat.id, text='Хотите получить таблицу с не до конца обновленными данными?',
-                                           reply_markup=markup_save_file)
-
+            await bot_aiogram.send_message(chat_id=message.chat.id, text='Хотите получить таблицу с не до конца обновленными данными?', reply_markup=markup_save_file)
             await Answer.safe_file_response.set()
 
             with contextlib.suppress(Exception):
@@ -74,6 +69,7 @@ async def sure_response_handler(message: types.Message, state: FSMContext):
         await bot_aiogram.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_quit)
 
 
+# noinspection DuplicatedCode
 async def safe_files_response_handler(message: types.Message, state: FSMContext):
     safe_file_response = message.text
     await state.update_data(user_response=safe_file_response)

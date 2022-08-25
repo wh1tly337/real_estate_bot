@@ -20,6 +20,7 @@ async def user_data(user_id, user_full_name, user_username, settings, num_site_r
         )
 
 
+# noinspection DuplicatedCode
 async def update_user_data(user_id, num_site_req, num_table_req, date_last_site_req, date_last_table_req):
     with glob.connection.cursor() as glob.cursor:
         if num_site_req:
@@ -36,7 +37,6 @@ async def update_user_data(user_id, num_site_req, num_table_req, date_last_site_
 
             glob.cursor.execute(f"""SELECT date_last_table_req FROM user_data WHERE user_id = '{user_id}';""")
             date_last_table = glob.cursor.fetchall()[0][0]
-
         elif num_table_req:
             glob.cursor.execute(f"""SELECT num_site_req FROM user_data WHERE user_id = '{user_id}';""")
             num_site = glob.cursor.fetchall()[0][0]

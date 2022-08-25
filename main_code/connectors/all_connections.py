@@ -23,7 +23,6 @@ async def add_driver():
 async def start_connection():
     try:
         glob.connection = psycopg2.connect(host=host, user=user, password=password, database=db_name)
-
         glob.connection.autocommit = True
         glob.cursor = glob.connection.cursor()
 

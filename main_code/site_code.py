@@ -8,6 +8,7 @@ async def site_parsing_start():
     try:
         try:
             await wwdb.create_advertisement_table()
+
         except Exception:
             await wwdb.delete_advertisement_table()
             await wwdb.create_advertisement_table()
@@ -43,5 +44,6 @@ async def site_parsing_finish(req_res):
                 await wwf.convert_csv_to_xlsx(from_where='site')
                 await wwf.convert_csv_to_txt(from_where='site')
                 await wwf.file_renamer()
+
     except Exception as ex:
         logger.error(ex)

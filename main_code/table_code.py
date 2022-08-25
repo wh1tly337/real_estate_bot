@@ -20,6 +20,7 @@ async def table_parsing_start():
     try:
         try:
             await wwdb.create_update_ad_table()
+
         except Exception:
             await wwdb.delete_update_ad_table()
             await wwdb.create_update_ad_table()
@@ -36,11 +37,9 @@ async def table_parsing_main(message):
         logger.info(f"{message.chat.id} | Table update start")
 
         await wwf.file_format_reformer()
-
         await wwdb.add_data_to_data_base()
 
         max_row = await wwdb.get_data_from_data_base(from_where='max_row', row=None)
-
         requirement, variables.driver, flag = False, None, True
 
         for row in tqdm(range(max_row)):
@@ -109,7 +108,6 @@ async def table_parsing_main(message):
 
         if flag:
             await table_parsing_finish()
-
             await h.table_parser_end_with_settings(message)
 
             logger.info(f"{message.chat.id} | Table successfully updated")

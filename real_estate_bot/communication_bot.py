@@ -25,7 +25,6 @@ async def communication_id(message: types.Message, state: FSMContext):
     else:
         message_text = 'Введите сообщение для пользователя'
         await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_communication)
-
         await Answer.communication_message.set()
 
 

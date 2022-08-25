@@ -52,7 +52,6 @@ async def text(message: types.Message):
                 await bot_aiogram.send_message(chat_id=message.chat.id, text='Вы уверены?', reply_markup=markup_sure)
 
                 await krh.Answer.sure_response.set()
-
         else:
             with contextlib.suppress(Exception):
                 await sc.site_parsing_finish(req_res='error')

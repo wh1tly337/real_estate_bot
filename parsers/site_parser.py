@@ -59,7 +59,9 @@ async def upn_site_parser(message, url_upn):
                 url_cycle = f'{url}?page={j}'
             else:
                 url_cycle = f'{url}?page={j}'
+
             logger.info(url_cycle)
+
             request = requests.get(url_cycle, headers=headers).text
             response = BeautifulSoup(request, 'lxml')
             advertisement = bs2json().convert(response.find())['html']['body']['div'][4]['main']['div']['div'][2]['div'][1]['div'][1]['div']
@@ -80,6 +82,7 @@ async def upn_site_parser(message, url_upn):
 
                     try:
                         await wwdb.data_base(status='Active', adres=full_address, price=price, square=square, url=url_ad)
+
                     except Exception as ex:
                         logger.error(ex)
                         variables.possibility = False
@@ -87,9 +90,11 @@ async def upn_site_parser(message, url_upn):
 
         except Exception as ex:
             logger.error(ex)
+
     logger.info(f"{message.chat.id} | Finish parsing UPN")
 
 
+# noinspection DuplicatedCode
 async def cian_site_parser(message, url_cian):
     bot_tqdm = TelegramBot('5432400118:AAFgz1QNbckgmQ7X1jbEu87S2ZdhV6vU1m0', message.chat.id)
     tqdm = TelegramTqdm(bot_tqdm)
@@ -97,6 +102,7 @@ async def cian_site_parser(message, url_cian):
     logger.info(f"{message.chat.id} | Start parsing Cian")
     url = url_cian
     variables.driver = webdriver.Safari()
+
     try:
         time.sleep(1)
         variables.driver.get(url=url)
@@ -107,17 +113,17 @@ async def cian_site_parser(message, url_cian):
                 break
             except Exception:
                 continue
-        if num_of_pages > 15:
+        if num_of_pages > 15:  # noqa
             num_of_pages = 15
             await bot_aiogram.send_message(chat_id=message.chat.id,
                                            text='Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только '
                                                 '15 страниц.')
-
         url_next_page = 1
         for i in range(20):
             try:
                 url_next_page = full_page['div'][0]['div'][0]['div'][i]['div'][0]['ul'][0]['li'][1]['a'][0]['_attributes']['href']
                 break
+
             except Exception:
                 continue
         if url_next_page == 1:
@@ -138,13 +144,15 @@ async def cian_site_parser(message, url_cian):
                         sp = j
                         num_of_ads = len(full_page['div'][0]['div'][0]['div'][j]['article'])
                         break
+
                     except Exception:
                         continue
-                for j in range(num_of_ads):
-                    advertisement = full_page['div'][0]['div'][0]['div'][sp]['article'][j]
+                for j in range(num_of_ads):  # noqa
+                    advertisement = full_page['div'][0]['div'][0]['div'][sp]['article'][j]  # noqa
                     url_ad = advertisement['div'][0]['div'][1]['div'][0]['div'][0]['a'][0]['_attributes']['href']
                     try:
                         square = round(float(str(advertisement['div'][0]['div'][1]['div'][0]['div'][0]['div'][0]['span'][0]['span'][0]['_value']).split(',')[1].strip()[:3].strip()))
+
                     except Exception:
                         square = '-'
                     for n, m in itertools.product(range(10), range(10)):
@@ -153,17 +161,20 @@ async def cian_site_parser(message, url_cian):
                             street_address = advertisement['div'][0]['div'][1]['div'][0]['div'][0]['div'][m]['div'][n]['a'][sp_1 - 2]['_value']
                             number_address = advertisement['div'][0]['div'][1]['div'][0]['div'][0]['div'][m]['div'][n]['a'][sp_1 - 1]['_value']
                             full_address = f"{street_address} {number_address}"
+
                         except Exception:
                             continue
                     for n in range(10):
                         try:
                             price = "".join(re.findall(r'\d+', advertisement['div'][0]['div'][1]['div'][0]['div'][0]['div'][n]['div'][0]['span'][0]['span'][0]['_value']))
                             break
+
                         except Exception:
                             continue
 
                     try:
-                        await wwdb.data_base(status='Active', adres=full_address, price=price, square=square, url=url_ad)
+                        await wwdb.data_base(status='Active', adres=full_address, price=price, square=square, url=url_ad)  # noqa
+
                     except Exception as ex:
                         logger.error(ex)
                         variables.possibility = False
@@ -175,6 +186,7 @@ async def cian_site_parser(message, url_cian):
         logger.error(ex)
     finally:
         variables.driver.quit()
+
     logger.info(f"{message.chat.id} | Finish parsing Cian")
 
 
@@ -186,6 +198,7 @@ async def yandex_site_parser(message, url_yandex):
     url = url_yandex
     variables.driver = webdriver.Safari()
     point = False
+
     try:
         time.sleep(1)
         variables.driver.get(url=url)
@@ -201,6 +214,7 @@ async def yandex_site_parser(message, url_yandex):
                     full_page['html'][0]['body'][0]['div'][1]['div'][1]['div'][0]['div'][0]['div'][1]['div'][3]['div'][i]['span'][0]['label'][j]['button'][0]['span'][0][
                         'a'][0]['_attributes']['href']
                 url_next_page = f'https://realty.yandex.ru{url_next_page}'
+
             except Exception:
                 continue
         if url_next_page == 1:
@@ -241,6 +255,7 @@ async def yandex_site_parser(message, url_yandex):
                             continue
                         try:
                             advertisement = full_page['html'][0]['body'][0]['div'][1]['div'][1]['div'][0]['div'][0]['div'][1]['div'][3]['ol'][0]['li'][i]['div'][0]['div'][0]
+
                         except Exception:
                             continue
                         full_address = []
@@ -248,9 +263,11 @@ async def yandex_site_parser(message, url_yandex):
                             try:
                                 address = str(advertisement['div'][0]['div'][0]['div'][0]['a'][adr]['_value']).replace(',', '')
                                 full_address.append(address)
+
                             except Exception:
                                 address = str(advertisement['div'][0]['div'][0]['div'][0]['text'][adr]).replace(',', '')
                                 full_address.append(address)
+
                             finally:
                                 continue
                         full_address = ' '.join(full_address)
@@ -260,6 +277,7 @@ async def yandex_site_parser(message, url_yandex):
 
                         try:
                             await wwdb.data_base(status='Active', adres=full_address, price=price, square=square, url=url_ad)
+
                         except Exception as ex:
                             logger.error(ex)
                             point = True
@@ -272,9 +290,11 @@ async def yandex_site_parser(message, url_yandex):
         logger.error(ex)
     finally:
         variables.driver.quit()
+
     logger.info(f"{message.chat.id} | Finish parsing Yandex")
 
 
+# noinspection DuplicatedCode
 async def avito_site_parser(message, url_avito):
     bot_tqdm = TelegramBot('5432400118:AAFgz1QNbckgmQ7X1jbEu87S2ZdhV6vU1m0', message.chat.id)
     tqdm = TelegramTqdm(bot_tqdm)
@@ -282,6 +302,7 @@ async def avito_site_parser(message, url_avito):
     logger.info(f"{message.chat.id} | Start parsing Avito")
     url = url_avito
     variables.driver = webdriver.Safari()
+
     try:
         time.sleep(1)
         variables.driver.get(url=url)
@@ -295,6 +316,7 @@ async def avito_site_parser(message, url_avito):
                     url_next_page = full_page['div'][2]['div'][2]['div'][2]['div'][i]['div'][1]['div'][0]['a'][1]['_attributes']['href']
                     url_next_page = f'https://www.avito.ru{url_next_page}'
                     break
+
                 except Exception:
                     continue
         if num_of_pages > 15:
@@ -308,7 +330,7 @@ async def avito_site_parser(message, url_avito):
             if variables.possibility is False:
                 break
             else:
-                url_cycle = await cian_avito_url_cycle_detector(url_next_page, i)
+                url_cycle = await cian_avito_url_cycle_detector(url_next_page, i)  # noqa
                 variables.driver.get(url=url_cycle)
                 # variables.driver.execute_script(f"window.scrollTo(0, {randint(0, 1080)})")
                 full_page = html_to_json.convert(variables.driver.page_source)['html'][0]['body'][0]['div'][0]['div'][0]
@@ -316,14 +338,16 @@ async def avito_site_parser(message, url_avito):
                     try:
                         num_of_ads = len(full_page['div'][2]['div'][2]['div'][2]['div'][n]['div'][0]['div'])
                         sp = n
+
                     except Exception:
                         continue
-                for j in range(num_of_ads):
-                    advertisement = full_page['div'][2]['div'][2]['div'][2]['div'][sp]['div'][0]['div'][j]
+                for j in range(num_of_ads):  # noqa
+                    advertisement = full_page['div'][2]['div'][2]['div'][2]['div'][sp]['div'][0]['div'][j]  # noqa
                     if len(advertisement) != 3:
                         continue
                     try:
                         advertisement = full_page['div'][2]['div'][2]['div'][2]['div'][sp]['div'][0]['div'][j]
+
                     except Exception:
                         continue
                     for n in range(10):
@@ -331,9 +355,10 @@ async def avito_site_parser(message, url_avito):
                             try:
                                 full_address = advertisement['div'][0]['div'][1]['div'][n]['div'][m]['span'][0]['span'][0]['_value']
                                 break
+
                             except Exception:
                                 continue
-                    helper = full_address.split(',')
+                    helper = full_address.split(',')  # noqa
                     if len(helper) < 3:
                         full_address = full_address
                     else:
@@ -341,8 +366,10 @@ async def avito_site_parser(message, url_avito):
                     try:
                         try:
                             price = "".join(re.findall(r'\d+', advertisement['div'][0]['div'][1]['div'][2]['span'][0]['span'][0]['span'][0]['_value']))
+
                         except Exception:
                             price = "".join(re.findall(r'\d+', advertisement['div'][0]['div'][1]['div'][2]['span'][0]['span'][0]['span'][0]['_values'][0]))
+
                     except Exception:
                         continue
                     url_ad = 'https://www.avito.ru' + advertisement['div'][0]['div'][0]['a'][0]['_attributes']['href']
@@ -357,11 +384,13 @@ async def avito_site_parser(message, url_avito):
                                 square = round(float(square))
                         else:
                             square = '-'
+
                     except Exception:
                         square = '-'
 
                     try:
                         await wwdb.data_base(status='Active', adres=full_address, price=price, square=square, url=url_ad)
+
                     except Exception as ex:
                         logger.error(ex)
                         variables.possibility = False
@@ -373,4 +402,5 @@ async def avito_site_parser(message, url_avito):
         logger.error(ex)
     finally:
         variables.driver.quit()
+
     logger.info(f"{message.chat.id} | Finish parsing Avito")
