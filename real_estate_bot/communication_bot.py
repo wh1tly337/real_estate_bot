@@ -44,6 +44,6 @@ async def communication_message(message: types.Message, state: FSMContext):
     await state.finish()
 
 
-def register_handlers_communication(dp: Dispatcher):
+def register_handlers_communication(dp: Dispatcher):  # noqa
     dp.register_message_handler(communication_id, state=Answer.communication_id)
     dp.register_message_handler(communication_message, state=Answer.communication_message)

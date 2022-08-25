@@ -32,7 +32,7 @@ async def new_table(message: types.Message, call=0):
             await ac.start_connection()
         await sc.site_parsing_start()
 
-    await bot_aiogram.send_message(chat_id=message.chat.id, text="С какого сайта Вы хотите получить информацию?", reply_markup=markup_site_question, parse_mode="Markdown")
+    await bot_aiogram.send_message(chat_id=message.chat.id, text="С какого сайта Вы хотите получить информацию?", reply_markup=markup_site_selection, parse_mode="Markdown")
     await Answer.new_table_site_response.set()
 
 
@@ -83,7 +83,7 @@ async def get_site_url(message: types.Message, state: FSMContext):
         await getting_site_link(message, status_url='error')
 
     if point == 0 and variables.possibility is True:
-        await bot_aiogram.send_message(chat_id=message.chat.id, text="С этим сайтом я закончил, хотите добавить еще сайт для поиска?", reply_markup=markup_continue_question, parse_mode="Markdown")
+        await bot_aiogram.send_message(chat_id=message.chat.id, text="С этим сайтом я закончил, хотите добавить еще сайт для поиска?", reply_markup=markup_continuation_question, parse_mode="Markdown")
         await krh.Answer.continue_response.set()
 
 
@@ -118,7 +118,7 @@ async def getting_site_link(message: types.Message, status_url):
         logger.error(ex)
 
 
-def register_handlers_new_table(dp: Dispatcher):
+def register_handlers_new_table(dp: Dispatcher):  # noqa
     dp.register_message_handler(new_table, commands=['new_table'])
     dp.register_message_handler(new_table_response_handler, state=Answer.new_table_site_response)
     dp.register_message_handler(get_site_url, state=Answer.response_as_link)

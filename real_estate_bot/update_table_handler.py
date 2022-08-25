@@ -34,6 +34,6 @@ async def handle_docs(message: types.Message):
         logger.error(ex)
 
 
-def register_handlers_update_table(dp: Dispatcher):
+def register_handlers_update_table(dp: Dispatcher):  # noqa
     dp.register_message_handler(update_table, commands=['update_table'])
     dp.register_message_handler(handle_docs, content_types=['document'])

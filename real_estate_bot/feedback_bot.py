@@ -31,6 +31,6 @@ async def feedback_handler(message: types.Message, state: FSMContext):
     await state.finish()
 
 
-def register_handlers_feedback(dp: Dispatcher):
+def register_handlers_feedback(dp: Dispatcher):  # noqa
     dp.register_message_handler(feedback, commands=['feedback'])
     dp.register_message_handler(feedback_handler, state=Answer.user_feedback)

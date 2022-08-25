@@ -64,6 +64,6 @@ async def settings_response(message: types.Message, state: FSMContext):
         logger.info(f"User - {message.chat.id} update his settings to {res_file_settings}")
 
 
-def register_handlers_settings(dp: Dispatcher):
+def register_handlers_settings(dp: Dispatcher):  # noqa
     dp.register_message_handler(settings, commands=['settings'])
     dp.register_message_handler(settings_response, state=Answer.res_file_settings)

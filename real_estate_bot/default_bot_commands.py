@@ -60,7 +60,7 @@ async def links(message: types.Message):
             \n• [Авито](https://www.avito.ru/ekaterinburg/nedvizhimost)", disable_web_page_preview=True, parse_mode="MarkdownV2", reply_markup=markup_start)
 
 
-def register_handlers_default_commands(dp: Dispatcher):
+def register_handlers_default_commands(dp: Dispatcher):  # noqa
     dp.register_message_handler(start_message, commands=['start'])
     dp.register_message_handler(help_message, commands=['help'])
     dp.register_message_handler(links, commands=['links'])

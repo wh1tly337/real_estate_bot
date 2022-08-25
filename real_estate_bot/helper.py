@@ -165,5 +165,5 @@ async def req_to_upd_db(message: types.Message):
         )
 
 
-def register_handlers_helper(dp: Dispatcher):
+def register_handlers_helper(dp: Dispatcher):  # noqa
     dp.register_message_handler(result_response_handler, state=Answer.result_response)

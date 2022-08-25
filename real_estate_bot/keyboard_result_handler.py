@@ -110,7 +110,7 @@ async def safe_files_response_handler(message: types.Message, state: FSMContext)
 #         await Answer.sure_response.set()
 
 
-def register_handlers_new_table(dp: Dispatcher):
+def register_handlers_new_table(dp: Dispatcher):  # noqa
     dp.register_message_handler(sure_response_handler, state=Answer.sure_response)
     dp.register_message_handler(safe_files_response_handler, state=Answer.safe_file_response)
     dp.register_message_handler(continue_response_handler, state=Answer.continue_response)

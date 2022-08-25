@@ -73,7 +73,7 @@ async def admin_panel(message: types.Message, state: FSMContext):
         await cb.Answer.communication_id.set()
 
 
-def register_handlers_admin(dp: Dispatcher):
+def register_handlers_admin(dp: Dispatcher):  # noqa
     dp.register_message_handler(admin, commands=['admin'])
     dp.register_message_handler(password_handler, state=Answer.response_as_password)
     dp.register_message_handler(admin_panel, state=Answer.admin_panel)
