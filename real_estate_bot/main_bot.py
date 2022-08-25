@@ -46,6 +46,8 @@ async def text(message: types.Message):
         elif message.text == "Завершить работу":
             if variables.task == 'fast_quit':
                 await bot_aiogram.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_start)
+            elif variables.task is None:
+                await bot_aiogram.send_message(chat_id=message.chat.id, text='Вам еще нечего завершать. Если не знаете как начать, то напишите /help', reply_markup=markup_start)
             else:
                 await bot_aiogram.send_message(chat_id=message.chat.id, text='Вы уверены?', reply_markup=markup_sure)
 

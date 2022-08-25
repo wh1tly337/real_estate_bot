@@ -13,8 +13,8 @@ from bob_telegram_tools.bot import TelegramBot
 from bob_telegram_tools.utils import TelegramTqdm
 from bs2json import bs2json
 from bs4 import BeautifulSoup
-from selenium import webdriver
 from loguru import logger
+from selenium import webdriver
 
 from auxiliary.req_data import *
 from main_code import work_with_data_base as wwdb
@@ -47,8 +47,9 @@ async def upn_site_parser(message, url_upn):
         bs2json().convert(response.find())['html']['head']['title']['text']).split('|')[1]))) / 25)
     if num_of_pages > 15:
         num_of_pages = 15
-        await bot_aiogram.send_message(chat_id=message.chat.id, text='Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только 15 '
-                                                             'страниц.')
+        await bot_aiogram.send_message(chat_id=message.chat.id,
+                                       text='Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только 15 '
+                                            'страниц.')
 
     variables.possibility = True
 
@@ -108,8 +109,9 @@ async def cian_site_parser(message, url_cian):
                 continue
         if num_of_pages > 15:
             num_of_pages = 15
-            await bot_aiogram.send_message(chat_id=message.chat.id, text='Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только '
-                                                                 '15 страниц.')
+            await bot_aiogram.send_message(chat_id=message.chat.id,
+                                           text='Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только '
+                                                '15 страниц.')
 
         url_next_page = 1
         for i in range(20):
@@ -205,8 +207,9 @@ async def yandex_site_parser(message, url_yandex):
             url_next_page = url
         if num_of_pages > 15:
             num_of_pages = 15
-            await bot_aiogram.send_message(chat_id=message.chat.id, text='Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только '
-                                                                 '15 страниц.')
+            await bot_aiogram.send_message(chat_id=message.chat.id,
+                                           text='Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только '
+                                                '15 страниц.')
         variables.possibility = True
 
         for j in tqdm(range(num_of_pages)):
@@ -296,8 +299,9 @@ async def avito_site_parser(message, url_avito):
                     continue
         if num_of_pages > 15:
             num_of_pages = 15
-            await bot_aiogram.send_message(chat_id=message.chat.id, text='Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только '
-                                                                 '15 страниц.')
+            await bot_aiogram.send_message(chat_id=message.chat.id,
+                                           text='Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только '
+                                                '15 страниц.')
         variables.possibility = True
 
         for i in tqdm(range(1, num_of_pages + 1)):
