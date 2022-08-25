@@ -76,10 +76,9 @@ async def get_site_url(message: types.Message, state: FSMContext):
         await sc.site_parsing_main(req_site=4, url_upn=None, url_cian=None, url_yandex=None, url_avito=user_response, message=message)
     elif user_response == 'Завершить работу':
         point = 1
-        await bot_aiogram.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_start)
-        await state.finish()
-        with contextlib.suppress(Exception):
-            await ac.close_connection()
+        await bot_aiogram.send_message(chat_id=message.chat.id, text='Вы уверены?', reply_markup=markup_sure)
+
+        await krh.Answer.sure_response.set()
     else:
         variables.task = 'fast_quit'
         point = 1
