@@ -12,6 +12,7 @@ from loguru import logger
 from auxiliary.req_data import src
 from real_estate_bot.helpers import variables
 
+
 async def creating_filename(freshness):
     if freshness == 'new':
         today = datetime.now()
@@ -44,7 +45,7 @@ async def table_name_handler(message):
 
 async def converting_csv_to_xlsx(from_where):
     try:
-        if from_where == 'site':
+        if from_where == 'new_table':
             file_name_to_convert = 'pars_site'
             file_name_to_convert = f"{src}{file_name_to_convert}"
         else:
@@ -68,7 +69,7 @@ async def converting_csv_to_xlsx(from_where):
 
 async def converting_csv_to_txt(from_where):
     try:
-        if from_where == 'site':
+        if from_where == 'new_table':
             file_name_to_convert = 'pars_site'
             file_name_to_convert = f"{src}{file_name_to_convert}"
         else:
@@ -147,7 +148,7 @@ async def file_renaming():
 
 async def file_deleting(from_where):
     try:
-        if from_where == 'site':
+        if from_where == 'new_table':
             with contextlib.suppress(Exception):
                 await os.remove(f"{src}{await creating_filename(freshness='load')}.csv")
             with contextlib.suppress(Exception):

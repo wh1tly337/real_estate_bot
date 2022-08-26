@@ -6,7 +6,7 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 from auxiliary.all_markups import *
 from auxiliary.req_data import *
 from main_code.connectors import all_connections as ac
-from main_code.parsers.table import table_parsing_code as tc
+from main_code.parsers.update_table import update_table_code as utc
 from main_code.workers import work_with_data_base as wwdb, work_with_files as wwf
 from real_estate_bot.helpers import (
     helper as h,
@@ -39,7 +39,7 @@ async def confidence_handler(message: types.Message, state: FSMContext):
     await state.update_data(user_response=confidence_response)
 
     if confidence_response == "Да, уверен":
-        if variables.task == 'site':
+        if variables.task == 'new_table':
             variables.possibility = False
             check = await wwdb.get_data_from_data_base(from_where='check', row=None)
 
@@ -55,7 +55,7 @@ async def confidence_handler(message: types.Message, state: FSMContext):
                     await ac.close_connection()
                 with contextlib.suppress(Exception):
                     await ac.close_driver()
-        elif variables.task == 'table':
+        elif variables.task == 'update_table':
             await bot_aiogram.send_message(chat_id=message.chat.id, text='Хотите получить таблицу с не до конца обновленными данными?', reply_markup=markup_save_file)
             await Response.safe_files_handler.set()
 
@@ -72,22 +72,22 @@ async def safe_files_handler(message: types.Message, state: FSMContext):
     await state.update_data(user_response=safe_file_response)
 
     if safe_file_response == "Да, хочу":
-        if variables.task == 'site':
+        if variables.task == 'new_table':
             await h.site_parser_end_with_settings(message)
             await state.finish()
-        elif variables.task == 'table':
-            await tc.table_parsing_finish()
+        elif variables.task == 'update_table':
+            await utc.table_parsing_finish()
             await h.table_parser_end_with_settings(message)
             await state.finish()
     elif safe_file_response == "Нет, не хочу":
-        if variables.task == 'site':
+        if variables.task == 'new_table':
             await bot_aiogram.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_start)
             await wwdb.delete_advertisement_table()
             await wwf.file_deleting(from_where=variables.task)
             await state.finish()
             with contextlib.suppress(Exception):
                 await ac.close_connection()
-        elif variables.task == 'table':
+        elif variables.task == 'update_table':
             await bot_aiogram.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_start)
             await wwf.file_deleting(from_where=variables.task)
             await wwdb.delete_update_ad_table()

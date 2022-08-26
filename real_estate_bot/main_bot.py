@@ -5,7 +5,7 @@ from loguru import logger
 
 from auxiliary.all_markups import *
 from auxiliary.req_data import *
-from main_code.parsers.site import site_parsing_code as sc
+from main_code.parsers.new_table import new_table_code as ntc
 from real_estate_bot.parsers_handlers import (
     new_table_handler as nth,
     update_table_handler as uth
@@ -48,7 +48,7 @@ async def text_handler(message: types.Message):
                 await krh.Response.confidence_handler.set()
         else:
             with contextlib.suppress(Exception):
-                await sc.site_parsing_finish(req_res='error')
+                await ntc.site_parsing_finish(req_res='error')
             await bot_aiogram.send_message(chat_id=message.chat.id, text='Таких команд я не знаю.\nПопробуй воспользоваться /help', reply_markup=markup_start)
 
     except Exception as ex:

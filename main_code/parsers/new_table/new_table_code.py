@@ -1,7 +1,7 @@
 from loguru import logger
 
 from main_code.workers import work_with_data_base as wwdb, work_with_files as wwf
-from main_code.parsers.site import site_parser as sp
+from main_code.parsers.new_table import new_table_parser as ntp
 
 
 async def site_parsing_start():
@@ -19,13 +19,13 @@ async def site_parsing_start():
 
 async def site_parsing_main(req_site, url_upn, url_cian, url_yandex, url_avito, message):
     if req_site == 1:
-        await sp.upn_site_parser(message, url_upn)
+        await ntp.upn_site_parser(message, url_upn)
     elif req_site == 2:
-        await sp.cian_site_parser(message, url_cian)
+        await ntp.cian_site_parser(message, url_cian)
     elif req_site == 3:
-        await sp.yandex_site_parser(message, url_yandex)
+        await ntp.yandex_site_parser(message, url_yandex)
     elif req_site == 4:
-        await sp.avito_site_parser(message, url_avito)
+        await ntp.avito_site_parser(message, url_avito)
 
 
 async def site_parsing_finish(req_res):
@@ -35,14 +35,14 @@ async def site_parsing_finish(req_res):
             if req_res == 'csv':
                 await wwf.file_renaming()
             elif req_res == 'xlsx':
-                await wwf.converting_csv_to_xlsx(from_where='site')
+                await wwf.converting_csv_to_xlsx(from_where='new_table')
                 await wwf.file_renaming()
             elif req_res == 'txt':
-                await wwf.converting_csv_to_txt(from_where='site')
+                await wwf.converting_csv_to_txt(from_where='new_table')
                 await wwf.file_renaming()
             elif req_res == 'all':
-                await wwf.converting_csv_to_xlsx(from_where='site')
-                await wwf.converting_csv_to_txt(from_where='site')
+                await wwf.converting_csv_to_xlsx(from_where='new_table')
+                await wwf.converting_csv_to_txt(from_where='new_table')
                 await wwf.file_renaming()
 
     except Exception as ex:

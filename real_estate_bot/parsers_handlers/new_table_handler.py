@@ -7,7 +7,7 @@ from loguru import logger
 from auxiliary.all_markups import *
 from auxiliary.req_data import *
 from main_code.connectors import all_connections as ac
-from main_code.parsers.site import site_parsing_code as sc
+from main_code.parsers.new_table import new_table_code as ntc
 from real_estate_bot.helpers import keyboard_result_handler as krh, variables
 
 global id_url
@@ -19,13 +19,13 @@ class Response(StatesGroup):
 
 
 async def new_table_creating(message: types.Message, call=0):
-    variables.task = 'site'
+    variables.task = 'new_table'
     variables.possibility = True
 
     if call == 0:
         with contextlib.suppress(Exception):
             await ac.start_connection()
-        await sc.site_parsing_start()
+        await ntc.site_parsing_start()
 
     await bot_aiogram.send_message(chat_id=message.chat.id, text="С какого сайта Вы хотите получить информацию?", reply_markup=markup_site_selection, parse_mode="Markdown")
     await Response.new_table_site_selection_handler.set()
@@ -58,16 +58,16 @@ async def site_link_handler(message: types.Message, state: FSMContext):
 
     if site_link_response[:14] == 'https://upn.ru' and id_url == 'upn':
         await bot_aiogram.send_message(chat_id=message.chat.id, text='Я начал собирать информацию с УПНа, это может занять некоторое время.\n\nПрогресс выполнения работы:')
-        await sc.site_parsing_main(req_site=1, url_upn=site_link_response, url_cian=None, url_yandex=None, url_avito=None, message=message)
+        await ntc.site_parsing_main(req_site=1, url_upn=site_link_response, url_cian=None, url_yandex=None, url_avito=None, message=message)
     elif site_link_response[:19] == 'https://ekb.cian.ru' and id_url == 'cian':
         await bot_aiogram.send_message(chat_id=message.chat.id, text='Я начал собирать информацию с ЦИАНа, это может занять некоторое время.\n\nПрогресс выполнения работы:')
-        await sc.site_parsing_main(req_site=2, url_upn=None, url_cian=site_link_response, url_yandex=None, url_avito=None, message=message)
+        await ntc.site_parsing_main(req_site=2, url_upn=None, url_cian=site_link_response, url_yandex=None, url_avito=None, message=message)
     elif site_link_response[:24] == 'https://realty.yandex.ru' and id_url == 'yandex':
         await bot_aiogram.send_message(chat_id=message.chat.id, text='Я начал собирать информацию с Яндекс Недвижимости, это может занять некоторое время.\n\nПрогресс выполнения работы:')
-        await sc.site_parsing_main(req_site=3, url_upn=None, url_cian=None, url_yandex=site_link_response, url_avito=None, message=message)
+        await ntc.site_parsing_main(req_site=3, url_upn=None, url_cian=None, url_yandex=site_link_response, url_avito=None, message=message)
     elif site_link_response[:20] == 'https://www.avito.ru' and id_url == 'avito':
         await bot_aiogram.send_message(chat_id=message.chat.id, text='Я начал собирать информацию с Авито, это может занять некоторое время.\n\nПрогресс выполнения работы:')
-        await sc.site_parsing_main(req_site=4, url_upn=None, url_cian=None, url_yandex=None, url_avito=site_link_response, message=message)
+        await ntc.site_parsing_main(req_site=4, url_upn=None, url_cian=None, url_yandex=None, url_avito=site_link_response, message=message)
     elif site_link_response == 'Завершить работу':
         point = 1
         await bot_aiogram.send_message(chat_id=message.chat.id, text='Вы уверены?', reply_markup=markup_confidence)

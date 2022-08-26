@@ -6,7 +6,7 @@ from loguru import logger
 
 from main_code.workers import work_with_data_base as wwdb, work_with_files as wwf
 from main_code.connectors import all_connections as ac
-from main_code.parsers.table import table_parser as tp
+from main_code.parsers.update_table import update_table_parser as utp
 from real_estate_bot.helpers import (
     helper as h,
     variables
@@ -47,7 +47,7 @@ async def table_parsing_main(message):
             else:
                 if table_url[:14] == 'https://upn.ru':
                     try:
-                        await tp.upn_table_parser(table_url=table_url, old_price=old_price)
+                        await utp.upn_table_parser(table_url=table_url, old_price=old_price)
 
                     except Exception as ex:
                         await asyncio.sleep(5)
@@ -62,7 +62,7 @@ async def table_parsing_main(message):
                     requirement = True
 
                     try:
-                        await tp.cian_table_parser(table_url=table_url, old_price=old_price, driver=variables.driver)
+                        await utp.cian_table_parser(table_url=table_url, old_price=old_price, driver=variables.driver)
 
                     except Exception as ex:
                         await asyncio.sleep(5)
@@ -77,7 +77,7 @@ async def table_parsing_main(message):
                     requirement = True
 
                     try:
-                        await tp.yandex_table_parser(table_url=table_url, old_price=old_price, driver=variables.driver)
+                        await utp.yandex_table_parser(table_url=table_url, old_price=old_price, driver=variables.driver)
 
                     except Exception as ex:
                         await asyncio.sleep(5)
@@ -92,7 +92,7 @@ async def table_parsing_main(message):
                     requirement = True
 
                     try:
-                        await tp.avito_table_parser(table_url=table_url, old_price=old_price, driver=variables.driver)
+                        await utp.avito_table_parser(table_url=table_url, old_price=old_price, driver=variables.driver)
 
                     except Exception as ex:
                         await asyncio.sleep(5)

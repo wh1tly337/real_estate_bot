@@ -20,6 +20,7 @@ from auxiliary.req_data import *
 from main_code.workers import work_with_data_base as wwdb
 from real_estate_bot.helpers import variables
 
+
 async def cian_avito_url_cycle_detector(url_next_page, i):
     pos = url_next_page.find('&p=')
     if pos == -1:
