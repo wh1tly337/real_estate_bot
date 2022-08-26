@@ -26,9 +26,9 @@ async def continuation_handler(message: types.Message, state: FSMContext):
     continue_response = message.text
     await state.update_data(user_response=continue_response)
 
-    if continue_response == "Да":
+    if continue_response == 'Да':
         await nth.new_table_creating(message, call=1)
-    elif continue_response == "Нет":
+    elif continue_response == 'Нет':
         await h.site_parser_end_with_settings(message)
         await state.finish()
 
@@ -38,7 +38,7 @@ async def confidence_handler(message: types.Message, state: FSMContext):
     confidence_response = message.text
     await state.update_data(user_response=confidence_response)
 
-    if confidence_response == "Да, уверен":
+    if confidence_response == 'Да, уверен':
         if variables.task == 'new_table':
             variables.possibility = False
             check = await wwdb.get_data_from_data_base(from_where='check', row=None)
@@ -62,7 +62,7 @@ async def confidence_handler(message: types.Message, state: FSMContext):
             with contextlib.suppress(Exception):
                 await ac.close_driver()
 
-    elif confidence_response == "Нет, давай продолжим":
+    elif confidence_response == 'Нет, давай продолжим':
         await bot_aiogram.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_quit)
 
 
@@ -71,7 +71,7 @@ async def safe_files_handler(message: types.Message, state: FSMContext):
     safe_file_response = message.text
     await state.update_data(user_response=safe_file_response)
 
-    if safe_file_response == "Да, хочу":
+    if safe_file_response == 'Да, хочу':
         if variables.task == 'new_table':
             await h.site_parser_end_with_settings(message)
             await state.finish()
@@ -79,7 +79,7 @@ async def safe_files_handler(message: types.Message, state: FSMContext):
             await utc.table_parsing_finish()
             await h.table_parser_end_with_settings(message)
             await state.finish()
-    elif safe_file_response == "Нет, не хочу":
+    elif safe_file_response == 'Нет, не хочу':
         if variables.task == 'new_table':
             await bot_aiogram.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_start)
             await wwdb.delete_advertisement_table()

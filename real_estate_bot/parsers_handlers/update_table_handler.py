@@ -11,7 +11,7 @@ from real_estate_bot.helpers import variables
 
 
 async def update_table_start(message: types.Message):
-    await bot_aiogram.send_message(chat_id=message.chat.id, text="Отправьте мне файл, информацию в котором Вы хотите обновить", reply_markup=markup_quit, parse_mode="Markdown")
+    await bot_aiogram.send_message(chat_id=message.chat.id, text='Отправьте мне файл, информацию в котором Вы хотите обновить', reply_markup=markup_quit, parse_mode='Markdown')
 
 
 async def docs_handler(message: types.Message):
@@ -22,7 +22,7 @@ async def docs_handler(message: types.Message):
             await ac.start_connection()
         await utc.table_parsing_start()
         await message.document.download(destination_file=f"{src}{message.document.file_name}")
-        await bot_aiogram.send_message(chat_id=message.chat.id, text="Отлично! Я начал обновлять информацию.\n\nПрогресс выполнения работы:", reply_markup=markup_quit, parse_mode="Markdown")
+        await bot_aiogram.send_message(chat_id=message.chat.id, text='Отлично! Я начал обновлять информацию.\n\nПрогресс выполнения работы:', reply_markup=markup_quit, parse_mode='Markdown')
 
         variables.table_name, variables.table_name_upd = await wwf.table_name_handler(message)
 

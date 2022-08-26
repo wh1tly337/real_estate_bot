@@ -154,12 +154,12 @@ async def get_data_from_data_base(from_where, row):
             ad_id = glob.cursor.fetchall()[row][0]
         with glob.connection.cursor() as glob.cursor:
             glob.cursor.execute("""SELECT url FROM update_ad ORDER BY id;""")
-            table_url = glob.cursor.fetchall()[row][0]
+            ad_url_in_table = glob.cursor.fetchall()[row][0]
         with glob.connection.cursor() as glob.cursor:
             glob.cursor.execute("""SELECT price FROM update_ad ORDER BY id;""")
-            old_price = glob.cursor.fetchall()[row][0]
+            ad_old_price = glob.cursor.fetchall()[row][0]
 
-        return ad_id, table_url, old_price
+        return ad_id, ad_url_in_table, ad_old_price
 
 
 async def site_data_to_csv():

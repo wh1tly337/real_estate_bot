@@ -18,7 +18,7 @@ async def settings_start(message: types.Message):
     message_text = \
         'Вы можете выбрать в каком формате будете получать результаты работы, чтобы каждый раз не выбирать его во время работы.\
         \nПотом этот выбор можно будет всегда поменять или отменить в этих же настройках.'
-    await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_settings)
+    await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text, parse_mode='Markdown', reply_markup=markup_settings)
     await Response.settings_handler.set()
 
 
@@ -52,7 +52,7 @@ async def settings_handler(message: types.Message, state: FSMContext):
         point = False
         message_text = 'Такой настойки нет. Попробуйте воспользоваться функцией еще раз. Лучше всего полбзоваться кнопками внизу клавиатуры'
 
-    await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_start)
+    await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text, parse_mode='Markdown', reply_markup=markup_start)
 
     await state.finish()
     with contextlib.suppress(Exception):

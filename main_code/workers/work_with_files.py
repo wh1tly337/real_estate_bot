@@ -22,6 +22,7 @@ async def creating_filename(freshness):
 
         return variables.filename
     else:
+
         return variables.filename
 
 
@@ -39,6 +40,7 @@ async def table_name_handler(message):
             else:
                 variables.table_name_upd = f"{src}{variables.table_name[:-4]}_upd"
         return variables.table_name, variables.table_name_upd
+
     except Exception as ex:
         logger.error(ex)
 

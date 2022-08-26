@@ -29,15 +29,15 @@ krh.register_handlers_new_table(dp)
 @dp.message_handler(content_types=['text'])
 async def text_handler(message: types.Message):
     try:
-        if message.text == "За работу":
+        if message.text == 'За работу':
             await bot_aiogram.send_message(chat_id=message.chat.id, text='Что вы хотите сделать?', reply_markup=markup_first_question)
-        elif message.text == "Собрать новую информацию":
+        elif message.text == 'Собрать новую информацию':
             variables.task = 'fast_quit'
             await nth.new_table_creating(message, call=0)
-        elif message.text == "Обновить старую информацию":
+        elif message.text == 'Обновить старую информацию':
             variables.task = 'fast_quit'
             await uth.update_table_start(message)
-        elif message.text == "Завершить работу":
+        elif message.text == 'Завершить работу':
             if variables.task == 'fast_quit':
                 await bot_aiogram.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_start)
             elif variables.task is None:

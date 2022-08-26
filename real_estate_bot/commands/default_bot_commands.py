@@ -31,12 +31,12 @@ async def start_message(message: types.Message):
     with contextlib.suppress(Exception):
         await ac.close_connection()
 
-    await bot_aiogram.send_message(chat_id=message.chat.id, text=f"{message.from_user.full_name}, добро пожаловать в бот помощник по недвижимости!\
+    await bot_aiogram.send_message(chat_id=message.chat.id, text=f'{message.from_user.full_name}, добро пожаловать в бот помощник по недвижимости!\
                      \nЯ в любое время могу собирать информацию о необходимых тебе объектах.\
                      \nТакже я могу подыскать информацию по любым указанными тобой параметрам.\
                      \nСобирать всю эту информацию в удобном тебе виде и обновлять ее по твоему желанию.\
                      \nВо время использования моего функционала, пользуйтесь кнопками снизу клавиатуры, Вам так будет намного удобнее.\
-                     \n\nДля того чтобы узнать все мои команды нажмите на кнопку /help на клавиатуре.", reply_markup=markup_start)
+                     \n\nДля того чтобы узнать все мои команды нажмите на кнопку /help на клавиатуре.', reply_markup=markup_start)
 
 
 @dp.message_handler(commands=['help'])
@@ -51,11 +51,11 @@ async def help_message(message: types.Message):
 
 @dp.message_handler(commands=['links'])
 async def getting_links(message: types.Message):
-    await bot_aiogram.send_message(chat_id=message.chat.id, text="На данный момент я работаю с сайтами:\
+    await bot_aiogram.send_message(chat_id=message.chat.id, text='На данный момент я работаю с сайтами:\
             \n• [УПН](https://upn.ru)\
             \n• [ЦИАН](https://ekb.cian.ru)\
             \n• [Яндекс Недвижимость](https://realty.yandex.ru/ekaterinburg)\
-            \n• [Авито](https://www.avito.ru/ekaterinburg/nedvizhimost)", disable_web_page_preview=True, parse_mode="MarkdownV2", reply_markup=markup_start)
+            \n• [Авито](https://www.avito.ru/ekaterinburg/nedvizhimost)', disable_web_page_preview=True, parse_mode='MarkdownV2', reply_markup=markup_start)
 
 
 def register_handlers_default_commands(dp: Dispatcher):  # noqa

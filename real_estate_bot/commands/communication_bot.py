@@ -20,11 +20,11 @@ async def communication_id_handler(message: types.Message, state: FSMContext):
     await state.update_data(user_response=communication_id_response)
 
     if communication_id_response == 'Отмена':
-        await bot_aiogram.send_message(chat_id=message.chat.id, text='Хорошо', parse_mode="Markdown", reply_markup=markup_start)
+        await bot_aiogram.send_message(chat_id=message.chat.id, text='Хорошо', parse_mode='Markdown', reply_markup=markup_start)
         await state.finish()
     else:
         message_text = 'Введите сообщение для пользователя'
-        await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", reply_markup=markup_communication)
+        await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text, parse_mode='Markdown', reply_markup=markup_communication)
         await Response.communication_message_handler.set()
 
 
@@ -33,12 +33,12 @@ async def communication_message_handler(message: types.Message, state: FSMContex
     await state.update_data(user_response=communication_message_response)
 
     if communication_id_response == 'Отмена':
-        await bot_aiogram.send_message(chat_id=message.chat.id, text='Хорошо', parse_mode="Markdown", reply_markup=markup_start)
+        await bot_aiogram.send_message(chat_id=message.chat.id, text='Хорошо', parse_mode='Markdown', reply_markup=markup_start)
         await state.finish()
     else:
-        await bot_aiogram.send_message(chat_id=message.chat.id, text='Сообщение отправлено', parse_mode="Markdown", reply_markup=markup_start)
+        await bot_aiogram.send_message(chat_id=message.chat.id, text='Сообщение отправлено', parse_mode='Markdown', reply_markup=markup_start)
         message_text = f"Сообщение от админа этого бота:\n\n{communication_message_response}"
-        await bot_aiogram.send_message(chat_id=communication_id_response, text=message_text, parse_mode="Markdown", reply_markup=markup_communication)
+        await bot_aiogram.send_message(chat_id=communication_id_response, text=message_text, parse_mode='Markdown', reply_markup=markup_communication)
         logger.info(f"Communication has been made with {communication_id_response}")
 
     await state.finish()

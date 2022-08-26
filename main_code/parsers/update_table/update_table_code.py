@@ -40,14 +40,14 @@ async def table_parsing_main(message):
         requirement, variables.driver, flag = False, None, True
 
         for row in tqdm(range(max_row)):
-            ad_id, table_url, old_price = await wwdb.get_data_from_data_base(from_where='else', row=row)
+            ad_id, ad_url_in_table, ad_old_price = await wwdb.get_data_from_data_base(from_where='else', row=row)
             # maybe this stopper work not correctly
             if flag is False:
                 break
             else:
-                if table_url[:14] == 'https://upn.ru':
+                if ad_url_in_table[:14] == 'https://upn.ru':
                     try:
-                        await utp.upn_table_parser(table_url=table_url, old_price=old_price)
+                        await utp.upn_table_parser(ad_url_in_table=ad_url_in_table, ad_old_price=ad_old_price)
 
                     except Exception as ex:
                         await asyncio.sleep(5)
@@ -55,14 +55,14 @@ async def table_parsing_main(message):
                         flag = False
                         break
 
-                elif table_url[:19] == 'https://ekb.cian.ru':
+                elif ad_url_in_table[:19] == 'https://ekb.cian.ru':
                     if variables.driver is None:
                         variables.driver = await ac.add_driver()
 
                     requirement = True
 
                     try:
-                        await utp.cian_table_parser(table_url=table_url, old_price=old_price, driver=variables.driver)
+                        await utp.cian_table_parser(ad_url_in_table=ad_url_in_table, ad_old_price=ad_old_price, driver=variables.driver)
 
                     except Exception as ex:
                         await asyncio.sleep(5)
@@ -70,14 +70,14 @@ async def table_parsing_main(message):
                         flag = False
                         break
 
-                elif table_url[:24] == 'https://realty.yandex.ru':
+                elif ad_url_in_table[:24] == 'https://realty.yandex.ru':
                     if variables.driver is None:
                         variables.driver = await ac.add_driver()
 
                     requirement = True
 
                     try:
-                        await utp.yandex_table_parser(table_url=table_url, old_price=old_price, driver=variables.driver)
+                        await utp.yandex_table_parser(ad_url_in_table=ad_url_in_table, ad_old_price=ad_old_price, driver=variables.driver)
 
                     except Exception as ex:
                         await asyncio.sleep(5)
@@ -85,14 +85,14 @@ async def table_parsing_main(message):
                         flag = False
                         break
 
-                elif table_url[:20] == 'https://www.avito.ru':
+                elif ad_url_in_table[:20] == 'https://www.avito.ru':
                     if variables.driver is None:
                         variables.driver = await ac.add_driver()
 
                     requirement = True
 
                     try:
-                        await utp.avito_table_parser(table_url=table_url, old_price=old_price, driver=variables.driver)
+                        await utp.avito_table_parser(ad_url_in_table=ad_url_in_table, ad_old_price=ad_old_price, driver=variables.driver)
 
                     except Exception as ex:
                         await asyncio.sleep(5)
@@ -116,6 +116,7 @@ async def table_parsing_main(message):
 async def table_parsing_finish():
     try:
         from real_estate_bot.helpers import variables
+
         await wwdb.table_data_to_csv(variables.table_name_upd)
 
     except Exception as ex:

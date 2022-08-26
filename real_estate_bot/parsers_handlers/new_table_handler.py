@@ -27,7 +27,7 @@ async def new_table_creating(message: types.Message, call=0):
             await ac.start_connection()
         await ntc.site_parsing_start()
 
-    await bot_aiogram.send_message(chat_id=message.chat.id, text="С какого сайта Вы хотите получить информацию?", reply_markup=markup_site_selection, parse_mode="Markdown")
+    await bot_aiogram.send_message(chat_id=message.chat.id, text='С какого сайта Вы хотите получить информацию?', reply_markup=markup_site_selection, parse_mode='Markdown')
     await Response.new_table_site_selection_handler.set()
 
 
@@ -35,15 +35,15 @@ async def site_selection_handler(message: types.Message, state: FSMContext):
     site_selection_response = message.text
     await state.update_data(user_response=site_selection_response)
 
-    if site_selection_response == "УПН":
+    if site_selection_response == 'УПН':
         await getting_site_selection(message, status_url='upn')
-    elif site_selection_response == "ЦИАН":
+    elif site_selection_response == 'ЦИАН':
         await getting_site_selection(message, status_url='cian')
-    elif site_selection_response == "Яндекс Недвижимость":
+    elif site_selection_response == 'Яндекс Недвижимость':
         await getting_site_selection(message, status_url='yandex')
-    elif site_selection_response == "Авито":
+    elif site_selection_response == 'Авито':
         await getting_site_selection(message, status_url='avito')
-    elif site_selection_response == "Завершить работу":
+    elif site_selection_response == 'Завершить работу':
         await bot_aiogram.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_start)
         await state.finish()
         with contextlib.suppress(Exception):
@@ -78,7 +78,7 @@ async def site_link_handler(message: types.Message, state: FSMContext):
         await getting_site_selection(message, status_url='error')
 
     if point == 0 and variables.possibility is True:
-        await bot_aiogram.send_message(chat_id=message.chat.id, text="С этим сайтом я закончил, хотите добавить еще сайт для поиска?", reply_markup=markup_continuation_question, parse_mode="Markdown")
+        await bot_aiogram.send_message(chat_id=message.chat.id, text='С этим сайтом я закончил, хотите добавить еще сайт для поиска?', reply_markup=markup_continuation_question, parse_mode='Markdown')
         await krh.Response.continuation_handler.set()
 
 
@@ -89,23 +89,23 @@ async def getting_site_selection(message: types.Message, status_url):
         if status_url == 'upn':
             id_url = 'upn'
             message_text = 'Перейдите на сайт [УПН](https://upn.ru), настройте все необходимые Вам фильтры, скопируйте ссылку в адресной строке и отправьте ее мне'
-            await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text, parse_mode="MarkdownV2", disable_web_page_preview=True, reply_markup=markup_quit)
+            await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text, parse_mode='MarkdownV2', disable_web_page_preview=True, reply_markup=markup_quit)
         elif status_url == 'cian':
             id_url = 'cian'
-            message_text = "Перейдите на сайт [ЦИАН](https://ekb.cian.ru), настройте все необходимые Вам фильтры, скопируйте ссылку в адресной строке и отправьте ее мне"
-            await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text, parse_mode="MarkdownV2", disable_web_page_preview=True, reply_markup=markup_quit)
+            message_text = 'Перейдите на сайт [ЦИАН](https://ekb.cian.ru), настройте все необходимые Вам фильтры, скопируйте ссылку в адресной строке и отправьте ее мне'
+            await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text, parse_mode='MarkdownV2', disable_web_page_preview=True, reply_markup=markup_quit)
         elif status_url == 'yandex':
             id_url = 'yandex'
             message_text = 'Перейдите на сайт [Яндекс Недвижимость](https://realty.yandex.ru/ekaterinburg), настройте все необходимые Вам фильтры, скопируйте ссылку в адресной строке и отправьте ее' \
                            ' мне'
-            await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text, parse_mode="MarkdownV2", disable_web_page_preview=True, reply_markup=markup_quit)
+            await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text, parse_mode='MarkdownV2', disable_web_page_preview=True, reply_markup=markup_quit)
         elif status_url == 'avito':
             id_url = 'avito'
             message_text = 'Перейдите на сайт [Авито](https://www.avito.ru/ekaterinburg/nedvizhimost), настройте все необходимые Вам фильтры, скопируйте ссылку в адресной строке и отправьте ее мне'
-            await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text, parse_mode="MarkdownV2", disable_web_page_preview=True, reply_markup=markup_quit)
+            await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text, parse_mode='MarkdownV2', disable_web_page_preview=True, reply_markup=markup_quit)
         elif status_url == 'error':
             message_text = 'Введена неверная ссылка. Пожалуйста проверьте правильность ссылки и отправьте ее мне.'
-            await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text, parse_mode="Markdown", disable_web_page_preview=True, reply_markup=markup_quit)
+            await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text, parse_mode='Markdown', disable_web_page_preview=True, reply_markup=markup_quit)
 
         await Response.site_link_handler.set()
 

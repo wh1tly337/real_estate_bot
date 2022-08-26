@@ -19,39 +19,39 @@ async def file_format_handler(message: types.Message, state: FSMContext):
     file_format_response = message.text
     await state.update_data(user_response=file_format_response)
 
-    if message.text == ".csv":
+    if message.text == '.csv':
         if variables.task == 'new_table':
             await ntc.site_parsing_finish(req_res='csv')
-            await bot_aiogram.send_message(chat_id=message.chat.id, text="Ваш .csv файл", reply_markup=markup_start)
-            await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{src}{await wwf.creating_filename(freshness='load')}.csv", "rb"))
+            await bot_aiogram.send_message(chat_id=message.chat.id, text='Ваш .csv файл', reply_markup=markup_start)
+            await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{src}{await wwf.creating_filename(freshness='load')}.csv", 'rb'))
             await end_of_work(message)
         elif variables.task == 'update_table':
-            await bot_aiogram.send_message(chat_id=message.chat.id, text="Ваш .csv файл", reply_markup=markup_start)
-            await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{variables.table_name_upd}.csv", "rb"))
+            await bot_aiogram.send_message(chat_id=message.chat.id, text='Ваш .csv файл', reply_markup=markup_start)
+            await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{variables.table_name_upd}.csv", 'rb'))
             await end_of_work(message)
-    elif message.text == ".xlsx":
+    elif message.text == '.xlsx':
         if variables.task == 'new_table':
             await ntc.site_parsing_finish(req_res='xlsx')
-            await bot_aiogram.send_message(chat_id=message.chat.id, text="Ваш .xlsx файл", reply_markup=markup_start)
-            await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{src}{await wwf.creating_filename(freshness='load')}.xlsx", "rb"))
+            await bot_aiogram.send_message(chat_id=message.chat.id, text='Ваш .xlsx файл', reply_markup=markup_start)
+            await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{src}{await wwf.creating_filename(freshness='load')}.xlsx", 'rb'))
             await end_of_work(message)
         elif variables.task == 'update_table':
             await wwf.converting_csv_to_xlsx(from_where=variables.task)
-            await bot_aiogram.send_message(chat_id=message.chat.id, text="Ваш .xlsx файл", reply_markup=markup_start)
-            await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{variables.table_name_upd}.xlsx", "rb"))
+            await bot_aiogram.send_message(chat_id=message.chat.id, text='Ваш .xlsx файл', reply_markup=markup_start)
+            await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{variables.table_name_upd}.xlsx", 'rb'))
             await end_of_work(message)
-    elif message.text == ".txt":
+    elif message.text == '.txt':
         if variables.task == 'new_table':
             await ntc.site_parsing_finish(req_res='txt')
-            await bot_aiogram.send_message(chat_id=message.chat.id, text="Ваш .txt файл", reply_markup=markup_start)
-            await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{src}{await wwf.creating_filename(freshness='load')}.txt", "rb"))
+            await bot_aiogram.send_message(chat_id=message.chat.id, text='Ваш .txt файл', reply_markup=markup_start)
+            await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{src}{await wwf.creating_filename(freshness='load')}.txt", 'rb'))
             await end_of_work(message)
         elif variables.task == 'update_table':
             await wwf.converting_csv_to_txt(from_where=variables.task)
-            await bot_aiogram.send_message(chat_id=message.chat.id, text="Ваш .txt файл", reply_markup=markup_start)
-            await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{variables.table_name_upd}.txt", "rb"))
+            await bot_aiogram.send_message(chat_id=message.chat.id, text='Ваш .txt файл', reply_markup=markup_start)
+            await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{variables.table_name_upd}.txt", 'rb'))
             await end_of_work(message)
-    elif message.text == "Все форматы":
+    elif message.text == 'Все форматы':
         if variables.task == 'new_table':
             await ntc.site_parsing_finish(req_res='all')
             await file_sender(message)
@@ -66,7 +66,7 @@ async def file_format_handler(message: types.Message, state: FSMContext):
 
 
 async def file_sender(message: types.Message):
-    await bot_aiogram.send_message(chat_id=message.chat.id, text="Ваши файлы", reply_markup=markup_start)
+    await bot_aiogram.send_message(chat_id=message.chat.id, text='Ваши файлы', reply_markup=markup_start)
 
     if variables.task == 'new_table':
         result_file = await wwf.creating_filename(freshness='load')
@@ -74,17 +74,17 @@ async def file_sender(message: types.Message):
     else:
         result_file = variables.table_name_upd
 
-    await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{result_file}.csv", "rb"))
-    await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{result_file}.xlsx", "rb"))
-    await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{result_file}.txt", "rb"))
+    await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{result_file}.csv", 'rb'))
+    await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{result_file}.xlsx", 'rb'))
+    await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{result_file}.txt", 'rb'))
     await req_to_upd_db(message)
 
 
 async def table_parser_end_with_settings(message: types.Message):
     user_settings = await wwdb.get_user_settings(user_id=message.chat.id)
-    if user_settings == "None":
+    if user_settings == 'None':
         await bot_aiogram.send_message(chat_id=message.chat.id, text='Вся информация обновлена. В каком формате вы хотите получить результат?',
-                                       reply_markup=markup_result, parse_mode="Markdown")
+                                       reply_markup=markup_result, parse_mode='Markdown')
         await Response.file_format_handler.set()
     elif variables.task == 'update_table':
         if user_settings == 'all':
@@ -96,13 +96,13 @@ async def table_parser_end_with_settings(message: types.Message):
                 await wwf.converting_csv_to_xlsx(from_where=variables.task)
 
             await bot_aiogram.send_message(chat_id=message.chat.id, text=f"Ваш .{user_settings} файл", reply_markup=markup_start)
-            await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{variables.table_name_upd}.{user_settings}", "rb"))
+            await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{variables.table_name_upd}.{user_settings}", 'rb'))
             await end_of_work(message)
 
 
 async def site_parser_end_with_settings(message: types.Message):
     user_settings = await wwdb.get_user_settings(user_id=message.chat.id)
-    if user_settings == "None":
+    if user_settings == 'None':
         await bot_aiogram.send_message(chat_id=message.chat.id, text='Отлично! В каком формате вы хотите получить результат?', reply_markup=markup_result)
         await Response.file_format_handler.set()
     elif variables.task == 'new_table':
@@ -116,7 +116,7 @@ async def site_parser_end_with_settings(message: types.Message):
                 await ac.close_connection()
         else:
             await bot_aiogram.send_message(chat_id=message.chat.id, text=f"Ваш .{user_settings} файл", reply_markup=markup_start)
-            await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{src}{await wwf.creating_filename(freshness='load')}.{user_settings}", "rb"))
+            await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{src}{await wwf.creating_filename(freshness='load')}.{user_settings}", 'rb'))
             await end_of_work(message)
 
 
