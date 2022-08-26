@@ -5,7 +5,7 @@ from loguru import logger
 from selenium import webdriver
 
 from auxiliary.req_data import *
-from real_estate_bot import variables
+from real_estate_bot.helpers import variables
 
 
 async def start_connection():

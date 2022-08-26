@@ -5,17 +5,14 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 
 from auxiliary.all_markups import *
 from auxiliary.req_data import *
-from main_code import (
-    work_with_data_base as wwdb,
-    work_with_files as wwf,
-    table_code as tc
-)
 from main_code.connectors import all_connections as ac
-from real_estate_bot import (
-    new_table_handler as nth,
+from main_code.parsers.table import table_parsing_code as tc
+from main_code.workers import work_with_data_base as wwdb, work_with_files as wwf
+from real_estate_bot.helpers import (
     helper as h,
     variables
 )
+from real_estate_bot.parsers_handlers import new_table_handler as nth
 
 
 class Response(StatesGroup):

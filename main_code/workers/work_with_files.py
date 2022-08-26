@@ -10,8 +10,7 @@ from aiofiles import os
 from loguru import logger
 
 from auxiliary.req_data import src
-from real_estate_bot import variables
-
+from real_estate_bot.helpers import variables
 
 async def creating_filename(freshness):
     if freshness == 'new':

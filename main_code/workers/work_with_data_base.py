@@ -84,8 +84,7 @@ async def get_user_data_table():
 
 
 async def add_data_to_data_base():
-    from real_estate_bot import variables
-
+    from real_estate_bot.helpers import variables
     try:
         with glob.connection.cursor() as glob.cursor:
             glob.cursor.execute(f"""COPY update_ad FROM '{variables.table_name_upd}.csv' DELIMITER ';' CSV HEADER;""")

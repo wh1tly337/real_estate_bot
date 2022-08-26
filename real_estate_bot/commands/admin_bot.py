@@ -6,14 +6,12 @@ from loguru import logger
 
 from auxiliary.all_markups import *
 from auxiliary.req_data import *
-from main_code import (
+from main_code.connectors import all_connections as ac
+from main_code.workers import (
     work_with_data_base as wwdb,
     work_with_files as wwf
 )
-from main_code.connectors import all_connections as ac
-from real_estate_bot import (
-    communication_bot as cb
-)
+from real_estate_bot.commands import communication_bot as cb
 
 
 class Response(StatesGroup):

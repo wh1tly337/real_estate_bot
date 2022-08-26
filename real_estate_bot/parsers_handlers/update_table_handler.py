@@ -4,12 +4,10 @@ from loguru import logger
 
 from auxiliary.all_markups import *
 from auxiliary.req_data import *
-from main_code import (
-    work_with_files as wwf,
-    table_code as tc
-)
 from main_code.connectors import all_connections as ac
-from real_estate_bot import variables
+from main_code.parsers.table import table_parsing_code as tc
+from main_code.workers import work_with_files as wwf
+from real_estate_bot.helpers import variables
 
 
 async def update_table_start(message: types.Message):

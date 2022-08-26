@@ -1,7 +1,7 @@
 from loguru import logger
 
-from main_code import work_with_data_base as wwdb, work_with_files as wwf
-from parsers import site_parser as sp
+from main_code.workers import work_with_data_base as wwdb, work_with_files as wwf
+from main_code.parsers.site import site_parser as sp
 
 
 async def site_parsing_start():

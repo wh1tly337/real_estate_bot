@@ -6,10 +6,8 @@ from loguru import logger
 
 from auxiliary.all_markups import *
 from auxiliary.req_data import *
-from main_code import (
-    work_with_data_base as wwdb
-)
 from main_code.connectors import all_connections as ac
+from main_code.workers import work_with_data_base as wwdb
 
 
 class Response(StatesGroup):

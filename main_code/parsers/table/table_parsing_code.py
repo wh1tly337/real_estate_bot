@@ -4,13 +4,10 @@ from bob_telegram_tools.bot import TelegramBot
 from bob_telegram_tools.utils import TelegramTqdm
 from loguru import logger
 
-from main_code import (
-    work_with_data_base as wwdb,
-    work_with_files as wwf
-)
+from main_code.workers import work_with_data_base as wwdb, work_with_files as wwf
 from main_code.connectors import all_connections as ac
-from parsers import table_parser as tp
-from real_estate_bot import (
+from main_code.parsers.table import table_parser as tp
+from real_estate_bot.helpers import (
     helper as h,
     variables
 )
@@ -118,8 +115,7 @@ async def table_parsing_main(message):
 
 async def table_parsing_finish():
     try:
-        from real_estate_bot import variables
-
+        from real_estate_bot.helpers import variables
         await wwdb.table_data_to_csv(variables.table_name_upd)
 
     except Exception as ex:

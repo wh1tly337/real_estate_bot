@@ -6,14 +6,9 @@ from loguru import logger
 
 from auxiliary.all_markups import *
 from auxiliary.req_data import *
-from main_code import (
-    site_code as sc
-)
 from main_code.connectors import all_connections as ac
-from real_estate_bot import (
-    variables,
-    keyboard_result_handler as krh
-)
+from main_code.parsers.site import site_parsing_code as sc
+from real_estate_bot.helpers import keyboard_result_handler as krh, variables
 
 global id_url
 

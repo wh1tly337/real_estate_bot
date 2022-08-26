@@ -12,8 +12,7 @@ from bs4 import BeautifulSoup
 from loguru import logger
 
 from auxiliary.req_data import *
-from real_estate_bot import variables
-
+from real_estate_bot.helpers import variables
 
 async def database_price_updater(new_price, old_price, table_url):
     try:

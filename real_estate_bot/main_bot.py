@@ -5,19 +5,13 @@ from loguru import logger
 
 from auxiliary.all_markups import *
 from auxiliary.req_data import *
-from main_code import site_code as sc
-from real_estate_bot import (
-    admin_bot as ab,
-    feedback_bot as fb,
-    communication_bot as cb,
-    user_setings as us,
-    default_bot_commands as dbc,
+from main_code.parsers.site import site_parsing_code as sc
+from real_estate_bot.parsers_handlers import (
     new_table_handler as nth,
-    update_table_handler as uth,
-    helper as h,
-    keyboard_result_handler as krh,
-    variables
+    update_table_handler as uth
 )
+from real_estate_bot.helpers import helper as h, keyboard_result_handler as krh, variables
+from real_estate_bot.commands import admin_bot as ab, communication_bot as cb, default_bot_commands as dbc, feedback_bot as fb, user_setings as us
 
 logger.add(f"{src_logger}logger.txt", format='{time} | {level} | {message}', rotation='00:00', compression='zip')
 
