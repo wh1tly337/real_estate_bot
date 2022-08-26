@@ -36,13 +36,13 @@ async def site_selection_handler(message: types.Message, state: FSMContext):
     await state.update_data(user_response=site_selection_response)
 
     if site_selection_response == 'УПН':
-        await getting_site_selection(message, status_url='upn')
+        await getting_site_selection(message, state, status_url='upn')
     elif site_selection_response == 'ЦИАН':
-        await getting_site_selection(message, status_url='cian')
+        await getting_site_selection(message, state, status_url='cian')
     elif site_selection_response == 'Яндекс Недвижимость':
-        await getting_site_selection(message, status_url='yandex')
+        await getting_site_selection(message, state, status_url='yandex')
     elif site_selection_response == 'Авито':
-        await getting_site_selection(message, status_url='avito')
+        await getting_site_selection(message, state, status_url='avito')
     elif site_selection_response == 'Завершить работу':
         await bot_aiogram.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_start)
         await state.finish()
@@ -73,16 +73,15 @@ async def site_link_handler(message: types.Message, state: FSMContext):
         await bot_aiogram.send_message(chat_id=message.chat.id, text='Вы уверены?', reply_markup=markup_confidence)
         await krh.Response.confidence_handler.set()
     else:
-        variables.task = 'fast_quit'
         point = 1
-        await getting_site_selection(message, status_url='error')
+        await getting_site_selection(message, state, status_url='error')
 
     if point == 0 and variables.possibility is True:
         await bot_aiogram.send_message(chat_id=message.chat.id, text='С этим сайтом я закончил, хотите добавить еще сайт для поиска?', reply_markup=markup_continuation_question, parse_mode='Markdown')
         await krh.Response.continuation_handler.set()
 
 
-async def getting_site_selection(message: types.Message, status_url):
+async def getting_site_selection(message: types.Message, state: FSMContext, status_url):
     try:
         global id_url
 
@@ -106,6 +105,7 @@ async def getting_site_selection(message: types.Message, status_url):
         elif status_url == 'error':
             message_text = 'Введена неверная ссылка. Пожалуйста проверьте правильность ссылки и отправьте ее мне.'
             await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text, parse_mode='Markdown', disable_web_page_preview=True, reply_markup=markup_quit)
+            await state.finish()
 
         await Response.site_link_handler.set()
 
