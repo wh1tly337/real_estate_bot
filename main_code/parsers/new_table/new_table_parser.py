@@ -258,6 +258,7 @@ async def yandex_site_parser(message, url_yandex):
 
                         except Exception:
                             continue
+
                         full_address = []
                         for adr in range(20):
                             try:
@@ -265,12 +266,18 @@ async def yandex_site_parser(message, url_yandex):
                                 full_address.append(address)
 
                             except Exception:
-                                address = str(ad['div'][0]['div'][0]['div'][0]['text'][adr]).replace(',', '')
-                                full_address.append(address)
-
-                            finally:
                                 continue
-                        full_address = ' '.join(full_address)
+                        full_address = " ".join(full_address)
+                        if len(full_address) == 0:
+                            full_address = []
+                            for adr in range(20):
+                                try:
+                                    address = str(ad['div'][0]['div'][0]['div'][0]['_values'][adr]).replace(',', '')
+                                    full_address.append(address)
+
+                                except Exception:
+                                    continue
+                            full_address = " ".join(full_address)
                         price = "".join(re.findall(r"\d+", ad['div'][0]['div'][1]['div'][0]['span'][0]['_value']))
                         ad_url = 'https://realty.yandex.ru' + ad['div'][0]['div'][0]['a'][0]['_attributes']['href']
                         square = round(float(str(ad['div'][0]['div'][0]['a'][0]['span'][0]['_value']).split(',')[0][:3].strip()))
