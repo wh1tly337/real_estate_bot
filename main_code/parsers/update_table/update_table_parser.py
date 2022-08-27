@@ -1,7 +1,6 @@
 import asyncio
 import contextlib
 # import lxml
-# from random import randint
 import glob
 import random
 
@@ -65,7 +64,6 @@ async def upn_table_parser(ad_url_in_table, ad_old_price):
 async def cian_table_parser(ad_url_in_table, ad_old_price, driver):
     driver.get(url=ad_url_in_table)
     await asyncio.sleep(float('{:.3f}'.format(random.random())))
-    # variables.driver.execute_script(f"window.scrollTo(0, {randint(0, 1080)})")
     full_page = html_to_json.convert(variables.driver.page_source)['html'][0]['body'][0]['div'][1]['main'][0]
     try:
         availability = full_page['div'][0]['div'][2]['_value']
@@ -89,7 +87,6 @@ async def cian_table_parser(ad_url_in_table, ad_old_price, driver):
 async def yandex_table_parser(ad_url_in_table, ad_old_price, driver):
     driver.get(url=ad_url_in_table)
     await asyncio.sleep(float('{:.3f}'.format(random.random())))
-    # variables.driver.execute_script(f"window.scrollTo(0, {randint(0, 1080)})")
     full_page = html_to_json.convert(variables.driver.page_source)['html'][0]['body'][0]['div'][1]['div'][0]['div'][1]['div'][0]['div'][3]['div'][0]['div'][0]
     try:
         availability = full_page['div'][2]['div'][0]['div'][0]['div'][0]['_value']
@@ -113,7 +110,6 @@ async def yandex_table_parser(ad_url_in_table, ad_old_price, driver):
 async def avito_table_parser(ad_url_in_table, ad_old_price, driver):
     driver.get(url=ad_url_in_table)
     await asyncio.sleep(float('{:.3f}'.format(random.random())))
-    # variables.driver.execute_script(f"window.scrollTo(0, {randint(0, 1080)})")
     with contextlib.suppress(Exception):
         full_page = html_to_json.convert(variables.driver.page_source)['html'][0]['body'][0]['div'][2]['div'][0]['div'][0]
     try:

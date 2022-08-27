@@ -138,7 +138,7 @@ async def get_data_from_data_base(from_where, row):
             glob.cursor.execute("""SELECT count(*) FROM user_data;""")
             max_row = glob.cursor.fetchall()[0][0]
             glob.cursor.execute("""SELECT user_id FROM user_data;""")
-            for i in range(max_row):
+            for index in range(max_row):
                 user_ids.append(int(glob.cursor.fetchone()[0]))
 
         return user_ids
