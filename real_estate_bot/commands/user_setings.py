@@ -17,7 +17,7 @@ class Response(StatesGroup):
 async def settings_start(message: types.Message):
     message_text = \
         'Вы можете выбрать в каком формате будете получать результаты работы, чтобы каждый раз не выбирать его во время работы.\
-        \nПотом этот выбор можно будет всегда поменять или отменить в этих же настройках.'
+        \nПотом этот выбор можно будет всегда поменять или отменить в этих же настройках'
     await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text, parse_mode='Markdown', reply_markup=markup_settings)
     await Response.settings_handler.set()
 

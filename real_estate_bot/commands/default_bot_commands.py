@@ -26,6 +26,7 @@ async def start_message(message: types.Message):
             date_last_site_req=0,
             date_last_table_req=0
         )
+
         logger.info('New user add')
 
     with contextlib.suppress(Exception):
@@ -36,7 +37,7 @@ async def start_message(message: types.Message):
                      \nТакже я могу подыскать информацию по любым указанными тобой параметрам.\
                      \nСобирать всю эту информацию в удобном тебе виде и обновлять ее по твоему желанию.\
                      \nВо время использования моего функционала, пользуйтесь кнопками снизу клавиатуры, Вам так будет намного удобнее.\
-                     \n\nДля того чтобы узнать все мои команды нажмите на кнопку /help на клавиатуре.', reply_markup=markup_start)
+                     \n\nДля того чтобы узнать все мои команды нажмите на кнопку /help на клавиатуре', reply_markup=markup_start)
 
 
 @dp.message_handler(commands=['help'])
@@ -46,6 +47,7 @@ async def help_message(message: types.Message):
             \n/new_table - собрать новую информацию по вашим параметрам\
             \n/update_table - обновить информацию уже по имеющейся базе данных\
             \n/feedback - отправка отзыва, пожелания, замечания или бага\
+            \n/manual - получение инструкции по пользованию ботом\
             \n/settings - мои настройки', reply_markup=markup_start)
 
 
@@ -61,7 +63,9 @@ async def getting_links(message: types.Message):
 @dp.message_handler(commands=['manual'])
 async def getting_manual(message: types.Message):
     await bot_aiogram.send_message(chat_id=message.chat.id, text='Вот инструкция к этому боту', parse_mode='Markdown', reply_markup=markup_start)
-    await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{src_files}MANUAL.txt"))
+    await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{src}MANUAL.txt"))
+
+    logger.info(f"User {message.chat.id} received the instruction")
 
 
 def register_handlers_default_commands(dp: Dispatcher):  # noqa

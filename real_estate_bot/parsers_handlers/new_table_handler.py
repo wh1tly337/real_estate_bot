@@ -103,7 +103,7 @@ async def getting_site_selection(message: types.Message, state: FSMContext, stat
             message_text = 'Перейдите на сайт [Авито](https://www.avito.ru/ekaterinburg/nedvizhimost), настройте все необходимые Вам фильтры, скопируйте ссылку в адресной строке и отправьте ее мне'
             await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text, parse_mode='MarkdownV2', disable_web_page_preview=True, reply_markup=markup_quit)
         elif status_url == 'error':
-            message_text = 'Введена неверная ссылка. Пожалуйста проверьте правильность ссылки и отправьте ее мне.'
+            message_text = 'Введена неверная ссылка. Пожалуйста проверьте правильность ссылки и отправьте ее мне'
             await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text, parse_mode='Markdown', disable_web_page_preview=True, reply_markup=markup_quit)
             await state.finish()
 

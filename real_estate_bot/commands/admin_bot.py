@@ -43,6 +43,7 @@ async def admin_password_handler(message: types.Message, state: FSMContext):
     else:
         message_text = 'Неверный пароль. Чтобы попробовать заново введите /admin'
         await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text, parse_mode='Markdown', reply_markup=markup_start)
+        await state.finish()
 
 
 async def admin_panel_main(message: types.Message, state: FSMContext):
