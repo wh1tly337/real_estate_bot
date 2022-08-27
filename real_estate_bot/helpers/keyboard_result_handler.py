@@ -19,7 +19,6 @@ class Response(StatesGroup):
     continuation_handler = State()
     confidence_handler = State()
     safe_files_handler = State()
-    # quit_response = State()
 
 
 async def continuation_handler(message: types.Message, state: FSMContext):
@@ -96,18 +95,7 @@ async def safe_files_handler(message: types.Message, state: FSMContext):
                 await ac.close_connection()
 
 
-# async def force_quit(message: types.Message, state: FSMContext):
-#     quit_response = message.text
-#     await state.update_data(user_response=quit_response)
-#
-#     if quit_response == 'Завершить работу':
-#         await bot_aiogram.send_message(chat_id=message.chat.id, text='Вы уверены?', reply_markup=markup_sure)
-#
-#         await Answer.sure_response.set()
-
-
 def register_handlers_new_table(dp: Dispatcher):  # noqa
     dp.register_message_handler(confidence_handler, state=Response.confidence_handler)
     dp.register_message_handler(safe_files_handler, state=Response.safe_files_handler)
     dp.register_message_handler(continuation_handler, state=Response.continuation_handler)
-    # dp.register_message_handler(force_quit, state=Answer.quit_response)

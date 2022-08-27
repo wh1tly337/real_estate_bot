@@ -167,7 +167,7 @@ async def site_data_to_csv():
         glob.cursor.execute(
             f"""COPY advertisement TO '{src}pars_site.csv' (FORMAT CSV, HEADER TRUE, DELIMITER ';', ENCODING 'UTF8');"""
         )
-    # Скорее всего это не будет работать на сервере, нужно будет менять директорию на серверную
+    # Most likely, this will not work on the server, you will need to change the directory to the server one
 
 
 async def table_data_to_csv(table_name_upd):
@@ -175,7 +175,7 @@ async def table_data_to_csv(table_name_upd):
         glob.cursor.execute(
             f"""COPY update_ad TO '{table_name_upd}.csv' (FORMAT CSV, HEADER TRUE, DELIMITER ';', ENCODING 'UTF8');"""
         )
-    # Скорее всего это не будет работать на сервере, нужно будет менять директорию на серверную
+    # Most likely, this will not work on the server, you will need to change the directory to the server one
 
 
 async def delete_advertisement_table():
