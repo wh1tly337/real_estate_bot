@@ -41,7 +41,6 @@ async def table_parsing_main(message):
 
         for row in tqdm(range(max_row)):
             ad_id, ad_url_in_table, ad_old_price = await wwdb.get_data_from_data_base(from_where='else', row=row)
-            # maybe this stopper work not correctly
             if flag is False:
                 break
             else:

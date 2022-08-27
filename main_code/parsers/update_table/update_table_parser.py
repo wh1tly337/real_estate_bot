@@ -131,9 +131,14 @@ async def avito_table_parser(ad_url_in_table, ad_old_price, driver):
 
         logger.info('Advertisement deleted')
     else:
-        new_price = full_page['div'][0]['div'][1]['div'][1]['div'][1]['div'][0]['div'][0]['div'][0]['div'][0]
-        new_price = new_price['div'][0]['div'][0]['div'][0]['div'][0]['span'][0]['span'][0]['span'][0]['_value']
-        new_price = str(new_price).replace(' ', '')
+        try:
+            new_price = full_page['div'][0]['div'][1]['div'][1]['div'][1]['div'][0]['div'][0]['div'][0]['div'][0]
+            new_price = new_price['div'][0]['div'][0]['div'][0]['div'][0]['span'][0]['span'][0]['span'][0]['_value']
+            new_price = str(new_price).replace(' ', '')
+        except Exception:
+            new_price = full_page['div'][0]['div'][1]['div'][2]['div'][1]['div'][0]['div'][0]['div'][0]['div'][0]
+            new_price = new_price['div'][0]['div'][0]['div'][0]['div'][0]['span'][0]['span'][0]['span'][0]['_value']
+            new_price = str(new_price).replace(' ', '')
 
         await database_price_updater(new_price=new_price, ad_old_price=ad_old_price, ad_url_in_table=ad_url_in_table)
 
