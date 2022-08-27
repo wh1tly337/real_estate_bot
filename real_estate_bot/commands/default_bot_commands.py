@@ -58,6 +58,12 @@ async def getting_links(message: types.Message):
             \n• [Авито](https://www.avito.ru/ekaterinburg/nedvizhimost)', disable_web_page_preview=True, parse_mode='MarkdownV2', reply_markup=markup_start)
 
 
+@dp.message_handler(commands=['manual'])
+async def getting_manual(message: types.Message):
+    await bot_aiogram.send_message(chat_id=message.chat.id, text='Вот инструкция к этому боту', parse_mode='Markdown', reply_markup=markup_start)
+    await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{src_files}MANUAL.txt"))
+
+
 def register_handlers_default_commands(dp: Dispatcher):  # noqa
     dp.register_message_handler(start_message, commands=['start'])
     dp.register_message_handler(help_message, commands=['help'])
