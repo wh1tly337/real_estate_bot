@@ -35,11 +35,6 @@ btn1_first_question = types.KeyboardButton('Собрать новую инфор
 btn2_first_question = types.KeyboardButton('Обновить старую информацию')
 markup_first_question.add(btn1_first_question, btn2_first_question)
 
-markup_overflow = types.ReplyKeyboardMarkup(resize_keyboard=True)
-btn1_overflow = types.KeyboardButton('Поменять ссылку')
-btn2_overflow = types.KeyboardButton('Обработать 15 страниц')
-markup_overflow.add(btn1_overflow, btn2_overflow)
-
 markup_quit = types.ReplyKeyboardMarkup(resize_keyboard=True)
 btn1_quit = types.KeyboardButton('Завершить работу')
 markup_quit.add(btn1_quit)

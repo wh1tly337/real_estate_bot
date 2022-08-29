@@ -46,7 +46,7 @@ async def upn_site_parser(message, url_upn):
         bs2json().convert(response.find())['html']['head']['title']['text']).split('|')[1]))) / 25)
     if page_count > 15:
         page_count = 15
-        message_text = 'Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только 15 страниц'
+        message_text = 'Вы ввели ссылку с слишком большим количеством объявлений, поэтому я обработаю только первые 15 страниц'
         await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text)
 
     variables.possibility = True
@@ -114,7 +114,7 @@ async def cian_site_parser(message, url_cian):
                 continue
         if page_count > 15:  # noqa
             page_count = 15
-            message_text = 'Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только 15 страниц'
+            message_text = 'Вы ввели ссылку с слишком большим количеством объявлений, поэтому я обработаю только первые 15 страниц'
             await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text)
 
         url_next_page = 1
@@ -218,7 +218,7 @@ async def yandex_site_parser(message, url_yandex):
             url_next_page = url
         if page_count > 15:
             page_count = 15
-            message_text = 'Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только 15 страниц'
+            message_text = 'Вы ввели ссылку с слишком большим количеством объявлений, поэтому я обработаю только первые 15 страниц'
             await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text)
 
         variables.possibility = True
@@ -324,7 +324,7 @@ async def avito_site_parser(message, url_avito):
                     continue
         if page_count > 15:
             page_count = 15
-            message_text = 'Вы ввели ссылку с слишком большим количеством объявлений. Более точно настройте фильтры или оставьте все так, но я обработаю только 15 страниц'
+            message_text = 'Вы ввели ссылку с слишком большим количеством объявлений, поэтому я обработаю только первые 15 страниц'
             await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text)
 
         variables.possibility = True
