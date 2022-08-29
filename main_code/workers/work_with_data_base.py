@@ -94,7 +94,6 @@ async def add_data_to_data_base():
 
 
 async def create_advertisement_table():
-    # Create new advertisement table
     with glob.connection.cursor() as glob.cursor:
         glob.cursor.execute(
             """CREATE TABLE advertisement(
@@ -110,7 +109,6 @@ async def create_advertisement_table():
 
 
 async def create_update_ad_table():
-    # Create new update_ad table
     with glob.connection.cursor() as glob.cursor:
         glob.cursor.execute(
             """CREATE TABLE update_ad(
@@ -167,7 +165,6 @@ async def site_data_to_csv():
         glob.cursor.execute(
             f"""COPY advertisement TO '{src}pars_site.csv' (FORMAT CSV, HEADER TRUE, DELIMITER ';', ENCODING 'UTF8');"""
         )
-    # Most likely, this will not work on the server, you will need to change the directory to the server one
 
 
 async def table_data_to_csv(table_name_upd):
@@ -175,11 +172,9 @@ async def table_data_to_csv(table_name_upd):
         glob.cursor.execute(
             f"""COPY update_ad TO '{table_name_upd}.csv' (FORMAT CSV, HEADER TRUE, DELIMITER ';', ENCODING 'UTF8');"""
         )
-    # Most likely, this will not work on the server, you will need to change the directory to the server one
 
 
 async def delete_advertisement_table():
-    # Delete advertisement table
     with glob.connection.cursor() as glob.cursor:
         glob.cursor.execute(
             """DROP TABLE advertisement;"""
@@ -189,7 +184,6 @@ async def delete_advertisement_table():
 
 
 async def delete_update_ad_table():
-    # Delete update_ad table
     with glob.connection.cursor() as glob.cursor:
         glob.cursor.execute(
             """DROP TABLE update_ad;"""
