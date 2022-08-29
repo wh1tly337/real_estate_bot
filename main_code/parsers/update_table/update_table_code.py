@@ -1,0 +1,122 @@
+import asyncio
+
+from bob_telegram_tools.bot import TelegramBot
+from bob_telegram_tools.utils import TelegramTqdm
+from loguru import logger
+
+from main_code.workers import work_with_data_base as wwdb, work_with_files as wwf
+from main_code.connectors import all_connections as ac
+from main_code.parsers.update_table import update_table_parser as utp
+from real_estate_bot.helpers import (
+    helper as h,
+    variables
+)
+
+
+async def table_parsing_start():
+    try:
+        try:
+            await wwdb.create_update_ad_table()
+
+        except Exception:
+            await wwdb.delete_update_ad_table()
+            await wwdb.create_update_ad_table()
+
+    except Exception as ex:
+        logger.error(ex)
+
+
+async def table_parsing_main(message):
+    try:
+        bot_tqdm = TelegramBot('5432400118:AAFgz1QNbckgmQ7X1jbEu87S2ZdhV6vU1m0', message.chat.id)
+        tqdm = TelegramTqdm(bot_tqdm)
+
+        logger.info(f"{message.chat.id} | Table update start")
+
+        await wwf.file_format_reformatting()
+        await wwdb.add_data_to_data_base()
+
+        max_row = await wwdb.get_data_from_data_base(from_where='max_row', row=None)
+        requirement, variables.driver, flag = False, None, True
+
+        for row in tqdm(range(max_row)):
+            ad_id, ad_url_in_table, ad_old_price = await wwdb.get_data_from_data_base(from_where='else', row=row)
+            if flag is False:
+                break
+            else:
+                if ad_url_in_table[:14] == 'https://upn.ru':
+                    try:
+                        await utp.upn_table_parser(ad_url_in_table=ad_url_in_table, ad_old_price=ad_old_price)
+
+                    except Exception as ex:
+                        await asyncio.sleep(5)
+                        logger.error(ex)
+                        flag = False
+                        break
+
+                elif ad_url_in_table[:19] == 'https://ekb.cian.ru':
+                    if variables.driver is None:
+                        variables.driver = await ac.add_driver()
+
+                    requirement = True
+
+                    try:
+                        await utp.cian_table_parser(ad_url_in_table=ad_url_in_table, ad_old_price=ad_old_price, driver=variables.driver)
+
+                    except Exception as ex:
+                        await asyncio.sleep(5)
+                        logger.error(ex)
+                        flag = False
+                        break
+
+                elif ad_url_in_table[:24] == 'https://realty.yandex.ru':
+                    if variables.driver is None:
+                        variables.driver = await ac.add_driver()
+
+                    requirement = True
+
+                    try:
+                        await utp.yandex_table_parser(ad_url_in_table=ad_url_in_table, ad_old_price=ad_old_price, driver=variables.driver)
+
+                    except Exception as ex:
+                        await asyncio.sleep(5)
+                        logger.error(ex)
+                        flag = False
+                        break
+
+                elif ad_url_in_table[:20] == 'https://www.avito.ru':
+                    if variables.driver is None:
+                        variables.driver = await ac.add_driver()
+
+                    requirement = True
+
+                    try:
+                        await utp.avito_table_parser(ad_url_in_table=ad_url_in_table, ad_old_price=ad_old_price, driver=variables.driver)
+
+                    except Exception as ex:
+                        await asyncio.sleep(5)
+                        logger.error(ex)
+                        flag = False
+                        break
+
+        if requirement:
+            await ac.close_driver()
+
+        if flag:
+            await table_parsing_finish()
+            await h.update_table_end_with_settings(message)
+
+            logger.info(f"{message.chat.id} | Table successfully updated")
+
+    except Exception as ex:
+        logger.error(ex)
+
+
+async def table_parsing_finish():
+    try:
+        from real_estate_bot.helpers import variables
+
+        await wwdb.table_data_to_csv(variables.table_name_upd)
+
+    except Exception as ex:
+        logger.error(ex)
