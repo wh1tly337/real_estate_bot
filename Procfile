@@ -1,1 +1,1 @@
-worker: python main_bot.py
+worker: python real_estate_bot/main_bot.py
