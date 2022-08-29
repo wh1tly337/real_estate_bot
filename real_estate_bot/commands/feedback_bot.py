@@ -26,7 +26,8 @@ async def feedback_handler(message: types.Message, state: FSMContext):
         await bot_aiogram.send_message(chat_id=message.chat.id, text='Спасибо за отзыв!', parse_mode='Markdown', reply_markup=markup_start)
         message_text = f"Отзыв от {message.from_user.full_name} / {message.from_user.username}\nid: {message.chat.id}\n\n{feedback_response}"
         await bot_aiogram.send_message(chat_id=admin_id, text=message_text, parse_mode='HTML', reply_markup=markup_start)
-        logger.info('Received a feedback')
+
+        logger.info(f"User - {message.chat.id} received a feedback")
 
     await state.finish()
 

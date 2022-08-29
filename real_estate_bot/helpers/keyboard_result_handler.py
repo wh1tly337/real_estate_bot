@@ -26,10 +26,10 @@ async def continuation_handler(message: types.Message, state: FSMContext):
     await state.update_data(user_response=continue_response)
 
     if continue_response == 'Да':
-        await nth.new_table_creating(message, call=1)
+        variables.call = 1
+        await nth.new_table_creating(message)
     elif continue_response == 'Нет':
-        await h.site_parser_end_with_settings(message)
-        await state.finish()
+        await h.new_table_end_with_settings(message, state)
 
 
 # noinspection DuplicatedCode
@@ -72,11 +72,10 @@ async def safe_files_handler(message: types.Message, state: FSMContext):
 
     if safe_file_response == 'Да, хочу':
         if variables.task == 'new_table':
-            await h.site_parser_end_with_settings(message)
-            await state.finish()
+            await h.new_table_end_with_settings(message, state)
         elif variables.task == 'update_table':
             await utc.table_parsing_finish()
-            await h.table_parser_end_with_settings(message)
+            await h.update_table_end_with_settings(message)
             await state.finish()
     elif safe_file_response == 'Нет, не хочу':
         if variables.task == 'new_table':

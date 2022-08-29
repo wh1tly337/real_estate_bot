@@ -80,7 +80,7 @@ async def file_sender(message: types.Message):
     await req_to_upd_db(message)
 
 
-async def table_parser_end_with_settings(message: types.Message):
+async def update_table_end_with_settings(message: types.Message):
     user_settings = await wwdb.get_user_settings(user_id=message.chat.id)
     if user_settings == 'None':
         await bot_aiogram.send_message(chat_id=message.chat.id, text='Вся информация обновлена. В каком формате вы хотите получить результат?',
@@ -100,7 +100,7 @@ async def table_parser_end_with_settings(message: types.Message):
             await end_of_work(message)
 
 
-async def site_parser_end_with_settings(message: types.Message):
+async def new_table_end_with_settings(message: types.Message, state: FSMContext):
     user_settings = await wwdb.get_user_settings(user_id=message.chat.id)
     if user_settings == 'None':
         await bot_aiogram.send_message(chat_id=message.chat.id, text='Отлично! В каком формате вы хотите получить результат?', reply_markup=markup_result)
@@ -118,6 +118,7 @@ async def site_parser_end_with_settings(message: types.Message):
             await bot_aiogram.send_message(chat_id=message.chat.id, text=f"Ваш .{user_settings} файл", reply_markup=markup_start)
             await bot_aiogram.send_document(chat_id=message.chat.id, document=open(f"{src}{await wwf.creating_filename(freshness='load')}.{user_settings}", 'rb'))
             await end_of_work(message)
+        await state.finish()
 
 
 async def end_of_work(message: types.Message):

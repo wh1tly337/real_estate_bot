@@ -8,7 +8,7 @@ import html_to_json
 import requests
 from bs2json import bs2json
 from bs4 import BeautifulSoup
-from loguru import logger
+# from loguru import logger
 
 from auxiliary.req_data import *
 from real_estate_bot.helpers import variables
@@ -25,19 +25,19 @@ async def database_price_updater(new_price, ad_old_price, ad_url_in_table):
         with glob.connection.cursor() as glob.cursor:
             glob.cursor.execute(f""" UPDATE update_ad SET status = 'Active_upd' WHERE url = '{ad_url_in_table}';""")
 
-        logger.info('Price don`t changed')
+        # logger.info('Price don`t changed')
     elif change > 0:
         with glob.connection.cursor() as glob.cursor:
             glob.cursor.execute(f""" UPDATE update_ad SET price = '{f'↓{str(new_price)}'}' WHERE url = '{ad_url_in_table}';""")
             glob.cursor.execute(f""" UPDATE update_ad SET status = 'Updated' WHERE url = '{ad_url_in_table}';""")
 
-        logger.info(f"Price update successfully | {f'↓ {str(new_price)}'}")
+        # logger.info(f"Price update successfully | {f'↓ {str(new_price)}'}")
     else:
         with glob.connection.cursor() as glob.cursor:
             glob.cursor.execute(f""" UPDATE update_ad SET price = '{f'↑{str(new_price)}'}' WHERE url = '{ad_url_in_table}';""")
             glob.cursor.execute(f""" UPDATE update_ad SET status = 'Updated' WHERE url = '{ad_url_in_table}';""")
 
-        logger.info(f"Price update successfully | {f'↑ {str(new_price)}'}")
+        # logger.info(f"Price update successfully | {f'↑ {str(new_price)}'}")
 
 
 async def upn_table_parser(ad_url_in_table, ad_old_price):
@@ -52,7 +52,7 @@ async def upn_table_parser(ad_url_in_table, ad_old_price):
         with glob.connection.cursor() as glob.cursor:
             glob.cursor.execute(f"""UPDATE update_ad SET status = 'DELETED' WHERE url = '{ad_url_in_table}';""")
 
-        logger.info('Advertisement deleted')
+        # logger.info('Advertisement deleted')
     else:
         new_price = bs2json().convert(response.find())['html']['body']['div'][4]['main']['div']['div']['div']['span'][0]['meta'][3]['attributes']['content']
 
@@ -74,7 +74,7 @@ async def cian_table_parser(ad_url_in_table, ad_old_price, driver):
         with glob.connection.cursor() as glob.cursor:
             glob.cursor.execute(f"""UPDATE update_ad SET status = 'DELETED' WHERE url = '{ad_url_in_table}';""")
 
-        logger.info('Advertisement deleted')
+        # logger.info('Advertisement deleted')
     else:
         new_price = full_page['div'][2]['div'][0]['div'][0]['div'][0]['div'][1]['div'][0]['div'][0]['div'][0]['span'][0]['span'][0]['_value']
         new_price = str(new_price).replace(' ', '')[:-1]
@@ -97,7 +97,7 @@ async def yandex_table_parser(ad_url_in_table, ad_old_price, driver):
         with glob.connection.cursor() as glob.cursor:
             glob.cursor.execute(f"""UPDATE update_ad SET status = 'DELETED' WHERE url = '{ad_url_in_table}';""")
 
-        logger.info('Advertisement deleted')
+        # logger.info('Advertisement deleted')
     else:
         new_price = full_page['div'][1]['h1'][0]['span'][0]['_value']
         new_price = str(new_price).replace(' ', '')[:-1]
@@ -120,12 +120,16 @@ async def avito_table_parser(ad_url_in_table, ad_old_price, driver):
             availability = html_to_json.convert(variables.driver.page_source)['html'][0]['body'][0]['div'][1]['div'][0]['div'][0]['h1'][0]['_value']
 
         except Exception:
-            availability = 1
+            try:
+                availability = html_to_json.convert(driver.page_source)['html'][0]['body'][0]['div'][2]['div'][0]['div'][0]['div'][0]['div'][1]['div'][1]['div'][0]['a'][0]['span'][0]['_value']
+
+            except Exception:
+                availability = 1
     if availability in {'Объявление снято с публикации.', 'Ой! Такой страницы на нашем сайте нет :('}:
         with glob.connection.cursor() as glob.cursor:
             glob.cursor.execute(f"""UPDATE update_ad SET status = 'DELETED' WHERE url = '{ad_url_in_table}';""")
 
-        logger.info('Advertisement deleted')
+        # logger.info('Advertisement deleted')
     else:
         try:
             new_price = full_page['div'][0]['div'][1]['div'][1]['div'][1]['div'][0]['div'][0]['div'][0]['div'][0]

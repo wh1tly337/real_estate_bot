@@ -18,11 +18,11 @@ class Response(StatesGroup):
     site_link_handler = State()
 
 
-async def new_table_creating(message: types.Message, call=0):
+async def new_table_creating(message: types.Message):
     variables.task = 'new_table'
     variables.possibility = True
 
-    if call == 0:
+    if variables.call == 0:
         with contextlib.suppress(Exception):
             await ac.start_connection()
         await ntc.site_parsing_start()
@@ -44,10 +44,15 @@ async def site_selection_handler(message: types.Message, state: FSMContext):
     elif site_selection_response == 'Авито':
         await getting_site_selection(message, state, status_url='avito')
     elif site_selection_response == 'Завершить работу':
-        await bot_aiogram.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_start)
-        await state.finish()
-        with contextlib.suppress(Exception):
-            await ac.close_connection()
+        if variables.call == 0:
+            await bot_aiogram.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_start)
+            await state.finish()
+            with contextlib.suppress(Exception):
+                await ac.close_connection()
+        else:
+            await bot_aiogram.send_message(chat_id=message.chat.id, text='Вы уверены?', reply_markup=markup_confidence)
+
+            await krh.Response.confidence_handler.set()
 
 
 async def site_link_handler(message: types.Message, state: FSMContext):

@@ -10,8 +10,18 @@ from real_estate_bot.parsers_handlers import (
     new_table_handler as nth,
     update_table_handler as uth
 )
-from real_estate_bot.helpers import helper as h, keyboard_result_handler as krh, variables
-from real_estate_bot.commands import admin_bot as ab, communication_bot as cb, default_bot_commands as dbc, feedback_bot as fb, user_setings as us
+from real_estate_bot.helpers import (
+    helper as h,
+    keyboard_result_handler as krh,
+    variables
+)
+from real_estate_bot.commands import (
+    admin_bot as ab,
+    communication_bot as cb,
+    default_bot_commands as dbc,
+    feedback_bot as fb,
+    user_setings as us
+)
 
 logger.add(f"{src_logger}logger.txt", format='{time} | {level} | {message}', rotation='00:00', compression='zip')
 
@@ -33,7 +43,8 @@ async def text_handler(message: types.Message):
             await bot_aiogram.send_message(chat_id=message.chat.id, text='Что вы хотите сделать?', reply_markup=markup_first_question)
         elif message.text == 'Собрать новую информацию':
             variables.task = 'fast_quit'
-            await nth.new_table_creating(message, call=0)
+            variables.call = 0
+            await nth.new_table_creating(message)
         elif message.text == 'Обновить старую информацию':
             variables.task = 'fast_quit'
             await uth.update_table_start(message)

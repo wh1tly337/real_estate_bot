@@ -104,7 +104,7 @@ async def table_parsing_main(message):
 
         if flag:
             await table_parsing_finish()
-            await h.table_parser_end_with_settings(message)
+            await h.update_table_end_with_settings(message)
 
             logger.info(f"{message.chat.id} | Table successfully updated")
 

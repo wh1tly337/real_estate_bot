@@ -338,8 +338,8 @@ async def avito_site_parser(message, url_avito):
                 full_page = html_to_json.convert(variables.driver.page_source)['html'][0]['body'][0]['div'][0]['div'][0]
                 for index in range(10):
                     try:
-                        sp = index
                         ads_count = len(full_page['div'][2]['div'][2]['div'][2]['div'][index]['div'][0]['div'])
+                        sp = index
 
                     except Exception:
                         continue
