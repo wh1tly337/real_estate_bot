@@ -7,8 +7,10 @@ admin_password = '8361'
 bot_aiogram = Bot(token='5432400118:AAFgz1QNbckgmQ7X1jbEu87S2ZdhV6vU1m0')
 dp = Dispatcher(bot_aiogram, storage=MemoryStorage())
 
-src = 'Users/user/PycharmProjects/Parser/files/'
-src_logger = 'Users/user/PycharmProjects/Parser/logger/'
+# src = 'Users/user/PycharmProjects/Parser/files/'
+# src_logger = 'Users/user/PycharmProjects/Parser/logger/'
+src = 'files/'
+src_logger = 'logger/'
 
 headers = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.5 Safari/605.1.15',
