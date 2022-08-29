@@ -13,3 +13,4 @@ psycopg2~=2.9.3
 bob-telegram-tools~=1.1.0
 html-to-json~=2.0.0
 tqdm~=4.64.0
+lxml~=4.9.0

@@ -1,6 +1,5 @@
 import asyncio
 import itertools
-# import lxml
 import math
 import random
 import re

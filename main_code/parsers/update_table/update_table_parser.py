@@ -1,6 +1,5 @@
 import asyncio
 import contextlib
-# import lxml
 import glob
 import random
 
