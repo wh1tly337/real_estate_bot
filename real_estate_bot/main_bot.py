@@ -60,7 +60,7 @@ async def text_handler(message: types.Message):
         else:
             with contextlib.suppress(Exception):
                 await ntc.site_parsing_finish(req_res='error')
-            await bot_aiogram.send_message(chat_id=message.chat.id, text='Таких команд я не знаю.\nПопробуй воспользоваться /help', reply_markup=markup_start)
+            await bot_aiogram.send_message(chat_id=message.chat.id, text='Таких команд я не знаю.\nПопробуйте воспользоваться /help', reply_markup=markup_start)
 
     except Exception as ex:
         logger.error(ex)

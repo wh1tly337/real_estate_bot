@@ -16,8 +16,8 @@ class Response(StatesGroup):
 
 async def settings_start(message: types.Message):
     message_text = \
-        'Вы можете выбрать в каком формате будете получать результаты работы, чтобы каждый раз не выбирать его во время работы.\
-        \nПотом этот выбор можно будет всегда поменять или отменить в этих же настройках'
+        'Вы можете выбрать в каком формате будете получать результаты работы, чтобы каждый раз этого не делать.\
+        \nЭтот выбор можно будет всегда поменять или отменить в этих же настройках'
     await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text, parse_mode='Markdown', reply_markup=markup_settings)
     await Response.settings_handler.set()
 
@@ -31,26 +31,26 @@ async def settings_handler(message: types.Message, state: FSMContext):
     if settings_response == '.csv':
         settings_response = 'csv'
         await wwdb.update_user_data_settings(settings_format=settings_response, user_id=message.chat.id)
-        message_text = 'Отлично! Теперь все результаты моей работы будут приходить в .csv формате.\nВы всегда можете это поменять в настройках'
+        message_text = 'Теперь все результаты работы бота будут приходить в .csv формате.\nВы всегда можете это поменять в настройках'
     elif settings_response == '.xlsx':
         settings_response = 'xlsx'
         await wwdb.update_user_data_settings(settings_format=settings_response, user_id=message.chat.id)
-        message_text = 'Отлично! Теперь все результаты моей работы будут приходить в .xlsx формате.\nВы всегда можете это поменять в настройках'
+        message_text = 'Теперь все результаты работы бота будут приходить в .xlsx формате.\nВы всегда можете это поменять в настройках'
     elif settings_response == '.txt':
         settings_response = 'txt'
         await wwdb.update_user_data_settings(settings_format=settings_response, user_id=message.chat.id)
-        message_text = 'Отлично! Теперь все результаты моей работы будут приходить в .txt формате.\nВы всегда можете это поменять в настройках'
+        message_text = 'Теперь все результаты работы бота будут приходить в .txt формате.\nВы всегда можете это поменять в настройках'
     elif settings_response == 'Все форматы':
         settings_response = 'all'
         await wwdb.update_user_data_settings(settings_format=settings_response, user_id=message.chat.id)
-        message_text = 'Отлично! Теперь по окончании работы я буду присылать вам файлы во всех форматах.\nВы всегда можете это поменять в настройках'
+        message_text = 'Теперь по окончании работы бот будет присылать вам файлы во всех форматах.\nВы всегда можете это поменять в настройках'
     elif settings_response == 'Буду выбирать каждый раз':
         settings_response = None
         await wwdb.update_user_data_settings(settings_format=settings_response, user_id=message.chat.id)
-        message_text = 'Отлично! Теперь по окончании работы я каждый раз буду спрашивать у вас в каком формате отправить файл.\nВы всегда можете это поменять в настройках'
+        message_text = 'Теперь по окончании работы бот каждый раз буду спрашивать у вас в каком формате отправить файл.\nВы всегда можете это поменять в настройках'
     else:
         point = False
-        message_text = 'Такой настойки нет. Попробуйте воспользоваться функцией еще раз. Лучше всего полбзоваться кнопками внизу клавиатуры'
+        message_text = 'Такой настройки нет. Попробуйте воспользоваться функцией еще раз. Лучше всего полбзоваться кнопками внизу клавиатуры'
 
     await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text, parse_mode='Markdown', reply_markup=markup_start)
 

@@ -43,7 +43,7 @@ async def confidence_handler(message: types.Message, state: FSMContext):
             check = await wwdb.get_data_from_data_base(from_where='check', row=None)
 
             if int(check) != 0:
-                await bot_aiogram.send_message(chat_id=message.chat.id, text='Хотите получить объявления которые я успел найти?', reply_markup=markup_save_file)
+                await bot_aiogram.send_message(chat_id=message.chat.id, text='Хотите получить объявления которые бот успел найти?', reply_markup=markup_save_file)
                 await Response.safe_files_handler.set()
             else:
                 await bot_aiogram.send_message(chat_id=message.chat.id, text='Хорошо', reply_markup=markup_start)

@@ -103,7 +103,7 @@ async def update_table_end_with_settings(message: types.Message):
 async def new_table_end_with_settings(message: types.Message, state: FSMContext):
     user_settings = await wwdb.get_user_settings(user_id=message.chat.id)
     if user_settings == 'None':
-        await bot_aiogram.send_message(chat_id=message.chat.id, text='Отлично! В каком формате вы хотите получить результат?', reply_markup=markup_result)
+        await bot_aiogram.send_message(chat_id=message.chat.id, text='В каком формате вы хотите получить результат?', reply_markup=markup_result)
         await Response.file_format_handler.set()
     elif variables.task == 'new_table':
         await ntc.site_parsing_finish(req_res=user_settings)

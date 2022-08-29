@@ -36,12 +36,12 @@ async def admin_password_handler(message: types.Message, state: FSMContext):
             await Response.admin_panel_main.set()
         else:
             logger.info(f"Fake admin ({message.chat.id}) logged in. Need to change password!")
-            message_text = 'Попытка хорошая, но вы не админ, так что даже не пытайтесь)'
+            message_text = 'Вы не являетесь админом, так что и доступа у вас нет'
             await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text, parse_mode='Markdown', reply_markup=markup_start)
-            message_text = f"Нас взломали! Нужно менять пароль!\nВзломщик - {message.chat.id}"
+            message_text = f"Пользователь пытался зайти в панель админа. Нужно поменять пароль.\nПользователь - {message.chat.id}"
             await bot_aiogram.send_message(chat_id=admin_id, text=message_text, parse_mode='Markdown', reply_markup=markup_admin)
     else:
-        message_text = 'Неверный пароль. Чтобы попробовать заново введите /admin'
+        message_text = 'Неверный пароль. Чтобы повторной попытки введите /admin'
         await bot_aiogram.send_message(chat_id=message.chat.id, text=message_text, parse_mode='Markdown', reply_markup=markup_start)
         await state.finish()
 

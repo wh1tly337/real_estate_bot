@@ -37,8 +37,9 @@ async def communication_message_handler(message: types.Message, state: FSMContex
         await state.finish()
     else:
         await bot_aiogram.send_message(chat_id=message.chat.id, text='Сообщение отправлено', parse_mode='Markdown', reply_markup=markup_start)
-        message_text = f"Сообщение от админа этого бота:\n\n{communication_message_response}"
+        message_text = f"Сообщение от администратора этого бота:\n\n{communication_message_response}"
         await bot_aiogram.send_message(chat_id=communication_id_response, text=message_text, parse_mode='Markdown', reply_markup=markup_communication)
+
         logger.info(f"Communication has been made with {communication_id_response}")
 
     await state.finish()
