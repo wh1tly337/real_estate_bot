@@ -67,10 +67,9 @@ async def text_handler(message: types.Message):
 
 
 if __name__ == '__main__':
-    while True:
-        try:
-            logger.info('Bot successfully started')
-            executor.start_polling(dp)
-
-        except Exception:
-            continue
+    # while True:
+    #     try:
+    logger.info('Bot successfully started')
+    executor.start_polling(dp)
+    # except Exception:
+    #     continue
