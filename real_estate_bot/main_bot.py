@@ -71,5 +71,6 @@ if __name__ == '__main__':
         try:
             logger.info('Bot successfully started')
             executor.start_polling(dp)
+
         except Exception:
             continue
